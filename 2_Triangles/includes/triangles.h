@@ -4,6 +4,12 @@ using namespace std;
 
 const double accurasy = 0.0001;
 
+inline bool isEqual(double first, double second) {
+    if (abs(first - second) <= accurasy)
+        return 1;
+    return 0;
+}
+
 struct coord_t {
     double x;
     double y;
@@ -37,12 +43,19 @@ class vector_t {
         return 0;
     }
 
-    vector_t constMult(const double mul) const {
-        double x = coord.x * mul;
-        double y = coord.y * mul;
-        double z = coord.z * mul;
+    bool isParallel(const vector_t& vec) const {
+        double kX = coord.x / vec.coord.x;
+        double kY = coord.y / vec.coord.y;
+        double kZ = coord.z / vec.coord.z;
 
-        vector_t res(x, y, z);
+        if ((abs(kX - kY) <= accurasy) && (abs(kX - kZ) <= accurasy))
+            return 1;
+        return 0;
+    }
+
+    vector_t normal() const {
+        coord_t thisCoord = this->getCoord();
+        vector_t res(thisCoord.y, -thisCoord.x, 0);
         return res;
     }
 
@@ -59,7 +72,16 @@ class vector_t {
         return res;
     }
 
-    vector_t operator+(vector_t& vec) {
+    vector_t operator*(const double mul) const {
+        double x = coord.x * mul;
+        double y = coord.y * mul;
+        double z = coord.z * mul;
+
+        vector_t res(x, y, z);
+        return res;
+    }
+
+    vector_t operator+(vector_t vec) {
         double x = coord.x + vec.coord.x;
         double y = coord.y + vec.coord.y;
         double z = coord.z + vec.coord.z;
@@ -68,7 +90,7 @@ class vector_t {
         return res;
     }
 
-    vector_t operator-(vector_t& vec) {
+    vector_t operator-(vector_t vec) {
         double x = coord.x - vec.coord.x;
         double y = coord.y - vec.coord.y;
         double z = coord.z - vec.coord.z;
@@ -147,7 +169,35 @@ class line_t {
     }
 
     vector_t normal() const {
+        coord_t aCoord = lineData.a.getCoord();
+        vector_t res(aCoord.y, -aCoord.x, aCoord.z);
+        return res;
+    }
 
+    double getT(const point_t& pt) const {
+        vector_t ptVec = pt.toVector();
+        vector_t linePtVec = lineData.linePt.toVector();
+
+        vector_t tmp = ptVec - linePtVec;
+
+        coord_t tmpCoord = tmp.getCoord();
+        coord_t dirCoord = lineData.a.getCoord();
+
+        double t = tmpCoord.x / dirCoord.x;
+        return t;
+    }
+
+    point_t projOfPoint(const point_t& pt) const {
+        vector_t ptVec = pt.toVector();
+        vector_t linePtVec = lineData.linePt.toVector();
+
+        double tmpCoeff = lineData.a.scalarMult(linePtVec - ptVec) / lineData.a.scalarMult(lineData.a);
+        vector_t resVec = linePtVec - lineData.a * tmpCoeff;
+        
+        coord_t resCoord = resVec.getCoord();
+        point_t resPt(resCoord.x, resCoord.y, resCoord.z);
+
+        return resPt;
     }
 };
 
@@ -167,14 +217,12 @@ class plate_t {
         vector_t secondVec = secondPt.toVector();
         vector_t therdVec  = therdPt.toVector();
 
-        vector_t tmp = (secondVec - firstVec).vectorMult(therdVec - firstVec);
-        coord_t tmpCoord = tmp.getCoord();
-        double normalCoeff = sqrt(tmpCoord.x * tmpCoord.x + tmpCoord.y * tmpCoord.y + tmpCoord.z * tmpCoord.z);
-        tmpCoord.x /= normalCoeff;
-        tmpCoord.y /= normalCoeff;
-        tmpCoord.z /= normalCoeff;
+        vector_t norm = (secondVec - firstVec).vectorMult(therdVec - firstVec);
 
-        vector_t norm(tmpCoord.x, tmpCoord.y, tmpCoord.z);
+        coord_t normCoord = norm.getCoord();
+        double normalCoeff = sqrt(normCoord.x * normCoord.x + normCoord.y * normCoord.y + normCoord.z * normCoord.z);
+
+        norm * (1/normalCoeff);
 
         pltData.n.copy(norm);
         pltData.platePt.copy(firstPt);
@@ -213,15 +261,20 @@ class plate_t {
         return r;
     }
 
-    point_t projOfPt(const point_t& pt) const {
+    point_t projOfPoint(const point_t& pt) const {
         plateData_t pltData = this->getData();
         vector_t thisVec = pt.toVector();
 
-        vector_t projVec = thisVec - pltData.n.constMult((thisVec.scalarMult(pltData.n) + pltData.d));
+        vector_t projVec = thisVec - pltData.n * (thisVec.scalarMult(pltData.n) + pltData.d);
         coord_t vecCoord = projVec.getCoord();
 
-        point_t pt(vecCoord.x, vecCoord.y, vecCoord.z);
-        return pt;
+        point_t projPt(vecCoord.x, vecCoord.y, vecCoord.z);
+        return projPt;
+    }
+
+    vector_t projOfVector( vector_t& vec) const {
+        vector_t projVec = vec - pltData.n * (vec.scalarMult(pltData.n));
+        return projVec;
     }
 
     line_t intsectOf2Plt(const plate_t& plt) const {
@@ -243,7 +296,7 @@ class plate_t {
         double b = (s1 * pltData.n.scalarMult(plt.pltData.n) - s2 * pltData.n.scalarMult(pltData.n)) / 
                     (pltData.n.scalarMult(plt.pltData.n) * pltData.n.scalarMult(plt.pltData.n) - pltData.n.scalarMult(pltData.n) * plt.pltData.n.scalarMult(plt.pltData.n));
 
-        vector_t commVec = pltData.n.constMult(a) + plt.pltData.n.constMult(b);
+        vector_t commVec = pltData.n * a + plt.pltData.n * b;
         coord_t coords = commVec.getCoord();
         point_t commPt(coords.x, coords.y, coords.z);
 
@@ -262,6 +315,41 @@ struct trianglePt_t {
 class triangle_t {
     trianglePt_t trianglePt{{NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}};
 
+    bool checkSepAxe(const line_t& edge, const triangle_t& triang, const plate_t& plt) const {
+        vector_t normFirst = edge.normal();
+        vector_t projNorm  = plt.projOfVector(normFirst);
+
+        //TODO: check projNorm
+
+        line_t normal(projNorm, trianglePt.first);
+
+        point_t projVert  = normal.projOfPoint(trianglePt.second);
+        double vertT = normal.getT(projVert);
+
+        point_t projVert1 = normal.projOfPoint(triang.trianglePt.first);
+        double vert1T = normal.getT(projVert1);
+        // same sign
+        if (vertT * vert1T > 0)
+            return 1;
+        
+        point_t projVert2 = normal.projOfPoint(triang.trianglePt.second);
+        double vert2T = normal.getT(projVert2);
+        // same sign
+        if (vertT * vert2T > 0)
+            return 1;
+
+        point_t projVert3 = normal.projOfPoint(triang.trianglePt.third);
+        double vert3T = normal.getT(projVert2);
+        // same sign
+        if (vertT * vert3T > 0)
+            return 1;
+
+        // all different sign
+        return 0;
+    }
+
+
+
     public:
     triangle_t(point_t pt1, point_t pt2, point_t pt3) : trianglePt{{NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}} {
         trianglePt.first.copy(pt1);
@@ -270,15 +358,36 @@ class triangle_t {
     }
 
     triangle_t projOntoPlt(const plate_t& plt) {
-        point_t projFirst  = plt.projOfPt(trianglePt.first);
-        point_t projSecond = plt.projOfPt(trianglePt.second);
-        point_t projThird  = plt.projOfPt(trianglePt.third);
+        point_t projFirst  = plt.projOfPoint(trianglePt.first);
+        point_t projSecond = plt.projOfPoint(trianglePt.second);
+        point_t projThird  = plt.projOfPoint(trianglePt.third);
 
         triangle_t triangle(projFirst, projSecond, projThird);
         return triangle;
     }
 
-    bool intersection2D(const triangle_t& triang) const {
+    bool isIntersection2D(const triangle_t& triang, const plate_t& plt) const {
+        line_t firstEdge (trianglePt.first, trianglePt.second);
+        line_t secondEdge(trianglePt.second, trianglePt.third);
+        line_t thirdEdge (trianglePt.third, trianglePt.first);
 
+        bool chk = checkSepAxe(firstEdge, triang, plt);
+        // found intersection
+        if(chk)
+            return 1;
+
+        chk = checkSepAxe(secondEdge, triang, plt);
+        // found intersection
+        if(chk)
+            return 1;
+
+        chk = checkSepAxe(thirdEdge, triang, plt);
+        // found intersection
+        if(chk)
+            return 1;
+
+        // not found intersection
+        return 0;
     }
 };
+
