@@ -1,6 +1,12 @@
 #include "triangles.h"
 #include <gtest/gtest.h>
 
+inline bool isEqual(double first, double second) {
+    if (abs(first - second) <= accurasy)
+        return 1;
+    return 0;
+}
+
 // VECTOR TESTS
 TEST(vectorTest, Initialization) {
     vector_t vec(2, -6, 8);
@@ -195,6 +201,52 @@ TEST(lineTest, OnLine) {
     EXPECT_EQ(1, line1.onLine(pt5));
 }
 
+TEST(lineTest, CrossingTest) {
+    point_t pt1(1.5, -4, 8.25);
+    point_t pt2(7, 10, -4.25);
+
+    line_t line1(pt1, pt2);
+
+    point_t pt3(5, 3, -0.15);
+    point_t pt4(15.15481, 27.08125, -23.64151);
+
+    line_t line2(pt3, pt4);
+
+    point_t res1 = line1.isCross(line2);
+    point_t trueRes1(-5.96909, -23.01222, 25.22519);
+    EXPECT_EQ(1, line1.onLine(res1));
+    EXPECT_EQ(1, line2.onLine(res1));
+    EXPECT_EQ(1, res1.isEqual(trueRes1));
+
+    point_t pt5(2.96185, 3.08935, 5.71354);
+
+    line_t line3(pt3, pt5);
+
+    point_t res2 = line3.isCross(line1);
+    point_t trueRes2(4.2627, 3.03232, 1.97114);
+    EXPECT_EQ(1, line1.onLine(res2));
+    EXPECT_EQ(1, line3.onLine(res2));
+    EXPECT_EQ(1, res2.isEqual(trueRes2));
+
+    point_t pt6(-10.75, -8, 30.25);
+
+    line_t line4(pt3, pt6);
+
+    point_t res3 = line4.isCross(line1);
+    EXPECT_EQ(0, res3.isValid());
+
+    point_t pt7(1, 0, 0);
+    point_t pt8(0, 1, 0);
+    line_t line5(pt7, pt8);
+    
+    point_t pt9(1, 1, 1);
+    point_t pt10(0, 0, 1);
+    line_t line6(pt9, pt10);
+    
+    point_t res4 = line5.isCross(line6);
+    EXPECT_EQ(0, res4.isValid());
+}
+
 TEST(lineTest, GettingT) {
     point_t pt1(1.5, -4, 8.25);
     point_t pt2(7, 10, -4.25);
@@ -385,9 +437,103 @@ TEST(triangleTest, Intersection2D) {
     bool res = triag1.isIntersection2D(triag2, plt);
     EXPECT_EQ(1, res);
 
-    point_t pt7(3, 3, 3);
-    triangle_t triag3(pt7, pt5, pt6);
+    point_t pt7(20.58046, -43.99046, 0);
+    point_t pt8(-10, -30, 0);
+    point_t pt9(15.61002, -12.31086, 0);
 
-    res = triag1.isIntersection2D(triag3, plt);
+    point_t pt10(14.04051, -20.82335, 0);
+    point_t pt11(30, -40, 0);
+    point_t pt12(56.74394, -23.46234, 0);
+
+    triangle_t triag3(pt7, pt8, pt9);
+    triangle_t triag4(pt10, pt11, pt12);
+
+    res = triag3.isIntersection3D(triag4);
+    EXPECT_EQ(1, res);
+
+    triangle_t triag5(pt7, pt11, pt12);
+
+    res = triag3.isIntersection3D(triag5);
+    EXPECT_EQ(1, res);
+
+    triangle_t triag6(pt10, pt8, pt9);
+
+    res = triag3.isIntersection3D(triag6);
+    EXPECT_EQ(1, res);
+
+    point_t pt13(25.08383, -40.98338, 0);
+
+    triangle_t triag7(pt10, pt13, pt12);
+
+    res = triag3.isIntersection3D(triag7);
+    EXPECT_EQ(1, res);
+
+    point_t pt14(36.36463, -32.43919, 0);
+    point_t pt15(33.80259, -25.61689, 0);
+    point_t pt16(47.729, -25.99418, 0);
+
+    triangle_t triag8(pt14, pt15, pt16);
+    res = triag4.isIntersection3D(triag8);
+    EXPECT_EQ(1, res);
+}
+
+TEST(triangleTest, Intersection3D) {
+    point_t pt1(-106.0469443923, 52.5713734098, 1168.62612723);
+    point_t pt2(-651.061758726, 168.7717457742, 694.2902541365);
+    point_t pt3(428.5401392144, -85.9438632779, 733.317083182);
+
+    point_t pt4(-411.2836818256, -356.8993505802, 1109.2200394315);
+    point_t pt5(-286.9602404404, 281.1077706209, 901.6945024073);
+    point_t pt6(-273.4987522435, -732.4222971763, 626.6145537568);
+
+    triangle_t triag1(pt1, pt2, pt3);
+    triangle_t triag2(pt4, pt5, pt6);
+
+    bool res = triag1.isIntersection3D(triag2);
+    EXPECT_EQ(1, res);
+
+    point_t pt7(20.58046, -43.99046, 0);
+    point_t pt8(-10, -30, 0);
+    point_t pt9(40.70333, -32.11313, 12.51765);
+
+    point_t pt10(14.04051, -20.82335, 0);
+    point_t pt11(30, -40, 11.89029);
+    point_t pt12(56.74394, -23.46234, 0);
+
+    triangle_t triag3(pt7, pt8, pt9);
+    triangle_t triag4(pt10, pt11, pt12);
+
+    res = triag3.isIntersection3D(triag4);
+    EXPECT_EQ(1, res);
+
+    point_t pt13(33.22144, -30.78249, 5.73506);
+
+    triangle_t triag5(pt13, pt7, pt8);
+
+    res = triag4.isIntersection3D(triag5);
+    EXPECT_EQ(1, res);
+
+    triangle_t triag6(pt12, pt7, pt8);
+
+    res = triag4.isIntersection3D(triag6);
+    EXPECT_EQ(1, res);
+
+    triangle_t triag7(pt12, pt11, pt8);
+
+    res = triag4.isIntersection3D(triag7);
+    EXPECT_EQ(1, res);
+
+    point_t pt14(23.36736, -14.79033, 5.72534);
+
+    triangle_t triag8(pt14, pt7, pt8);
+
+    res = triag4.isIntersection3D(triag8);
+    EXPECT_EQ(1, res);
+
+    point_t pt15(10.36104, -17.95187, 5.72534);
+
+    triangle_t triag9(pt15, pt7, pt8);
+
+    res = triag4.isIntersection3D(triag9);
     EXPECT_EQ(0, res);
 }
