@@ -1,6 +1,8 @@
 #include "triangles.h"
 #include <gtest/gtest.h>
 
+namespace Unit_tests {
+
 using namespace Triangles;
 using namespace Geometric;
 
@@ -686,3 +688,5 @@ TEST(triangleTest, isIntersectionLineLine) {
     triangle_t triag5(pt1, pt2, pt3);
     EXPECT_EQ(0, triag5.isIntersectionLineLine(triag1));
 }
+
+} // Unit_tests

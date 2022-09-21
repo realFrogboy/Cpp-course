@@ -272,10 +272,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line2(triag.trianglePt.first, triag.trianglePt.third);
 
             point_t pt1 = interLine.isCross(line1);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
             
             point_t pt2 = interLine.isCross(line2);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
             t12 = interLine.getT(pt2);
@@ -287,10 +287,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line2(triag.trianglePt.second, triag.trianglePt.third);
 
             point_t pt1 = interLine.isCross(line1);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
             
             point_t pt2 = interLine.isCross(line2);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
             t12 = interLine.getT(pt2);
@@ -302,10 +302,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line2(triag.trianglePt.third, triag.trianglePt.second);
 
             point_t pt1 = interLine.isCross(line1);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
             
             point_t pt2 = interLine.isCross(line2);
-            //assert(pt1.isValid());
+            assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
             t12 = interLine.getT(pt2);
