@@ -30,15 +30,12 @@ int triagIntersections(const unsigned n) {
             std::pair<Geometric::triangle_t, unsigned> pr = *iter;
             if (pr.first.isIntersection3D(triag)) {
                 printf("%d %d\n", pr.second, idx);
-                triangles.erase(iter);
                 break;
             }
         }
 
-        if (iter == triangles.end()) {
-            std::pair<Geometric::triangle_t, unsigned> pr = std::make_pair(triag, idx);
-            triangles.push_back(pr);
-        }
+        std::pair<Geometric::triangle_t, unsigned> pr = std::make_pair(triag, idx);
+        triangles.push_back(pr);
     }
     return 0;
 }
