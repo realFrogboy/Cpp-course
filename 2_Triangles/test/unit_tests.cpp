@@ -1,27 +1,44 @@
 #include "triangles.h"
 #include <gtest/gtest.h>
 
+using namespace Triangles;
+using namespace Geometric;
+
 inline bool isEqual(double first, double second) {
-    if (abs(first - second) <= accurasy)
+    if (std::abs(first - second) <= accurasy)
         return 1;
     return 0;
 }
 
 // VECTOR TESTS
-TEST(vectorTest, Initialization) {
-    vector_t vec(2, -6, 8);
-    coord_t vecCoord = vec.getCoord();
+class vectorTest : public ::testing::Test {
+    protected:
+    void SetUp() override {
+        vector_t tmp1(1.5, -4, 8.25);
+        vector_t tmp2(7, 10, -4.25);
+        vector_t tmp3(5, 3, -0.15);
+        vector_t tmp4(0, 0, 0);
+        vec1.copy(tmp1);
+        vec2.copy(tmp2);
+        vec3.copy(tmp3);
+        nullVec.copy(tmp4);
+    }
+    
+    vector_t vec1 {};
+    vector_t vec2 {};
+    vector_t vec3 {};
+    vector_t nullVec {};
+};
 
-    EXPECT_EQ(1, isEqual(2, vecCoord.x));
-    EXPECT_EQ(1, isEqual(-6, vecCoord.y));
-    EXPECT_EQ(1, isEqual(8, vecCoord.z));
+TEST_F(vectorTest, Initialization) {
+    coord_t vecCoord = vec1.getCoord();
+
+    EXPECT_EQ(1, isEqual(1.5, vecCoord.x));
+    EXPECT_EQ(1, isEqual(-4, vecCoord.y));
+    EXPECT_EQ(1, isEqual(8.25, vecCoord.z));
 }
 
-TEST(vectorTest, Copy) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(NAN, NAN, NAN);
-    vector_t vec3(0, 0, 0);
-
+TEST_F(vectorTest, Copy) {
     vec2.copy(vec1);
     EXPECT_EQ(1, vec1.isEqual(vec2));
 
@@ -29,8 +46,7 @@ TEST(vectorTest, Copy) {
     EXPECT_EQ(1, vec3.isEqual(vec1));
 }
 
-TEST(vectorTest, ConstMult) {
-    vector_t vec1(1.5, -4, 8.25);
+TEST_F(vectorTest, ConstMult) {
     double coeff = -0.25;
 
     vector_t res = vec1 * coeff;
@@ -41,15 +57,10 @@ TEST(vectorTest, ConstMult) {
     EXPECT_EQ(1, res.isEqual(vec1));
 
     res = res * 0;
-    vector_t nullVec(0, 0, 0);
     EXPECT_EQ(1, res.isEqual(nullVec));
 }
 
-TEST(vectorTest, ScalarMult) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(7, 10, -4.25);
-    vector_t vec3(5, 3, -0.15);
-    
+TEST_F(vectorTest, ScalarMult) {
     double mult = vec1.scalarMult(vec2);
     EXPECT_EQ(1, isEqual(-64.5625, mult));
 
@@ -63,17 +74,12 @@ TEST(vectorTest, ScalarMult) {
     EXPECT_EQ(1, isEqual(86.3125, mult));
     EXPECT_EQ(1, isEqual(86.3125, vec1.length() * vec1.length()));
 
-    vector_t nullVec(0, 0, 0);
     vector_t norm = vec1.normal1();
     mult = vec1.scalarMult(norm);
     EXPECT_EQ(1, isEqual(0, mult));
 }
 
-TEST(vectorTest, VectorMult) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(7, 10, -4.25);
-    vector_t vec3(5, 3, -0.15);
-
+TEST_F(vectorTest, VectorMult) {
     vector_t res = vec1.vectorMult(vec2);
     vector_t trueRes1(-65.5, 64.125, 43);
     EXPECT_EQ(1, res.isEqual(trueRes1));
@@ -87,35 +93,22 @@ TEST(vectorTest, VectorMult) {
     EXPECT_EQ(1, res.isEqual(trueRes3));
 
     res = vec1.vectorMult(vec1);
-    vector_t trueRes4(0, 0, 0);
-    EXPECT_EQ(1, res.isEqual(trueRes4));
+    EXPECT_EQ(1, res.isEqual(nullVec));
 }
 
-TEST(vectorTest, vectorAddition) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(7, 10, -4.25);
-    vector_t vec3(5, 3, -0.15);
-
+TEST_F(vectorTest, vectorAddition) {
     vector_t res = vec1 + vec2 + vec3;
     vector_t trueRes(13.5, 9, 3.85);
     EXPECT_EQ(1, res.isEqual(trueRes));
 }
 
-TEST(vectorTest, vectorDifference) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(7, 10, -4.25);
-    vector_t vec3(5, 3, -0.15);
-
+TEST_F(vectorTest, vectorDifference) {
     vector_t res = vec1 - vec2 - vec3;
     vector_t trueRes(-10.5, -17, 12.65);
     EXPECT_EQ(1, res.isEqual(trueRes));
 }
 
-TEST(vectorTest, Length) {
-    vector_t vec1(1.5, -4, 8.25);
-    vector_t vec2(7, 10, -4.25);
-    vector_t vec3(5, 3, -0.15);
-
+TEST_F(vectorTest, Length) {
     double len = vec1.length();
     EXPECT_EQ(1, isEqual(len, 9.290452088));
     EXPECT_EQ(1, isEqual(len * len, vec1.scalarMult(vec1)));
@@ -131,20 +124,38 @@ TEST(vectorTest, Length) {
 
 
 // POINT TEST
-TEST(pointTest, Initialization) {
-    point_t pt(2, -6, 8);
-    coord_t ptCoord = pt.getCoord();
+class pointTest : public ::testing::Test {
+    protected:
+    void SetUp() override {
+        point_t tmp1(1.5, -4, 8.25);
+        point_t tmp2(7, 10, -4.25);
+        point_t tmp3(5, 3, -0.15);
+        pt1.copy(tmp1);
+        pt2.copy(tmp2);
+        pt3.copy(tmp3);
+    }
 
-    EXPECT_EQ(1, isEqual(2, ptCoord.x));
-    EXPECT_EQ(1, isEqual(-6, ptCoord.y));
-    EXPECT_EQ(1, isEqual(8, ptCoord.z));
+    point_t pt1 {};
+    point_t pt2 {};
+    point_t pt3 {};
+};
+
+TEST_F(pointTest, Initialization) {
+    coord_t ptCoord = pt1.getCoord();
+
+    EXPECT_EQ(1, isEqual(1.5, ptCoord.x));
+    EXPECT_EQ(1, isEqual(-4, ptCoord.y));
+    EXPECT_EQ(1, isEqual(8.25, ptCoord.z));
 }
 
-TEST(pointTest, Copy) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(NAN, NAN, NAN);
-    point_t pt3(0, 0, 0);
+TEST_F(pointTest, Valid) {
+    EXPECT_EQ(1, pt1.isValid());
 
+    point_t pt4(NAN, 5, 6);
+    EXPECT_EQ(0, pt4.isValid());
+}
+
+TEST_F(pointTest, Copy) {
     pt2.copy(pt1);
     EXPECT_EQ(1, pt1.isEqual(pt2));
 
@@ -152,10 +163,8 @@ TEST(pointTest, Copy) {
     EXPECT_EQ(1, pt3.isEqual(pt1));
 }
 
-TEST(pointTest, ToVector) {
-    point_t pt(1.5, -4, 8.25);
-
-    vector_t vec = pt.toVector();
+TEST_F(pointTest, ToVector) {
+    vector_t vec = pt1.toVector();
     vector_t trueVec(1.5, -4, 8.25);
 
     EXPECT_EQ(1, vec.isEqual(trueVec));
@@ -163,11 +172,23 @@ TEST(pointTest, ToVector) {
 
 
 // LINE TEST
-TEST(lineTest, InitializationBy2Points) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
+class lineTest : public ::testing::Test {
+    protected:
+    void SetUp() override {
+        point_t tmp1(1.5, -4, 8.25);
+        point_t tmp2(7, 10, -4.25);
+        point_t tmp3(5, 3, -0.15);
+        pt1.copy(tmp1);
+        pt2.copy(tmp2);
+        pt3.copy(tmp3);
+    }
 
+    point_t pt1 {};
+    point_t pt2 {};
+    point_t pt3 {};
+};
+
+TEST_F(lineTest, InitializationBy2Points) {
     line_t line1(pt1, pt2);
     lineData_t lineData = line1.getData();
     vector_t dir1(5.5, 14, -12.5);
@@ -187,10 +208,7 @@ TEST(lineTest, InitializationBy2Points) {
     EXPECT_EQ(1, pt3.isEqual(lineData.linePt));
 }
 
-TEST(lineTest, OnLine) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-
+TEST_F(lineTest, OnLine) {
     line_t line1(pt1, pt2);
     EXPECT_EQ(1, line1.onLine(pt1));
 
@@ -201,13 +219,9 @@ TEST(lineTest, OnLine) {
     EXPECT_EQ(1, line1.onLine(pt5));
 }
 
-TEST(lineTest, CrossingTest) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-
+TEST_F(lineTest, CrossingTest) {
     line_t line1(pt1, pt2);
 
-    point_t pt3(5, 3, -0.15);
     point_t pt4(15.15481, 27.08125, -23.64151);
 
     line_t line2(pt3, pt4);
@@ -247,10 +261,7 @@ TEST(lineTest, CrossingTest) {
     EXPECT_EQ(0, res4.isValid());
 }
 
-TEST(lineTest, GettingT) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-
+TEST_F(lineTest, GettingT) {
     line_t line1(pt1, pt2);
 
     double t = line1.getT(pt1);
@@ -268,11 +279,7 @@ TEST(lineTest, GettingT) {
     EXPECT_EQ(1, isEqual(t, 2));
 }
 
-TEST(lineTest, ProjectionOfPoint) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-
+TEST_F(lineTest, ProjectionOfPoint) {
     line_t line1(pt1, pt2);
 
     point_t res1 = line1.projOfPoint(pt3);
@@ -294,18 +301,32 @@ TEST(lineTest, ProjectionOfPoint) {
 
 
 // PLATE TEST
-TEST(plateTest, InitializationBy3Points) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-    point_t pt4(-30.1, 2.45, -10.5);
+class plateTest : public ::testing::Test {
+    protected:
+    void SetUp() override {
+        point_t tmp1(1.5, -4, 8.25);
+        point_t tmp2(7, 10, -4.25);
+        point_t tmp3(5, 3, -0.15);
+        point_t tmp4(-30.1, 2.45, -10.5);
+        pt1.copy(tmp1);
+        pt2.copy(tmp2);
+        pt3.copy(tmp3);
+        pt4.copy(tmp4);
+    }
 
+    point_t pt1 {};
+    point_t pt2 {};
+    point_t pt3 {};
+    point_t pt4 {};
+};
+
+TEST_F(plateTest, InitializationBy3Points) {
     plate_t plt1(pt1, pt2, pt3);
 
     plateData_t plt1Data = plt1.getData();
     coord_t n1Coord = plt1Data.n.getCoord();
     vector_t trueVec1(-30.1, 2.45, -10.5);
-    double k1 = abs(n1Coord.x / -30.1);
+    double k1 = std::abs(n1Coord.x / -30.1);
     EXPECT_EQ(1, plt1Data.n.isParallel(trueVec1));
     EXPECT_EQ(1, isEqual(plt1Data.d, k1 * 141.575));
 
@@ -313,7 +334,7 @@ TEST(plateTest, InitializationBy3Points) {
     plateData_t plt2Data = plt2.getData();
     coord_t n2Coord = plt2Data.n.getCoord();
     vector_t trueVec2(-181.875, 498.125, 477.875);
-    double k2 = abs(n2Coord.x / -181.875);
+    double k2 = std::abs(n2Coord.x / -181.875);
     EXPECT_EQ(1, plt2Data.n.isParallel(trueVec2));
     EXPECT_EQ(1, isEqual(plt2Data.d, k2 * -1677.15625));
 
@@ -321,17 +342,12 @@ TEST(plateTest, InitializationBy3Points) {
     plateData_t plt3Data = plt3.getData();
     coord_t n3Coord = plt3Data.n.getCoord();
     vector_t trueVec3(-77.07, 331.065, 243.775);
-    double k3 = abs(n3Coord.x / -77.07);
+    double k3 = std::abs(n3Coord.x / -77.07);
     EXPECT_EQ(1, plt3Data.n.isParallel(trueVec3));
     EXPECT_EQ(1, isEqual(plt3Data.d, k3 * -571.27875));
 }
 
-TEST(plateTest, DistToPoint) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-    point_t pt4(-30.1, 2.45, -10.5);
-
+TEST_F(plateTest, DistToPoint) {
     plate_t plt1(pt1, pt2, pt3);
     double dist1 = plt1.distToPoint(pt4);
     EXPECT_EQ(1, isEqual(dist1, 36.4008170));
@@ -347,12 +363,7 @@ TEST(plateTest, DistToPoint) {
     EXPECT_EQ(1, isEqual(dist4, 0));
 }
 
-TEST(plateTest, ProjectionOfPoint) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-    point_t pt4(-30.1, 2.45, -10.5);
-
+TEST_F(plateTest, ProjectionOfPoint) {
     plate_t plt1(pt1, pt2, pt3);
     point_t projPt1 = plt1.projOfPoint(pt4);
     point_t trueProj1(4.168603, -0.339305, 1.454164);
@@ -371,11 +382,7 @@ TEST(plateTest, ProjectionOfPoint) {
     EXPECT_EQ(1, projPt4.isEqual(pt4));
 }
 
-TEST(plateTest, ProjectionOfVector) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-
+TEST_F(plateTest, ProjectionOfVector) {
     plate_t plt(pt1, pt2, pt3);
 
     vector_t vec1(-30.1, 2.45, -10.5);
@@ -394,12 +401,7 @@ TEST(plateTest, ProjectionOfVector) {
     EXPECT_EQ(1, projVec3.isEqual(trueProj3));
 }
 
-TEST(plateTest, intsectOf2Plt) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-
-    point_t pt4(-30.1, 2.45, -10.5);
+TEST_F(plateTest, intsectOf2Plt) {
     point_t pt5(9.23, -6.437, 5.32);
     point_t pt6(-7.453, -2.345, 10.4386);
 
@@ -416,6 +418,29 @@ TEST(plateTest, intsectOf2Plt) {
 
     EXPECT_EQ(1, trueDir1.isParallel(lineData.a));
     EXPECT_EQ(1, trueline.onLine(lineData.linePt));
+}
+
+TEST_F(plateTest, intersectionWithLine) {
+    plate_t plt1(pt1, pt2, pt3);
+
+    point_t pt4(43.56239, -25.16366, 20);
+    point_t pt5(5.9833, -24.09122, 40);
+
+    line_t line1(pt4, pt5);
+
+    point_t res = plt1.intersectionLine(line1);
+    point_t trueRes(-15.07081, -23.49037, 51.20523);
+
+    EXPECT_EQ(1, trueRes.isEqual(res));
+
+    point_t pt6(-3.97941, -62.80713, 10.23597);
+
+    line_t line2(pt6, pt4);
+
+    point_t res2 = plt1.intersectionLine(line2);
+    point_t trueRes2(-3.97941, -62.80713, 10.23597);
+
+    EXPECT_EQ(1, trueRes2.isEqual(res2));
 }
 
 
@@ -536,4 +561,128 @@ TEST(triangleTest, Intersection3D) {
 
     res = triag4.isIntersection3D(triag9);
     EXPECT_EQ(0, res);
+}
+
+TEST(trangleTest, IntersectionWithPoint) {
+    point_t pt1(1.5, -4, 8.25);
+    point_t pt2(7, 10, -4.25);
+    point_t pt3(5, 3, -0.15);
+
+    triangle_t triag1(pt1, pt2, pt3);
+
+    point_t pt4(-11.84074, -72.09926, 30.60363);
+    triangle_t triag2(pt4, pt4, pt4);
+    EXPECT_EQ(0, triag1.isIntersectionWithPoint(triag2));
+
+    point_t pt5(4.54335, 2.99349, 1.15753);
+    triangle_t triag3(pt5, pt5, pt5);
+    EXPECT_EQ(1, triag1.isIntersectionWithPoint(triag3));
+
+    point_t pt6(4.54335, 10, 1.15753);
+    triangle_t triag4(pt6, pt6, pt6);
+    EXPECT_EQ(0, triag1.isIntersectionWithPoint(triag4));
+}
+
+TEST(triangleTest, IsIntersectionLineWithPoint) {
+    point_t pt1(1, 1, 1);
+    point_t pt2(2, 2, 2);
+    point_t pt3(3, 3, 3);
+
+    triangle_t triag1(pt1, pt2, pt3);
+
+    point_t pt4(0, 0, 0);
+    EXPECT_EQ(0, triag1.isIntersectionLinePoint(pt4));
+
+    point_t pt5(1.5, 1.5, 1.5);
+    EXPECT_EQ(1, triag1.isIntersectionLinePoint(pt5));
+
+    point_t pt6(3, 3, 3);
+    EXPECT_EQ(1, triag1.isIntersectionLinePoint(pt6));
+
+    point_t pt7(3, 3, 2);
+    EXPECT_EQ(0, triag1.isIntersectionLinePoint(pt7));
+
+    point_t pt8(4, 4, 4);
+    EXPECT_EQ(0, triag1.isIntersectionLinePoint(pt8));
+}
+
+TEST(triangleTest, IsIntersectionLine) {
+    point_t pt1(1, 1, 0);
+    point_t pt2(2, 2, 0);
+    point_t pt3(3, 3, 0);
+
+    triangle_t triag1(pt1, pt2, pt3);
+
+    point_t pt4(2, 3, 0);
+    point_t pt5(2, 2, 0);
+    point_t pt6(3, 2, 0);
+
+    triangle_t triag2(pt4, pt5, pt6);
+    EXPECT_EQ(1, triag2.isIntersectionLine(triag1));
+
+    point_t pt7(4, 3, 0);
+    point_t pt8(3, 3, 0);
+    point_t pt9(3, 4, 0);
+
+    triangle_t triag3(pt7, pt8, pt9);
+    EXPECT_EQ(1, triag3.isIntersectionLine(triag1));
+
+    point_t pt10(4, 4, 0);
+    triangle_t triag4(pt7, pt10, pt9);
+    EXPECT_EQ(0, triag4.isIntersectionLine(triag1));
+
+    point_t pt11(-1, -1, -1);
+    point_t pt12(2, 2, 2);
+    point_t pt13(3, 3, 3);
+
+    triangle_t triag5(pt11, pt12, pt13);
+
+    point_t pt14(-1, -1, 0);
+    point_t pt15(2, -1, 0);
+    point_t pt16(-1, 2, 0);
+
+    triangle_t triag6(pt14, pt15, pt16);
+    EXPECT_EQ(1, triag6.isIntersectionLine(triag5));
+
+    point_t pt17(1, 1, 1);
+    triangle_t triag7(pt17, pt12, pt13);
+    EXPECT_EQ(0, triag6.isIntersectionLine(triag7));
+
+    point_t pt18(-1, -1, 1);
+    point_t pt19(2, -1, 1);
+    point_t pt20(-1, 2, 1);
+
+    triangle_t triag8(pt18, pt19, pt20);
+    EXPECT_EQ(0, triag6.isIntersectionLine(triag8));
+    EXPECT_EQ(0, triag3.isIntersectionLine(triag5));
+}
+
+TEST(triangleTest, isIntersectionLineLine) {
+    point_t pt1(1, 1, 0);
+    point_t pt2(2, 2, 0);
+    point_t pt3(3, 3, 0);
+
+    triangle_t triag1(pt1, pt2, pt3);
+
+    point_t pt4(2, 3, 0);
+    point_t pt5(1, 4, 0);
+    point_t pt6(3, 2, 0);
+
+    triangle_t triag2(pt4, pt5, pt6);
+    EXPECT_EQ(1, triag2.isIntersectionLineLine(triag1));
+
+    point_t pt7(4, 1, 0);
+    point_t pt8(5, 0, 0);
+
+    triangle_t triag3(pt7, pt8, pt6);
+    EXPECT_EQ(0, triag3.isIntersectionLineLine(triag1));
+
+    point_t pt9(4, 3, 0);
+    point_t pt10(5, 4, 0);
+
+    triangle_t triag4(pt9, pt10, pt6);
+    EXPECT_EQ(0, triag4.isIntersectionLineLine(triag1));
+
+    triangle_t triag5(pt1, pt2, pt3);
+    EXPECT_EQ(0, triag5.isIntersectionLineLine(triag1));
 }
