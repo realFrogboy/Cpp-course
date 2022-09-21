@@ -21,3 +21,12 @@ Run:
         cmake ../
         cmake --build ./
 
+## Tests
+
+        ./Test
+
+Generate 10000 triangles and run program.
+
+        ./generate <Number>
+
+Generate file "Generation.txt" with <Number> triangles.
