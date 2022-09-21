@@ -5,7 +5,7 @@ int main() {
     int tmp = scanf("%u", &n);
     assert(tmp == 1);
 
-    triagIntersections(n);
+    Triangles::triagIntersections(n);
 
     return 0;
 }

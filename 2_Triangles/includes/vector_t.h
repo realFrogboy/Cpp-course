@@ -2,9 +2,11 @@
 
 #include <cmath>
 
-using namespace std;
+namespace Triangles {
 
 const double accurasy = 0.01;
+
+namespace Geometric {
 
 struct coord_t {
     double x;
@@ -16,6 +18,8 @@ class vector_t {
     coord_t coord{NAN, NAN, NAN};
 
     public:
+
+    vector_t() {};
 
     vector_t(double x, double y, double z) : coord{x, y, z} {};
 
@@ -60,19 +64,19 @@ inline void vector_t::copy(const vector_t& vec) {
 }
 
 inline bool vector_t::isValid() const {
-    if ((isfinite(coord.x)) && (isfinite(coord.y)) && (isfinite(coord.z)))
+    if ((std::isfinite(coord.x)) && (std::isfinite(coord.y)) && (std::isfinite(coord.z)))
         return 1;
     return 0;
 }
 
 inline bool vector_t::isNull() const {
-    if ((abs(coord.x) <= accurasy) && (abs(coord.y) <= accurasy) && (abs(coord.z) <= accurasy))
+    if ((std::abs(coord.x) <= accurasy) && (std::abs(coord.y) <= accurasy) && (std::abs(coord.z) <= accurasy))
         return 0;
     return 1;
 }
 
 inline bool vector_t::isEqual(const vector_t& vec) const {
-    if ((abs(coord.x - vec.coord.x) <= accurasy) && (abs(coord.y - vec.coord.y) <= accurasy) && (abs(coord.z - vec.coord.z) <= accurasy))
+    if ((std::abs(coord.x - vec.coord.x) <= accurasy) && (std::abs(coord.y - vec.coord.y) <= accurasy) && (std::abs(coord.z - vec.coord.z) <= accurasy))
         return 1;
     return 0;
 }
@@ -86,7 +90,7 @@ inline bool vector_t::isParallel(const vector_t& vec) const {
     else
         k = coord.z / vec.coord.z;
 
-    if ((abs(coord.x - vec.coord.x * k) <= accurasy) && (abs(coord.y - vec.coord.y * k) <= accurasy) && abs(coord.z - vec.coord.z * k) <= accurasy)
+    if ((std::abs(coord.x - vec.coord.x * k) <= accurasy) && (std::abs(coord.y - vec.coord.y * k) <= accurasy) && (std::abs(coord.z - vec.coord.z * k) <= accurasy))
         return 1;
     return 0;
 }
@@ -145,3 +149,6 @@ inline double vector_t::length() const{
     double tmp =  this->scalarMult(*this);
     return sqrt(tmp);
 }
+
+} // Geometric
+} // Triangles
