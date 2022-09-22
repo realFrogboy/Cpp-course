@@ -16,7 +16,8 @@ Geometric::point_t getPoint() {
 } // namespace
 
 int triagIntersections(const unsigned n) {
-    std::list<std::pair<Geometric::triangle_t, unsigned>> triangles;
+    std::list<std::pair<Geometric::triangle_t, unsigned>> uncrossedTriangles;
+    std::vector<std::pair<Geometric::triangle_t, unsigned>> crossedTriangles;
 
     for (unsigned idx = 0; idx < n; idx++) {
         Geometric::point_t pt1 = getPoint();
@@ -24,19 +25,42 @@ int triagIntersections(const unsigned n) {
         Geometric::point_t pt3 = getPoint();
 
         Geometric::triangle_t triag(pt1, pt2, pt3);
+        std::pair<Geometric::triangle_t, unsigned> newPr = std::make_pair(triag, idx);
 
-        auto iter = triangles.begin();
-        for (; iter != triangles.end(); ++iter) {
-            std::pair<Geometric::triangle_t, unsigned> pr = *iter;
+        auto lstIter = uncrossedTriangles.begin();
+        for (; lstIter != uncrossedTriangles.end(); ++lstIter) {
+            std::pair<Geometric::triangle_t, unsigned> pr = *lstIter;
             if (pr.first.isIntersection3D(triag)) {
-                printf("%d %d\n", pr.second, idx);
+                printf("%d %d ", pr.second, idx);
+
+                uncrossedTriangles.erase(lstIter);
+
+                crossedTriangles.push_back(pr);
+                crossedTriangles.push_back(newPr);
+
                 break;
             }
         }
 
-        std::pair<Geometric::triangle_t, unsigned> pr = std::make_pair(triag, idx);
-        triangles.push_back(pr);
+        if (lstIter != uncrossedTriangles.end())
+            continue;
+
+        auto vecIter = crossedTriangles.begin();
+        for (; vecIter != crossedTriangles.end(); ++vecIter) {
+            std::pair<Geometric::triangle_t, unsigned> pr = *vecIter;
+            if (pr.first.isIntersection3D(triag)) {
+                printf("%d ", idx);
+
+                crossedTriangles.push_back(newPr);
+
+                break;
+            }
+        }
+
+        if (vecIter == crossedTriangles.end())
+            uncrossedTriangles.push_back(newPr);
     }
+    printf("\n");
     return 0;
 }
 
