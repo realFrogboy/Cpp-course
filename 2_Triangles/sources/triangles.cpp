@@ -27,23 +27,23 @@ int triagIntersections(const unsigned n) {
         Geometric::triangle_t triag(pt1, pt2, pt3);
         std::pair<Geometric::triangle_t, unsigned> newPr = std::make_pair(triag, idx);
 
-        auto lstIter = uncrossedTriangles.begin();
-        for (; lstIter != uncrossedTriangles.end(); ++lstIter) {
+        bool fl = false;
+        for (auto lstIter = uncrossedTriangles.begin(); lstIter != uncrossedTriangles.end(); ++lstIter) {
             std::pair<Geometric::triangle_t, unsigned> pr = *lstIter;
             if (pr.first.isIntersection3D(triag)) {
-                printf("%d %d ", pr.second, idx);
+                printf("%d ", pr.second);
+                fl = true;
 
-                uncrossedTriangles.erase(lstIter);
-
+                lstIter = uncrossedTriangles.erase(lstIter);
                 crossedTriangles.push_back(pr);
-                crossedTriangles.push_back(newPr);
-
-                break;
             }
         }
 
-        if (lstIter != uncrossedTriangles.end())
+        if (fl) {
+            printf("%d ", idx);
+            crossedTriangles.push_back(newPr);
             continue;
+        }
 
         auto vecIter = crossedTriangles.begin();
         for (; vecIter != crossedTriangles.end(); ++vecIter) {
