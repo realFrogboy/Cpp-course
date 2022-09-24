@@ -39,6 +39,8 @@ class vector_t {
 
     inline vector_t normal2() const;
 
+    inline vector_t normal3() const;
+
     inline double scalarMult(const vector_t& vec) const;
 
     inline vector_t vectorMult(const vector_t& vec) const;
@@ -102,6 +104,11 @@ inline vector_t vector_t::normal1() const {
 
 inline vector_t vector_t::normal2() const {
     vector_t res(coord.z, 0, -coord.x);
+    return res;
+}
+
+inline vector_t vector_t::normal3() const {
+    vector_t res(0, coord.z, -coord.y);
     return res;
 }
 

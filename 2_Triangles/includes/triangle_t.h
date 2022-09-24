@@ -152,11 +152,14 @@ inline bool triangle_t::isIntersectionLineLine(const triangle_t triag) const {
 
     line_t line1(pr1.first, pr1.second);
     line_t line2(pr2.first, pr2.second);
-    point_t pt = line1.isCross(line2);
+    point_t pt = line1.shortestLine(line2);
+
+    if (!pt.isValid())
+        return 0;
 
     double t1 = line1.getT(pt);
     double t2 = line2.getT(pt);
-    if ((pt.isValid()) && (t1 <= 1) && (t1 >= 0) && (t2 <= 1) && (t2 >= 0))
+    if ((t1 <= 1) && (t1 >= 0) && (t2 <= 1) && (t2 >= 0))
         return 1;
     return 0;
 }
@@ -169,26 +172,19 @@ inline int triangle_t::checkSpecialCases(const triangle_t& triag) const {
     bool chkLine2 = triag.isLine();
 
     if (chkPt1) {
-        if (chkPt2) {
-            if (trianglePt.first.isEqual(triag.trianglePt.first))
-            return 1;
-        } else if (chkLine2) {
-            if (triag.isIntersectionLinePoint(trianglePt.first))
-                return 1;
-        } else {
-             if (triag.isIntersectionWithPoint(*this))
-                return 1;
-        }
+        if (chkPt2)
+            return trianglePt.first.isEqual(triag.trianglePt.first);
+        else if (chkLine2)
+            return triag.isIntersectionLinePoint(trianglePt.first);
+        else 
+             return triag.isIntersectionWithPoint(*this);
     }
 
     if (chkPt2) {
-        if (chkLine1) {
-            if (this->isIntersectionLinePoint(triag.trianglePt.first))
-                return 1;
-        } else {
-             if (this->isIntersectionWithPoint(triag))
-                return 1;
-        }
+        if (chkLine1)
+            return this->isIntersectionLinePoint(triag.trianglePt.first);
+        else 
+             return this->isIntersectionWithPoint(triag);
     }
 
     if (chkLine1) {
@@ -201,7 +197,7 @@ inline int triangle_t::checkSpecialCases(const triangle_t& triag) const {
     if(chkLine2)
         return this->isIntersectionLine(triag);
     
-    return 0;
+    return 2;
 }
 
 inline bool triangle_t::checkSepAxe(const line_t& edge, const triangle_t& triang, const plate_t& plt) const {
@@ -243,13 +239,13 @@ inline bool triangle_t::checkSepAxe(const line_t& edge, const triangle_t& triang
 }
 
 inline int triangle_t::getDist(const double dist1, const double dist2, const double dist3) const {
-    if (((dist2 * dist1 < 0) && (dist3 * dist1 < 0)) || ((std::abs(dist2) < accurasy) && (std::abs(dist3) < accurasy)))
+    if (((dist2 * dist1 < 0) && (dist3 * dist1 < 0))  || ((std::abs(dist2) < accurasy) && (std::abs(dist3) < accurasy)) || ((std::abs(dist2) < accurasy) && (dist3 * dist1 < 0)) || ((std::abs(dist3) < accurasy) && (dist2 * dist1 < 0)))
             return 1;
 
-    if (((dist1 * dist2 < 0) && (dist3 * dist2 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist3) < accurasy)))
+    if (((dist1 * dist2 < 0)  && (dist3 * dist2 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist3) < accurasy)) || ((std::abs(dist1) < accurasy) && (dist3 * dist2 < 0)) || ((std::abs(dist3) < accurasy) && (dist2 * dist1 < 0)))
             return 2;
 
-    if (((dist1 * dist3 < 0) && (dist2 * dist3 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist2) < accurasy)))
+    if (((dist1 * dist3 < 0)  && (dist2 * dist3 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist2) < accurasy)) || ((std::abs(dist1) < accurasy) && (dist3 * dist2 < 0)) || ((std::abs(dist2) < accurasy) && (dist3 * dist1 < 0)))
             return 3;
 
     if (std::abs(dist1) < accurasy) 
@@ -271,10 +267,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line1(triag.trianglePt.first, triag.trianglePt.second);
             line_t line2(triag.trianglePt.first, triag.trianglePt.third);
 
-            point_t pt1 = interLine.isCross(line1);
+            point_t pt1 = interLine.shortestLine(line1);
             assert(pt1.isValid());
             
-            point_t pt2 = interLine.isCross(line2);
+            point_t pt2 = interLine.shortestLine(line2);
             assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
@@ -286,10 +282,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line1(triag.trianglePt.second, triag.trianglePt.first);
             line_t line2(triag.trianglePt.second, triag.trianglePt.third);
 
-            point_t pt1 = interLine.isCross(line1);
+            point_t pt1 = interLine.shortestLine(line1);
             assert(pt1.isValid());
             
-            point_t pt2 = interLine.isCross(line2);
+            point_t pt2 = interLine.shortestLine(line2);
             assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
@@ -301,10 +297,10 @@ inline std::pair<double, double> triangle_t::getTT(const triangle_t& triag, cons
             line_t line1(triag.trianglePt.third, triag.trianglePt.first);
             line_t line2(triag.trianglePt.third, triag.trianglePt.second);
 
-            point_t pt1 = interLine.isCross(line1);
+            point_t pt1 = interLine.shortestLine(line1);
             assert(pt1.isValid());
             
-            point_t pt2 = interLine.isCross(line2);
+            point_t pt2 = interLine.shortestLine(line2);
             assert(pt1.isValid());
 
             t11 = interLine.getT(pt1);
@@ -357,8 +353,10 @@ inline bool triangle_t::isIntersection2D(const triangle_t& triang, const plate_t
 
 inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
     int chk = checkSpecialCases(triag);
-    if(chk)
+    if(chk == 1)
         return 1;
+    else if (chk == 0)
+        return 0;
 
     plate_t plt1(trianglePt.first, trianglePt.second, trianglePt.third);
 
@@ -394,6 +392,9 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
     std::pair<double, double> pr2 = getTT(triag, interLine,p2);
 
     double t11 = pr1.first, t12 = pr1.second, t21 = pr2.first, t22 = pr2.second;
+
+    if ((std::abs(t11 - t21) < accurasy) || (std::abs(t11 - t22) < accurasy) || (std::abs(t12 - t21) < accurasy) || (std::abs(t12 - t22) < accurasy))
+        return 1;
     
     if (((t11 <= t12) && (t12 < t21) && (t21 <= t22)) ||
         ((t11 <= t12) && (t12 < t22) && (t22 <= t21)) ||

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "point_t.h"
+#include <stdio.h>
 
 namespace Triangles {
 namespace Geometric {
@@ -25,11 +26,11 @@ class line_t {
 
     inline bool onLine(const point_t& pt) const;
 
-    inline point_t isCross(const line_t& line) const;
-
     inline double getT(const point_t& pt) const;
 
     inline point_t projOfPoint(const point_t& pt) const;
+
+    inline point_t shortestLine(const line_t& line) const;
 };
 
 inline line_t::line_t(const point_t& firstPt, const point_t& secondPt) : lineData{{NAN, NAN, NAN}, {NAN, NAN, NAN}} {
@@ -72,44 +73,6 @@ inline point_t line_t::projOfPoint(const point_t& pt) const {
     return resPt;
 }
 
-inline point_t line_t::isCross(const line_t& line) const {
-    lineData_t lineData2 = line.getData();
-    coord_t vecCoord1 = lineData.a.getCoord();
-    coord_t vecCoord2 = lineData2.a.getCoord();
-    coord_t ptCoord1  = lineData.linePt.getCoord();
-    coord_t ptCoord2  = lineData2.linePt.getCoord();
-
-    point_t invalidPt(NAN, NAN, NAN);
-
-    double tmp1 = ptCoord1.y - ptCoord2.y + (ptCoord2.x - ptCoord1.x) * vecCoord1.y / vecCoord1.x;
-    double tmp2 = (vecCoord2.y * vecCoord1.x - vecCoord2.x * vecCoord1.y) / vecCoord1.x;
-
-    double t21 = tmp1 / tmp2;
-
-    tmp1 = ptCoord1.z - ptCoord2.z + (ptCoord2.y - ptCoord1.y) * vecCoord1.z / vecCoord1.y;
-    tmp2 = (vecCoord2.z * vecCoord1.y - vecCoord2.y * vecCoord1.z) / vecCoord1.y;
-
-    double t22 = tmp1 / tmp2;
-    
-    if (std::abs(t21 - t22) > accurasy)
-        return invalidPt;
-
-    tmp1 = ptCoord1.x - ptCoord2.x + (ptCoord2.z - ptCoord1.z) * vecCoord1.x / vecCoord1.z;
-    tmp2 = (vecCoord2.x * vecCoord1.z - vecCoord2.z * vecCoord1.x) / vecCoord1.z;
-
-    double t23 = tmp1 / tmp2;
-
-    if (std::abs(t22 - t23) > accurasy)
-        return invalidPt;
-
-    vector_t vecLinePt2 = lineData2.linePt.toVector();
-    vector_t vecRes = vecLinePt2 + lineData2.a * t21;
-
-    coord_t vecResCoord = vecRes.getCoord();
-    point_t res(vecResCoord.x, vecResCoord.y, vecResCoord.z);
-    return res;
-}
-
 inline double line_t::getT(const point_t& pt) const {
     vector_t ptVec = pt.toVector();
     vector_t linePtVec = lineData.linePt.toVector();
@@ -128,6 +91,50 @@ inline double line_t::getT(const point_t& pt) const {
         t = tmpCoord.z / dirCoord.z;
 
     return t;
+}
+
+inline point_t line_t::shortestLine(const line_t& line) const {
+    if (lineData.a.isParallel(line.lineData.a) && (line.onLine(lineData.linePt)))
+        return lineData.linePt;
+
+    vector_t linePtVec1 = lineData.linePt.toVector();
+    vector_t linePtVec3 = line.lineData.linePt.toVector();
+
+    vector_t linePtVec2 = linePtVec1 + lineData.a;
+    vector_t linePtVec4 = linePtVec3 + line.lineData.a;
+
+    coord_t coord1 = linePtVec1.getCoord();
+    coord_t coord2 = linePtVec2.getCoord();
+    coord_t coord3 = linePtVec3.getCoord();
+    coord_t coord4 = linePtVec4.getCoord();
+
+    double d1343 = (coord1.x - coord3.x) * (coord4.x - coord3.x) + (coord1.y - coord3.y) * (coord4.y - coord3.y) + (coord1.z - coord3.z) * (coord4.z - coord3.z);
+    double d4321 = (coord4.x - coord3.x) * (coord2.x - coord1.x) + (coord4.y - coord3.y) * (coord2.y - coord1.y) + (coord4.z - coord3.z) * (coord2.z - coord1.z);
+    double d1321 = (coord1.x - coord3.x) * (coord2.x - coord1.x) + (coord1.y - coord3.y) * (coord2.y - coord1.y) + (coord1.z - coord3.z) * (coord2.z - coord1.z);
+    double d4343 = (coord4.x - coord3.x) * (coord4.x - coord3.x) + (coord4.y - coord3.y) * (coord4.y - coord3.y) + (coord4.z - coord3.z) * (coord4.z - coord3.z);
+    double d2121 = (coord2.x - coord1.x) * (coord2.x - coord1.x) + (coord2.y - coord1.y) * (coord2.y - coord1.y) + (coord2.z - coord1.z) * (coord2.z - coord1.z);
+    
+    double t1 = (d1343 * d4321 - d1321 * d4343) / (d2121 * d4343 - d4321 * d4321);
+
+    //if (!std::isfinite(t1)) // lines are equal
+      //  return lineData.linePt;
+
+    double t2 = (d1343 + t1 * d4321) / d4343;
+
+    vector_t pt1 = linePtVec1 + lineData.a * t1;
+    vector_t pt2 = linePtVec3 + line.lineData.a * t2;
+
+    vector_t lenVec = pt1 - pt2;
+    double len = lenVec.length();
+
+    if (std::abs(len) < accurasy) {
+        coord_t resCoord = pt1.getCoord();
+        point_t resPt {resCoord.x, resCoord.y, resCoord.z};
+        return resPt;
+    } else {
+        point_t invalidPt {NAN, NAN, NAN};
+        return invalidPt;
+    }
 }
 
 } // Geometric
