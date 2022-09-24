@@ -228,7 +228,7 @@ TEST_F(lineTest, CrossingTest) {
 
     line_t line2(pt3, pt4);
 
-    point_t res1 = line1.isCross(line2);
+    point_t res1 = line1.shortestLine(line2);
     point_t trueRes1(-5.96909, -23.01222, 25.22519);
     EXPECT_EQ(1, line1.onLine(res1));
     EXPECT_EQ(1, line2.onLine(res1));
@@ -238,29 +238,11 @@ TEST_F(lineTest, CrossingTest) {
 
     line_t line3(pt3, pt5);
 
-    point_t res2 = line3.isCross(line1);
+    point_t res2 = line3.shortestLine(line1);
     point_t trueRes2(4.2627, 3.03232, 1.97114);
     EXPECT_EQ(1, line1.onLine(res2));
     EXPECT_EQ(1, line3.onLine(res2));
     EXPECT_EQ(1, res2.isEqual(trueRes2));
-
-    point_t pt6(-10.75, -8, 30.25);
-
-    line_t line4(pt3, pt6);
-
-    point_t res3 = line4.isCross(line1);
-    EXPECT_EQ(0, res3.isValid());
-
-    point_t pt7(1, 0, 0);
-    point_t pt8(0, 1, 0);
-    line_t line5(pt7, pt8);
-    
-    point_t pt9(1, 1, 1);
-    point_t pt10(0, 0, 1);
-    line_t line6(pt9, pt10);
-    
-    point_t res4 = line5.isCross(line6);
-    EXPECT_EQ(0, res4.isValid());
 }
 
 TEST_F(lineTest, GettingT) {
@@ -686,7 +668,7 @@ TEST(triangleTest, isIntersectionLineLine) {
     EXPECT_EQ(0, triag4.isIntersectionLineLine(triag1));
 
     triangle_t triag5(pt1, pt2, pt3);
-    EXPECT_EQ(0, triag5.isIntersectionLineLine(triag1));
+    EXPECT_EQ(1, triag5.isIntersectionLineLine(triag1));
 }
 
 } // Unit_tests
