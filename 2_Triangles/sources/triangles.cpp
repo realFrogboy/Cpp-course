@@ -28,7 +28,7 @@ int triagIntersections(const unsigned n) {
         std::pair<Geometric::triangle_t, unsigned> newPr = std::make_pair(triag, idx);
 
         bool fl = false;
-        for (auto lstIter = uncrossedTriangles.begin(); lstIter != uncrossedTriangles.end(); ++lstIter) {
+        for (auto lstIter = uncrossedTriangles.begin(); lstIter != uncrossedTriangles.end(); ) {
             std::pair<Geometric::triangle_t, unsigned> pr = *lstIter;
             if (pr.first.isIntersection3D(triag)) {
                 printf("%d ", pr.second);
@@ -37,6 +37,8 @@ int triagIntersections(const unsigned n) {
                 lstIter = uncrossedTriangles.erase(lstIter);
                 crossedTriangles.push_back(pr);
             }
+            else  
+                ++lstIter;
         }
 
         if (fl) {
