@@ -4,7 +4,7 @@
 
 namespace Triangles {
 
-const double accurasy = 0.01;
+const double accurasy = 0.0001;
 
 namespace Geometric {
 

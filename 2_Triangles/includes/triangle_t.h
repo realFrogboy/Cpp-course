@@ -17,6 +17,10 @@ struct trianglePt_t {
 class triangle_t {
     trianglePt_t trianglePt{{NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}};
 
+    public:
+
+    triangle_t() {};
+
     std::pair<point_t, point_t> getMinMax() const; 
 
     inline bool isPoint() const;
@@ -33,7 +37,7 @@ class triangle_t {
 
     inline std::pair<double, double> getTT(const triangle_t& triag, const line_t& interLine, const int p) const;
 
-    public:
+    inline trianglePt_t getData() const;
 
     inline triangle_t(point_t pt1, point_t pt2, point_t pt3) : trianglePt{pt1, pt2, pt3} {};
 
@@ -52,6 +56,9 @@ class triangle_t {
     inline bool isIntersection3D(const triangle_t& triag) const;
 };
 
+inline trianglePt_t triangle_t::getData() const {
+    return trianglePt;
+}
 
 inline bool triangle_t::isPoint() const {
     if (trianglePt.first.isEqual(trianglePt.second) && (trianglePt.second.isEqual(trianglePt.third)))

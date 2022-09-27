@@ -6,64 +6,29 @@ namespace {
 
 Geometric::point_t getPoint() {
     double x = 0, y = 0, z = 0;
-    int tmp = scanf("%lf %lf %lf", &x, &y, &z);
-    assert(tmp == 3);
+    std::cin >> x >> y >> z;
+    //assert(std::cin.good());
 
     Geometric::point_t pt(x, y, z);
     return pt;
 }
 
-} // namespace
+} //namespace
 
-int triagIntersections(const unsigned n) {
-    std::list<std::pair<Geometric::triangle_t, unsigned>> uncrossedTriangles;
-    std::vector<std::pair<Geometric::triangle_t, unsigned>> crossedTriangles;
+void getData(std::list<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
+    unsigned n = 0;
+    std::cin >> n;
+    assert(std::cin.good());
 
-    for (unsigned idx = 0; idx < n; idx++) {
-        Geometric::point_t pt1 = getPoint();
-        Geometric::point_t pt2 = getPoint();
-        Geometric::point_t pt3 = getPoint();
+    for (unsigned cnt = 0; cnt < n; cnt++) {
+        Triangles::Geometric::point_t pt1 = Triangles::getPoint();
+        Triangles::Geometric::point_t pt2 = Triangles::getPoint();
+        Triangles::Geometric::point_t pt3 = Triangles::getPoint();
 
-        Geometric::triangle_t triag(pt1, pt2, pt3);
-        std::pair<Geometric::triangle_t, unsigned> newPr = std::make_pair(triag, idx);
+        Triangles::Geometric::triangle_t triag(pt1, pt2, pt3);
 
-        bool fl = false;
-        for (auto lstIter = uncrossedTriangles.begin(); lstIter != uncrossedTriangles.end(); ) {
-            std::pair<Geometric::triangle_t, unsigned> pr = *lstIter;
-            if (pr.first.isIntersection3D(triag)) {
-                printf("%d ", pr.second);
-                fl = true;
-
-                lstIter = uncrossedTriangles.erase(lstIter);
-                crossedTriangles.push_back(pr);
-            }
-            else  
-                ++lstIter;
-        }
-
-        if (fl) {
-            printf("%d ", idx);
-            crossedTriangles.push_back(newPr);
-            continue;
-        }
-
-        auto vecIter = crossedTriangles.begin();
-        for (; vecIter != crossedTriangles.end(); ++vecIter) {
-            std::pair<Geometric::triangle_t, unsigned> pr = *vecIter;
-            if (pr.first.isIntersection3D(triag)) {
-                printf("%d ", idx);
-
-                crossedTriangles.push_back(newPr);
-
-                break;
-            }
-        }
-
-        if (vecIter == crossedTriangles.end())
-            uncrossedTriangles.push_back(newPr);
+        triangles.push_back({triag, cnt});
     }
-    printf("\n");
-    return 0;
 }
 
 } // Triangles

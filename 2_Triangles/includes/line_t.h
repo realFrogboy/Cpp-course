@@ -115,10 +115,6 @@ inline point_t line_t::shortestLine(const line_t& line) const {
     double d2121 = (coord2.x - coord1.x) * (coord2.x - coord1.x) + (coord2.y - coord1.y) * (coord2.y - coord1.y) + (coord2.z - coord1.z) * (coord2.z - coord1.z);
     
     double t1 = (d1343 * d4321 - d1321 * d4343) / (d2121 * d4343 - d4321 * d4321);
-
-    //if (!std::isfinite(t1)) // lines are equal
-      //  return lineData.linePt;
-
     double t2 = (d1343 + t1 * d4321) / d4343;
 
     vector_t pt1 = linePtVec1 + lineData.a * t1;

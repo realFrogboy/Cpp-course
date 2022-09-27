@@ -1,11 +1,13 @@
 #include "triangles.h"
+#include "bsp.h"
 
 int main() {
-    unsigned n = 0;
-    int tmp = scanf("%u", &n);
-    assert(tmp == 1);
+    std::list<std::pair<Triangles::Geometric::triangle_t, unsigned>> triangles;
+    Triangles::getData(triangles);
 
-    Triangles::triagIntersections(n);
+    bsp_tree::bspTree_t tree(triangles);
+    tree.inorder(tree.root);
+    tree.deleteTree();
 
     return 0;
 }
