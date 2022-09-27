@@ -1,2 +1,5 @@
 2_Triangles/build
+2_Triangles/bsp_tree/build
+2_Triangles/bsp_tree/sources/main.cpp
+2_Triangles/bsp_tree/CMakeLists.txt
 .vscode
