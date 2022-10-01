@@ -2,6 +2,14 @@
 
 namespace bsp_tree {
 
+void toArr(std::pair<triangle_type, unsigned>* arr, const nodeVec& vector) {
+    for (auto elem : vector) {
+        arr->second = elem.second;
+        arr->first = elem.first;
+        arr++;
+    }
+}
+
 location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triangles::Geometric::triangle_t& triag) {
     Triangles::Geometric::trianglePt_t trianglePt = triag.getData();
 
@@ -19,19 +27,14 @@ location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triang
         return location::INTERSECTION;
 }
 
-std::pair<Triangles::Geometric::triangle_t, unsigned> getSplit(const std::list<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
-    auto iter = triangles.begin();
-    for (; iter != triangles.end(); ++iter) {
-        if ((!iter->first.isPoint()) && (!iter->first.isLine()))
-            break;
+std::pair<triangle_type, unsigned> getSplit(const std::pair<triangle_type, unsigned>* arr, int n) {
+    for (int idx = 0; idx < n; idx++) {
+        if ((!arr[idx].first.isPoint()) && (!arr[idx].first.isLine()))
+            return arr[idx];
     }
 
-    if (iter == triangles.end()) {
-        Triangles::Geometric::triangle_t invalid{};
-        return std::make_pair(invalid, 0u);
-    }
-
-    return *iter;
+    triangle_type invalid{};
+    return std::make_pair(invalid, 0u);
 }
 
 } // bsp_tree

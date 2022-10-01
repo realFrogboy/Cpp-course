@@ -15,7 +15,7 @@ Geometric::point_t getPoint() {
 
 } //namespace
 
-void getData(std::list<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
+void getData(std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
     unsigned n = 0;
     std::cin >> n;
     assert(std::cin.good());
