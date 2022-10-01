@@ -15,6 +15,8 @@ class plate_t {
     plateData_t pltData {{NAN, NAN, NAN}, {NAN, NAN, NAN}, NAN};
 
     public:
+    
+    inline plate_t(const vector_t norm, const point_t pt, const double d) : pltData{norm, pt, d} {};
 
     inline plate_t(const point_t& firstPt, const point_t& secondPt, const point_t& therdPt);
 

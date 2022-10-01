@@ -9,5 +9,5 @@
 
 namespace Triangles {
 int triagIntersections(const unsigned n);
-void getData(std::list<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles);
+void getData(std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles);
 }
