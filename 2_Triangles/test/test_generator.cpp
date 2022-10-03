@@ -17,7 +17,7 @@ int all_random(std::ofstream& fp, const int n) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < pointsInTriangle; j++) {
             double s = (double)rand() / RAND_MAX * (xmax-xmin) + xmin;
-            fp << s;
+            fp << s << ' ';
         }
 
         fp << std::endl;
