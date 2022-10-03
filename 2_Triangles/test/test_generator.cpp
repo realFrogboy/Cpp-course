@@ -4,22 +4,23 @@
 #include <time.h>
 #include <assert.h>
 #include <string>
+#include <fstream>
 
 namespace {
 
-int all_random(FILE *fp, int n) {
+int all_random(std::ofstream& fp, const int n) {
     const double xmin = -1000.0;
     const double xmax = 1000.0;
     const int pointsInTriangle = 9;
 
-    fprintf(fp, "%d\n", n);
+    fp << n << std::endl;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < pointsInTriangle; j++) {
             double s = (double)rand() / RAND_MAX * (xmax-xmin) + xmin;
-            fprintf(fp, "%lf ", s);
+            fp << s;
         }
 
-        fprintf(fp, "\n");
+        fp << std::endl;
     }
 
     return 0;
@@ -35,11 +36,10 @@ int main(int argc, char **argv) {
     char *nStr = argv[1];
     int n = std::stoi(nStr);
 
-    FILE *fp = fopen("Generation.txt", "w");
-    assert(fp);
+    std::ofstream fp("Generation.txt");
 
     all_random(fp, n);
 
-    fclose(fp);
+    fp.close();
 }
 
