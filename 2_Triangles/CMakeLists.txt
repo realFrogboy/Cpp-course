@@ -7,10 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_BUILD_TYPE Debug)
 
 #main
-set (SOURCES sources/main.cpp sources/triangles.cpp bsp_tree/sources/bsp.cpp)
+set (SOURCES sources/main.cpp sources/triangles.cpp optimizers/bsp_tree/sources/bsp.cpp optimizers/bounding_box/sources/bounding_box.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCES})
-target_include_directories (${PROJECT_NAME} PRIVATE includes bsp_tree/includes)
+target_include_directories (${PROJECT_NAME} PRIVATE includes optimizers/bsp_tree/includes optimizers/bounding_box/includes)
 
 add_compile_options (-g -Wall -Werror -Wextra -Wpedantic)
 
@@ -32,9 +32,9 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 set (UNIT unit_tests)
-set (UNIT_SOURCES test/unit_tests.cpp)
+set (UNIT_SOURCES test/unit_tests.cpp optimizers/bounding_box/sources/bounding_box.cpp)
 
 add_executable(${UNIT} ${UNIT_SOURCES})
 
-target_include_directories (${UNIT} PRIVATE includes bsp_tree/includes)
+target_include_directories (${UNIT} PRIVATE includes optimizers/bsp_tree/includes optimizers/bounding_box/includes)
 target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
