@@ -21,7 +21,7 @@ class triangle_t {
 
     triangle_t() {};
 
-    inline void copy(const triangle_t& triag);
+    inline bool operator==(const triangle_t& triag) const;
 
     std::pair<point_t, point_t> getMinMax() const; 
 
@@ -68,10 +68,10 @@ inline bool triangle_t::isPoint() const {
     return 0;
 }
 
-inline void triangle_t::copy(const triangle_t& triag) {
-    trianglePt.first.copy(triag.trianglePt.first);
-    trianglePt.second.copy(triag.trianglePt.second);
-    trianglePt.third.copy(triag.trianglePt.third);
+inline bool triangle_t::operator==(const triangle_t& triag) const {
+    if ((trianglePt.first.isEqual(triag.trianglePt.first)) && (trianglePt.second.isEqual(triag.trianglePt.second)) && (trianglePt.third.isEqual(triag.trianglePt.third)))
+        return 1;
+    return 0;
 }
 
 inline bool triangle_t::isLine() const {

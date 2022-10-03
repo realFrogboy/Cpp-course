@@ -15,6 +15,10 @@ class point_t {
 
     point_t(double x, double y, double z) : coord{x, y, z} {};
 
+    inline point_t getMinX(const point_t& pt) const;
+    inline point_t getMinY(const point_t& pt) const;
+    inline point_t getMinZ(const point_t& pt) const;
+
     inline coord_t getCoord() const;
 
     inline void copy(const point_t& pt);
@@ -28,6 +32,24 @@ class point_t {
     inline vector_t toVector() const;
 };
 
+
+inline point_t point_t::getMinX(const point_t& pt) const {
+    if (coord.x > pt.coord.x)
+        return *this;
+    return pt;
+}
+
+inline point_t point_t::getMinY(const point_t& pt) const {
+    if (coord.y > pt.coord.y)
+        return *this;
+    return pt;
+}
+
+inline point_t point_t::getMinZ(const point_t& pt) const {
+    if (coord.z > pt.coord.z)
+        return *this;
+    return pt;
+}
 
 inline coord_t point_t::getCoord() const { 
     return coord; 
