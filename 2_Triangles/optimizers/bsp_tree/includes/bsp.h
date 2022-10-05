@@ -25,9 +25,6 @@ location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triang
 
 std::pair<triangle_type, unsigned> getSplit(const nodeVec& arr);
 
-void toArr(std::pair<triangle_type, unsigned>* arr, const nodeVec& vector);
-
-
 class bspTree_t {
     public:
 
@@ -59,10 +56,10 @@ inline void bspTree_t::searchIntersectionsTree(const nodeVec& arr) {
     Triangles::Geometric::plate_t plt(triangleVertex.first, triangleVertex.second, triangleVertex.third);
     std::pair<nodeVec, nodeVec> pr = locateTriangles(arr, plt);
 
-    if (pr.first.size() != 0)
+    if (pr.first.size())
         searchIntersectionsTree(pr.first);
 
-    if (pr.second.size() != 0)
+    if (pr.second.size())
         searchIntersectionsTree(pr.second);
 }
 

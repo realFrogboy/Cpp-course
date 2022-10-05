@@ -2,14 +2,6 @@
 
 namespace bsp_tree {
 
-void toArr(std::pair<triangle_type, unsigned>* arr, const nodeVec& vector) {
-    for (auto elem : vector) {
-        arr->second = elem.second;
-        arr->first = elem.first;
-        arr++;
-    }
-}
-
 location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triangles::Geometric::triangle_t& triag) {
     Triangles::Geometric::trianglePt_t trianglePt = triag.getData();
 
