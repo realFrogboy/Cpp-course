@@ -27,10 +27,10 @@ location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triang
         return location::INTERSECTION;
 }
 
-std::pair<triangle_type, unsigned> getSplit(const std::pair<triangle_type, unsigned>* arr, int n) {
-    for (int idx = 0; idx < n; idx++) {
-        if ((!arr[idx].first.isPoint()) && (!arr[idx].first.isLine()))
-            return arr[idx];
+std::pair<triangle_type, unsigned> getSplit(const nodeVec& arr) {
+    for (auto triag : arr) {
+        if ((!triag.first.isPoint()) && (!triag.first.isLine()))
+            return triag;
     }
 
     triangle_type invalid{};
