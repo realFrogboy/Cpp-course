@@ -39,7 +39,5 @@ int main(int argc, char **argv) {
     std::ofstream fp("Generation.txt");
 
     all_random(fp, n);
-
-    fp.close();
 }
 
