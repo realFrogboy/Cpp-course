@@ -19,11 +19,12 @@ enum class location {
 };
 
 using nodeVec = typename std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>;
-using triangle_type = Triangles::Geometric::triangle_t;
+using Triangles::Geometric::triangle_t;
+using Triangles::Geometric::plate_t;
 
-location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triangles::Geometric::triangle_t& triag);
+location classifyTriangle(const plate_t& plt, const triangle_t& triag);
 
-std::pair<triangle_type, unsigned> getSplit(const nodeVec& arr);
+std::pair<triangle_t, unsigned> getSplit(const nodeVec& arr);
 
 class bspTree_t {
     public:
@@ -34,7 +35,7 @@ class bspTree_t {
 
     inline void searchIntersectionsTree(const nodeVec& arr);
 
-    inline std::pair<nodeVec, nodeVec> locateTriangles(const nodeVec& arr, const Triangles::Geometric::plate_t& plt);
+    inline std::pair<nodeVec, nodeVec> locateTriangles(const nodeVec& arr, const plate_t& plt);
 
     inline void Intersections(const nodeVec& splitTriangles);
 };
@@ -46,14 +47,14 @@ inline bspTree_t::bspTree_t(const nodeVec& triangles) {
 
 inline void bspTree_t::searchIntersectionsTree(const nodeVec& arr) {
     auto currTriangle = getSplit(arr);
-    Triangles::Geometric::trianglePt_t triangleVertex = currTriangle.first.getData();
+    Triangles::Geometric::trianglePt_t triangleVertex = currTriangle.first.trianglePt;
 
     if (!triangleVertex.first.isValid()) {
         Intersections(arr);
         return;
     }
 
-    Triangles::Geometric::plate_t plt(triangleVertex.first, triangleVertex.second, triangleVertex.third);
+    plate_t plt(triangleVertex.first, triangleVertex.second, triangleVertex.third);
     std::pair<nodeVec, nodeVec> pr = locateTriangles(arr, plt);
 
     if (pr.first.size())
@@ -64,7 +65,7 @@ inline void bspTree_t::searchIntersectionsTree(const nodeVec& arr) {
 }
 
 
-inline std::pair<nodeVec, nodeVec> bspTree_t::locateTriangles(const nodeVec& arr, const Triangles::Geometric::plate_t& plt) {
+inline std::pair<nodeVec, nodeVec> bspTree_t::locateTriangles(const nodeVec& arr, const plate_t& plt) {
     nodeVec frontLst, backLst, splitTriangles;
 
     for (auto triag : arr) {

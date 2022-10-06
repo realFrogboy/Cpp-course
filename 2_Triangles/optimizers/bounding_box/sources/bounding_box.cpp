@@ -2,12 +2,12 @@
 
 namespace bounding_box {
 
-Triangles::Geometric::point_t getMin(const Triangles::Geometric::triangle_t& triag) {
-    Triangles::Geometric::trianglePt_t triagPt = triag.getData();
+point_t getMin(const triangle_t& triag) {
+    Triangles::Geometric::trianglePt_t triagPt = triag.trianglePt;
 
-    Triangles::Geometric::coord_t coordPt1 = triagPt.first.getCoord();
-    Triangles::Geometric::coord_t coordPt2 = triagPt.second.getCoord();
-    Triangles::Geometric::coord_t coordPt3 = triagPt.third.getCoord();
+    coord_t coordPt1 = triagPt.first.coord;
+    coord_t coordPt2 = triagPt.second.coord;
+    coord_t coordPt3 = triagPt.third.coord;
 
     double minX = 0;
     (coordPt1.x < coordPt2.x) ? minX = coordPt1.x : minX = coordPt2.x;
@@ -24,16 +24,16 @@ Triangles::Geometric::point_t getMin(const Triangles::Geometric::triangle_t& tri
     if (minZ > coordPt3.z)
         minZ = coordPt3.z;
 
-    Triangles::Geometric::point_t res {minX, minY, minZ};
+    point_t res {minX, minY, minZ};
     return res;
 }
 
-Triangles::Geometric::point_t getMax(const Triangles::Geometric::triangle_t& triag) {
-    Triangles::Geometric::trianglePt_t triagPt = triag.getData();
+point_t getMax(const triangle_t& triag) {
+    Triangles::Geometric::trianglePt_t triagPt = triag.trianglePt;
 
-    Triangles::Geometric::coord_t coordPt1 = triagPt.first.getCoord();
-    Triangles::Geometric::coord_t coordPt2 = triagPt.second.getCoord();
-    Triangles::Geometric::coord_t coordPt3 = triagPt.third.getCoord();
+    coord_t coordPt1 = triagPt.first.coord;
+    coord_t coordPt2 = triagPt.second.coord;
+    coord_t coordPt3 = triagPt.third.coord;
 
     double maxX = 0;
     (coordPt1.x > coordPt2.x) ? maxX = coordPt1.x : maxX = coordPt2.x;
@@ -50,7 +50,7 @@ Triangles::Geometric::point_t getMax(const Triangles::Geometric::triangle_t& tri
     if (maxZ < coordPt3.z)
         maxZ = coordPt3.z;
 
-    Triangles::Geometric::point_t res {maxX, maxY, maxZ};
+    point_t res {maxX, maxY, maxZ};
     return res;
 }
 

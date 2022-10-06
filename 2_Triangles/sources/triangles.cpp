@@ -6,9 +6,7 @@ namespace {
 
 Geometric::point_t getPoint() {
     double x = 0, y = 0, z = 0;
-    std::cin >> x >> y >> z;
-    if (!std::cin.eof()) 
-        assert(std::cin.good());
+    assert(std::cin >> x >> y >> z);
 
     Geometric::point_t pt(x, y, z);
     return pt;

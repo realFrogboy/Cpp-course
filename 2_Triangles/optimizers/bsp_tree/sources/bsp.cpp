@@ -2,8 +2,8 @@
 
 namespace bsp_tree {
 
-location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triangles::Geometric::triangle_t& triag) {
-    Triangles::Geometric::trianglePt_t trianglePt = triag.getData();
+location classifyTriangle(const plate_t& plt, const triangle_t& triag) {
+    Triangles::Geometric::trianglePt_t trianglePt = triag.trianglePt;
 
     double dist1 = plt.distToPoint(trianglePt.first);
     double dist2 = plt.distToPoint(trianglePt.second);
@@ -19,13 +19,13 @@ location classifyTriangle(const Triangles::Geometric::plate_t& plt, const Triang
         return location::INTERSECTION;
 }
 
-std::pair<triangle_type, unsigned> getSplit(const nodeVec& arr) {
+std::pair<triangle_t, unsigned> getSplit(const nodeVec& arr) {
     for (auto triag : arr) {
         if ((!triag.first.isPoint()) && (!triag.first.isLine()))
             return triag;
     }
 
-    triangle_type invalid{};
+    triangle_t invalid{};
     return std::make_pair(invalid, 0u);
 }
 

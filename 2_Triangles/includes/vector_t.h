@@ -15,15 +15,11 @@ struct coord_t {
 };
 
 class vector_t {
-    coord_t coord{NAN, NAN, NAN};
-
     public:
+    
+    coord_t coord {};
 
-    vector_t() {};
-
-    vector_t(double x, double y, double z) : coord{x, y, z} {};
-
-    inline coord_t getCoord() const;
+    vector_t(const double x = NAN, const double y = NAN, const double z = NAN) : coord{x, y, z} {};
 
     inline void copy(const vector_t& vec);
 
@@ -53,11 +49,6 @@ class vector_t {
 
     inline double length() const;
 };
-
-
-inline coord_t vector_t::getCoord() const { 
-    return coord; 
-}
 
 inline void vector_t::copy(const vector_t& vec) {
     coord.x = vec.coord.x;
@@ -153,7 +144,7 @@ inline vector_t vector_t::operator-(vector_t vec) {
 }
 
 inline double vector_t::length() const{
-    double tmp =  this->scalarMult(*this);
+    double tmp = scalarMult(*this);
     return sqrt(tmp);
 }
 

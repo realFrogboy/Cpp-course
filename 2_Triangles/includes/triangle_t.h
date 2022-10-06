@@ -15,11 +15,11 @@ struct trianglePt_t {
 };
 
 class triangle_t {
-    trianglePt_t trianglePt{{NAN, NAN, NAN}, {NAN, NAN, NAN}, {NAN, NAN, NAN}};
-
     public:
 
-    triangle_t() {};
+    trianglePt_t trianglePt {};
+
+    triangle_t(const point_t pt1 = {NAN, NAN, NAN}, const point_t pt2 = {NAN, NAN, NAN}, const point_t pt3 = {NAN, NAN, NAN}) : trianglePt{pt1, pt2, pt3} {};
 
     inline bool operator==(const triangle_t& triag) const;
 
@@ -39,10 +39,6 @@ class triangle_t {
 
     inline std::pair<double, double> getTT(const triangle_t& triag, const line_t& interLine, const int p) const;
 
-    inline trianglePt_t getData() const;
-
-    inline triangle_t(point_t pt1, point_t pt2, point_t pt3) : trianglePt{pt1, pt2, pt3} {};
-
     inline triangle_t projOntoPlt(const plate_t& plt) const;
 
     inline bool isIntersection2D(const triangle_t& triang, const plate_t& plt) const;
@@ -57,10 +53,6 @@ class triangle_t {
 
     inline bool isIntersection3D(const triangle_t& triag) const;
 };
-
-inline trianglePt_t triangle_t::getData() const {
-    return trianglePt;
-}
 
 inline bool triangle_t::isPoint() const {
     if (trianglePt.first.isEqual(trianglePt.second) && (trianglePt.second.isEqual(trianglePt.third)))
@@ -120,11 +112,11 @@ inline bool triangle_t::isIntersectionWithPoint(const triangle_t triag) const {
     if (std::abs(plt.distToPoint(triag.trianglePt.first)) > accurasy)
         return 0;
 
-    return this->isIntersection2D(triag, plt);
+    return isIntersection2D(triag, plt);
 }
 
 inline bool triangle_t::isIntersectionLinePoint(const point_t pt) const {
-    auto pr = this->getMinMax();
+    auto pr = getMinMax();
     line_t lineSegment(pr.first, pr.second);
 
     if (!lineSegment.onLine(pt))
@@ -139,15 +131,15 @@ inline bool triangle_t::isIntersectionLinePoint(const point_t pt) const {
 
 inline bool triangle_t::isIntersectionLine(const triangle_t triag) const {
     plate_t plt(trianglePt.first, trianglePt.second, trianglePt.third);
-    plateData_t pltData = plt.getData();
+    plateData_t pltData = plt.pltData;
 
     auto pr = triag.getMinMax();
     line_t line(pr.first, pr.second);
-    lineData_t lineData = line.getData();
+    lineData_t lineData = line.lineData;
 
     if (std::abs(pltData.n.scalarMult(lineData.a)) < accurasy) {
         if (std::abs(plt.distToPoint(lineData.linePt)) < accurasy)
-            return this->isIntersection2D(triag, plt);
+            return isIntersection2D(triag, plt);
         else
             return 0;
     }
@@ -158,11 +150,11 @@ inline bool triangle_t::isIntersectionLine(const triangle_t triag) const {
         return 0;
 
     triangle_t tmp(inter, inter, inter); 
-    return this->isIntersectionWithPoint(tmp);
+    return isIntersectionWithPoint(tmp);
 }
 
 inline bool triangle_t::isIntersectionLineLine(const triangle_t triag) const {
-    auto pr1 = this->getMinMax();
+    auto pr1 = getMinMax();
     auto pr2 = triag.getMinMax();
 
     line_t line1(pr1.first, pr1.second);
@@ -180,10 +172,10 @@ inline bool triangle_t::isIntersectionLineLine(const triangle_t triag) const {
 }
 
 inline int triangle_t::checkSpecialCases(const triangle_t& triag) const {
-    bool chkPt1 = this->isPoint();
+    bool chkPt1 = isPoint();
     bool chkPt2 = triag.isPoint();
 
-    bool chkLine1 = this->isLine();
+    bool chkLine1 = isLine();
     bool chkLine2 = triag.isLine();
 
     if (chkPt1) {
@@ -197,26 +189,26 @@ inline int triangle_t::checkSpecialCases(const triangle_t& triag) const {
 
     if (chkPt2) {
         if (chkLine1)
-            return this->isIntersectionLinePoint(triag.trianglePt.first);
+            return isIntersectionLinePoint(triag.trianglePt.first);
         else 
-             return this->isIntersectionWithPoint(triag);
+             return isIntersectionWithPoint(triag);
     }
 
     if (chkLine1) {
         if (chkLine2) 
-            return this->isIntersectionLineLine(triag);
+            return isIntersectionLineLine(triag);
          else 
             return triag.isIntersectionLine(*this);
     }
 
     if(chkLine2)
-        return this->isIntersectionLine(triag);
+        return isIntersectionLine(triag);
     
     return 2;
 }
 
 inline bool triangle_t::checkSepAxe(const line_t& edge, const triangle_t& triang, const plate_t& plt) const {
-    lineData_t edgeData = edge.getData();
+    lineData_t edgeData = edge.lineData;
     vector_t edgeNorm = edgeData.a.normal1();
     vector_t projNorm  = plt.projOfVector(edgeNorm);
     
@@ -386,7 +378,7 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
 
     if (plt1.isEqual(plt2)) {
         triangle_t projTriag = triag.projOntoPlt(plt1);
-        bool res = this->isIntersection2D(projTriag, plt1);
+        bool res = isIntersection2D(projTriag, plt1);
         return res;
     } else if (plt1.isParallel(plt2)) 
         return 0;
@@ -403,8 +395,8 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
     auto p1 = getDist(dist11, dist12, dist13);
     auto p2 = getDist(dist21, dist22, dist23);
 
-    std::pair<double, double> pr1 = getTT(*this, interLine,p1);
-    std::pair<double, double> pr2 = getTT(triag, interLine,p2);
+    std::pair<double, double> pr1 = getTT(*this, interLine, p1);
+    std::pair<double, double> pr2 = getTT(triag, interLine, p2);
 
     double t11 = pr1.first, t12 = pr1.second, t21 = pr2.first, t22 = pr2.second;
 

@@ -7,19 +7,15 @@ namespace Triangles {
 namespace Geometric {
 
 class point_t {
-    coord_t coord{NAN, NAN, NAN};
-
     public:
+    
+    coord_t coord {};
 
-    point_t() {};
-
-    point_t(double x, double y, double z) : coord{x, y, z} {};
+    point_t(const double x = NAN, const double y = NAN, const double z = NAN) : coord{x, y, z} {};
 
     inline point_t getMinX(const point_t& pt) const;
     inline point_t getMinY(const point_t& pt) const;
     inline point_t getMinZ(const point_t& pt) const;
-
-    inline coord_t getCoord() const;
 
     inline void copy(const point_t& pt);
 
@@ -49,10 +45,6 @@ inline point_t point_t::getMinZ(const point_t& pt) const {
     if (coord.z > pt.coord.z)
         return *this;
     return pt;
-}
-
-inline coord_t point_t::getCoord() const { 
-    return coord; 
 }
 
 inline void point_t::copy(const point_t& pt) {

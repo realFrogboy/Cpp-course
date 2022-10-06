@@ -34,7 +34,7 @@ class vectorTest : public ::testing::Test {
 };
 
 TEST_F(vectorTest, Initialization) {
-    coord_t vecCoord = vec1.getCoord();
+    coord_t vecCoord = vec1.coord;
 
     EXPECT_EQ(1, isEqual(1.5, vecCoord.x));
     EXPECT_EQ(1, isEqual(-4, vecCoord.y));
@@ -144,7 +144,7 @@ class pointTest : public ::testing::Test {
 };
 
 TEST_F(pointTest, Initialization) {
-    coord_t ptCoord = pt1.getCoord();
+    coord_t ptCoord = pt1.coord;
 
     EXPECT_EQ(1, isEqual(1.5, ptCoord.x));
     EXPECT_EQ(1, isEqual(-4, ptCoord.y));
@@ -193,19 +193,19 @@ class lineTest : public ::testing::Test {
 
 TEST_F(lineTest, InitializationBy2Points) {
     line_t line1(pt1, pt2);
-    lineData_t lineData = line1.getData();
+    lineData_t lineData = line1.lineData;
     vector_t dir1(5.5, 14, -12.5);
     EXPECT_EQ(1, dir1.isParallel(lineData.a));
     EXPECT_EQ(1, pt1.isEqual(lineData.linePt));
 
     line_t line2(pt1, pt3);
-    lineData = line2.getData();
+    lineData = line2.lineData;
     vector_t dir2(3.5, 7, -8.4);
     EXPECT_EQ(1, dir2.isParallel(lineData.a));
     EXPECT_EQ(1, pt1.isEqual(lineData.linePt));
 
     line_t line3(pt3, pt2);
-    lineData = line3.getData();
+    lineData = line3.lineData;
     vector_t dir3(-2, -7, 4.1);
     EXPECT_EQ(1, dir3.isParallel(lineData.a));
     EXPECT_EQ(1, pt3.isEqual(lineData.linePt));
@@ -308,24 +308,24 @@ class plateTest : public ::testing::Test {
 TEST_F(plateTest, InitializationBy3Points) {
     plate_t plt1(pt1, pt2, pt3);
 
-    plateData_t plt1Data = plt1.getData();
-    coord_t n1Coord = plt1Data.n.getCoord();
+    plateData_t plt1Data = plt1.pltData;
+    coord_t n1Coord = plt1Data.n.coord;
     vector_t trueVec1(-30.1, 2.45, -10.5);
     double k1 = std::abs(n1Coord.x / -30.1);
     EXPECT_EQ(1, plt1Data.n.isParallel(trueVec1));
     EXPECT_EQ(1, isEqual(plt1Data.d, k1 * 141.575));
 
     plate_t plt2(pt1, pt2, pt4);
-    plateData_t plt2Data = plt2.getData();
-    coord_t n2Coord = plt2Data.n.getCoord();
+    plateData_t plt2Data = plt2.pltData;
+    coord_t n2Coord = plt2Data.n.coord;
     vector_t trueVec2(-181.875, 498.125, 477.875);
     double k2 = std::abs(n2Coord.x / -181.875);
     EXPECT_EQ(1, plt2Data.n.isParallel(trueVec2));
     EXPECT_EQ(1, isEqual(plt2Data.d, k2 * -1677.15625));
 
     plate_t plt3(pt1, pt3, pt4);
-    plateData_t plt3Data = plt3.getData();
-    coord_t n3Coord = plt3Data.n.getCoord();
+    plateData_t plt3Data = plt3.pltData;
+    coord_t n3Coord = plt3Data.n.coord;
     vector_t trueVec3(-77.07, 331.065, 243.775);
     double k3 = std::abs(n3Coord.x / -77.07);
     EXPECT_EQ(1, plt3Data.n.isParallel(trueVec3));
@@ -394,7 +394,7 @@ TEST_F(plateTest, intsectOf2Plt) {
     plate_t plt2(pt4, pt5, pt6);
 
     line_t line1 = plt1.intsectOf2Plt(plt2);
-    lineData_t lineData = line1.getData();
+    lineData_t lineData = line1.lineData;
 
     point_t truePt(3.6503397651, -5.210893188, 1.8031509295);
     vector_t trueDir1(4853.95825845, -1538.920425, -14273.76177339);
