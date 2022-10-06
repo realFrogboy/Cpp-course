@@ -4,3 +4,4 @@
 2_Triangles/optimizers/bsp_tree/CMakeLists.txt
 2_Triangles/.vscode
 .vscode
+3_Tree/build
