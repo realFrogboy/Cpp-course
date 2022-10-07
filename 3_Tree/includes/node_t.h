@@ -19,20 +19,11 @@ struct node_t {
 
     ~node_t() = default;
 
-    //inline bool operator!=(const node_t& node) const;
+    node_t(const node_t&) = delete;
+    node_t &operator=(const node_t&) = delete;
 
-    //node_t(const node_t&) = delete;
-    //node_t &operator=(const node_t&) = delete;
-
-    //node_t(const node_t&&) = delete;
-    //node_t &operator=(const node_t&&) = delete;
+    node_t(const node_t&&) = delete;
+    node_t &operator=(const node_t&&) = delete;
 };
-
-/*inline bool node_t::operator!=(const node_t& node) const {
-    if ((key == node.key) && (subtree_size == node.subtree_size) && (color == node.color) &&
-        (lhs == node.lhs) && (rhs == node.rhs) && (parent == node.parent))
-        return 0;
-    return 1;
-}*/
 
 } // tree_node
