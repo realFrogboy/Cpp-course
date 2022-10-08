@@ -4,6 +4,7 @@
 #include <fstream>
 #include <assert.h> 
 #include <algorithm>
+#include <iostream>
 #include <list>
 
 namespace tree {
@@ -103,6 +104,9 @@ inline void tree_t::left_rotate(node_t *node) {
 
     y->lhs = node;
     node->parent = y;
+
+    node->r_subtree_size = y->l_subtree_size;
+    y->l_subtree_size += node->l_subtree_size + 1;
 }
 
 inline void tree_t::right_rotate(node_t *node) {
@@ -126,6 +130,9 @@ inline void tree_t::right_rotate(node_t *node) {
 
     y->rhs = node;
     node->parent = y;
+
+    node->l_subtree_size = y->r_subtree_size;
+    y->r_subtree_size += node->r_subtree_size + 1;
 }
 
 inline void tree_t::rb_insert(node_t *node) {
@@ -136,10 +143,20 @@ inline void tree_t::rb_insert(node_t *node) {
 
     while (x != nil) {
         y = x;
-        if (node->key < x->key)
+        if (node->key < x->key) {
             x = x->lhs;
-        else 
+            y->l_subtree_size++;
+
+            /*dump();
+            system("dot -Tpng tree_dump.dot -o image.png");*/
+
+        } else {
             x = x->rhs;
+            y->r_subtree_size++;
+
+            /*dump();
+            system("dot -Tpng tree_dump.dot -o image.png");*/
+        }
     }
 
     node->parent = y;
@@ -154,6 +171,9 @@ inline void tree_t::rb_insert(node_t *node) {
     node->lhs = nil;
     node->rhs = nil;
     node->color = tree_node::node_color::RED;
+
+   /*dump();
+    system("dot -Tpng tree_dump.dot -o image.png");*/
 
     rb_insert_fixup(node);
     
@@ -170,42 +190,97 @@ inline void tree_t::rb_insert_fixup(node_t *node) {
             
             if (y->color == tree_node::node_color::RED) {
                 node->parent->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 y->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node->parent->parent->color = tree_node::node_color::RED;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node = node->parent->parent;
             } else {
                 
                 if (node == node->parent->lhs) {
                     node = node->parent;
                     right_rotate(node);
+
+                    /*dump();
+                    system("dot -Tpng tree_dump.dot -o image.png");*/
                 }
 
                 node->parent->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node->parent->parent->color = tree_node::node_color::RED;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 left_rotate(node->parent->parent);
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
             }
         } else {
             node_t *y = node->parent->parent->rhs;
             
             if (y->color == tree_node::node_color::RED) {
                 node->parent->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 y->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node->parent->parent->color = tree_node::node_color::RED;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node = node->parent->parent;
             } else {
                 
                 if (node == node->parent->rhs) {
                     node = node->parent;
                     left_rotate(node);
+
+                    /*dump();
+                    system("dot -Tpng tree_dump.dot -o image.png");*/
                 }
 
                 node->parent->color = tree_node::node_color::BLACK;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 node->parent->parent->color = tree_node::node_color::RED;
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
+
                 right_rotate(node->parent->parent);
+
+                /*dump();
+                system("dot -Tpng tree_dump.dot -o image.png");*/
             }
         }
     }
     root->color = tree_node::node_color::BLACK;
+
+    /*dump();
+    system("dot -Tpng tree_dump.dot -o image.png");*/
 }
 
 inline void tree_t::rb_transplant(node_t *node_f, node_t *node_s) {
@@ -331,9 +406,9 @@ inline int tree_t::inorder_pos(const node_t *node) const {
     if (node == nil)
         return 0;
 
-    int cnt = inorder_pos(node->lhs);
+    int cnt = node->l_subtree_size;
     cnt++;
-    cnt += inorder_pos(node->rhs);
+    cnt += node->r_subtree_size;
 
     return cnt;
 }
@@ -347,9 +422,9 @@ inline int tree_t::position(const node_t *node, const int key) const {
     if (key < node->key)
         return position(node->lhs, key);
     else if (key > node->key) 
-        return position(node->rhs, key) + inorder_pos(node->lhs) + 1;
+        return position(node->rhs, key) + node->l_subtree_size + 1;
     else
-        return inorder_pos(node->lhs);
+        return node->l_subtree_size;
 }
 
 inline int tree_t::k_th_min(const node_t *node, const int num) const {
@@ -358,10 +433,10 @@ inline int tree_t::k_th_min(const node_t *node, const int num) const {
     if (node == nil)
         return 0;
 
-    if (num <= inorder_pos(node->lhs))
+    if (num <= node->l_subtree_size)
         return k_th_min(node->lhs, num);
-    else if (num > inorder_pos(node->lhs) + 1) 
-        return k_th_min(node->rhs, num - inorder_pos(node->lhs) - 1);
+    else if (num > node->l_subtree_size + 1) 
+        return k_th_min(node->rhs, num - node->l_subtree_size - 1);
     else
         return node->key;
 }
@@ -383,10 +458,10 @@ inline void tree_dump::graph_node(const node_t *nil, const node_t *node, std::of
     int curr = num;
 
     if (node->color == tree_node::node_color::RED) {
-        file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"red\", label = \"" << node->key << "\"];\n";
+        file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"red\", label = \"" << node->key << " : " << node->l_subtree_size << " : " << node->r_subtree_size << "\"];\n";
         num++;
     } else {
-        file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"grey28\", label = \"" << node->key << "\"];\n";
+        file << "\tnode" << num << " [shape = \"record\", fontcolor = \"white\", style = \"filled\", fillcolor = \"grey28\", label = \"" << node->key << " : " << node->l_subtree_size << " : " << node->r_subtree_size << "\"];\n";
         num++;
     }
 
