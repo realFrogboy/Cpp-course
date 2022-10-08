@@ -9,12 +9,12 @@ using tree_node::node_t;
 class rb_tree_test : public ::testing::Test {
     protected:
     void SetUp() override {
-        tree.rb_insert(node1);
-        tree.rb_insert(node2);
-        tree.rb_insert(node3);
-        tree.rb_insert(node4);
+        tree.rb_insert(root);
         tree.rb_insert(node5);
+        tree.rb_insert(node3);
         tree.rb_insert(node6);
+        tree.rb_insert(node2);
+        tree.rb_insert(node4);
         tree.rb_insert(node7);
     } 
 
@@ -26,7 +26,7 @@ class rb_tree_test : public ::testing::Test {
     node_t *node5 = new node_t{8};
     node_t *node6 = new node_t{11};
     node_t *node7 = new node_t{26};
-    tree::tree_t tree{root};
+    tree::tree_t tree{node1};
 };
 
 TEST_F(rb_tree_test, tree_minimum) {
@@ -37,111 +37,86 @@ TEST_F(rb_tree_test, tree_minimum) {
     EXPECT_EQ(1, res->key == 3);
 
     res = tree.tree_minimum(node2);
-    EXPECT_EQ(1, res->key == 8);
+    EXPECT_EQ(1, res->key == 11);
 
     res = tree.tree_minimum(node4);
     EXPECT_EQ(1, res->key == 22);
 }
 
-TEST_F(rb_tree_test, inorder_pos) {
-    int res = tree.inorder_pos(root);
-    EXPECT_EQ(1, res == 8);
-
-    res = tree.inorder_pos(node1);
-    EXPECT_EQ(1, res == 1);
-
-    res = tree.inorder_pos(node7);
-    EXPECT_EQ(1, res == 1);
-
-    res = tree.inorder_pos(node4);
-    EXPECT_EQ(1, res == 2);
-
-    res = tree.inorder_pos(node2);
-    EXPECT_EQ(1, res == 6);
-
-    res = tree.inorder_pos(node6);
-    EXPECT_EQ(1, res == 1);
-
-    res = tree.inorder_pos(node3);
-    EXPECT_EQ(1, res == 3);
-
-    res = tree.inorder_pos(node5);
-    EXPECT_EQ(1, res == 1);
-}
-
 TEST_F(rb_tree_test, position) {
-    int res = tree.position(root, 2);
+    int res = tree.position(tree.root, 2);
     EXPECT_EQ(1, res == 0);
 
-    res = tree.position(root, 3);
+    res = tree.position(tree.root, 3);
     EXPECT_EQ(1, res == 0);
 
-    res = tree.position(root, 4);
+    res = tree.position(tree.root, 4);
     EXPECT_EQ(1, res == 1);
 
-    res = tree.position(root, 5);
+    res = tree.position(tree.root, 5);
     EXPECT_EQ(1, res == 1);
 
-    res = tree.position(root, 7);
+    res = tree.position(tree.root, 7);
     EXPECT_EQ(1, res == 1);
 
-    res = tree.position(root, 8);
+    res = tree.position(tree.root, 8);
     EXPECT_EQ(1, res == 2);
 
-    res = tree.position(root, 9);
+    res = tree.position(tree.root, 9);
     EXPECT_EQ(1, res == 3);
 
-    res = tree.position(root, 10);
+    res = tree.position(tree.root, 10);
     EXPECT_EQ(1, res == 3);
 
-    res = tree.position(root, 11);
+    res = tree.position(tree.root, 11);
+
     EXPECT_EQ(1, res == 4);
 
-    res = tree.position(root, 12);
+    res = tree.position(tree.root, 12);
     EXPECT_EQ(1, res == 5);
 
-    res = tree.position(root, 18);
+    res = tree.position(tree.root, 18);
     EXPECT_EQ(1, res == 5);
 
-    res = tree.position(root, 19);
+    res = tree.position(tree.root, 19);
     EXPECT_EQ(1, res == 6);
 
-    res = tree.position(root, 22);
+    res = tree.position(tree.root, 22);
     EXPECT_EQ(1, res == 6);
 
-    res = tree.position(root, 23);
+    res = tree.position(tree.root, 23);
     EXPECT_EQ(1, res == 7);
 
-    res = tree.position(root, 26);
+    res = tree.position(tree.root, 26);
     EXPECT_EQ(1, res == 7);
 
-    res = tree.position(root, 27);
+    res = tree.position(tree.root, 27);
     EXPECT_EQ(1, res == 8);
 }
 
 TEST_F(rb_tree_test, k_th_min) {
-    int res = tree.k_th_min(root, 1);
+    int res = tree.k_th_min(tree.root, 1);
     EXPECT_EQ(1, res == 3);
     
-    res = tree.k_th_min(root, 2);
+    res = tree.k_th_min(tree.root, 2);
     EXPECT_EQ(1, res == 7);
 
-    res = tree.k_th_min(root, 3);
+    res = tree.k_th_min(tree.root, 3);
     EXPECT_EQ(1, res == 8);
 
-    res = tree.k_th_min(root, 4);
+    res = tree.k_th_min(tree.root, 4);
     EXPECT_EQ(1, res == 10);
 
-    res = tree.k_th_min(root, 5);
+    res = tree.k_th_min(tree.root, 5);
     EXPECT_EQ(1, res == 11);
 
-    res = tree.k_th_min(root, 6);
+    res = tree.k_th_min(tree.root, 6);
     EXPECT_EQ(1, res == 18);
 
-    res = tree.k_th_min(root, 7);
+    res = tree.k_th_min(tree.root, 7);
     EXPECT_EQ(1, res == 22);
 
-    res = tree.k_th_min(root, 8);
+    res = tree.k_th_min(tree.root, 8);
     EXPECT_EQ(1, res == 26);
 }
 
