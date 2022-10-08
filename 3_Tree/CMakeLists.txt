@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set (CMAKE_BUILD_TYPE Debug)
 
+if (DUMP)
+    add_definitions(-DDUMP)
+endif()
+
 #main
 set (SOURCES sources/main.cpp sources/range_queries.cpp)
 
@@ -26,3 +30,12 @@ add_executable(${UNIT} ${TEST_SOURCES})
 
 target_include_directories (${UNIT} PRIVATE includes)
 target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+
+#end_to_end
+set (ETE end_to_end)
+set (ETE_SOURCES test/end_to_end.cpp)
+
+add_executable(${ETE} ${ETE_SOURCES})
+
+target_include_directories (${ETE} PRIVATE includes)
+target_link_libraries(${ETE} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
