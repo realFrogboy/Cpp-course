@@ -61,37 +61,41 @@ std::vector<int> range_queries() {
     char command;
     assert(std::cin >> command);
     std::vector<int> res{};
-    while ((command == 'k') || (command == 'q') || (command == 'n') || (command == 'm')) {
+    while (((command == 'k') || (command == 'q') || (command == 'n') || (command == 'm')) && (!std::cin.eof())) {
         switch (command) {
             case 'k':
                 k_processing(tree);
-                assert(std::cin >> command);
+                std::cin >> command;
                 break;
             
             case 'q': {
                 int num = q_processing(tree);
                 res.push_back(num);
-                assert(std::cin >> command);
+                std::cin >> command;
                 break;
             }
             
             case 'n': {
                 int num = n_processing(tree);
                 res.push_back(num);
-                assert(std::cin >> command);
+                std::cin >> command;
                 break;
             }
 
             case 'm': {
                 int key = m_processing(tree);
                 res.push_back(key);
-                assert(std::cin >> command);
+                std::cin >> command;
             }
         }
     }
 
+    #ifdef DUMP
+
     tree.dump();
     system("dot -Tpng tree_dump.dot -o image.png");
+
+    #endif
 
     return res;
 }
