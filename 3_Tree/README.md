@@ -19,4 +19,6 @@ Run:
 
 ## Tree dump
 Moreover, you can look at the tree you have built in "image.png":
+Information in node:
+key : left subtree size : right subtree size
 ![Image text](https://github.com/realFrogboy/Pictures/blob/main/upgraded_rb.png)
