@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/matrix_unit_test.dir/test/unit_test.cpp.o  -o matrix_unit_test  /usr/local/lib/libgtest.a /usr/local/lib/libgtest_main.a -lpthread 
