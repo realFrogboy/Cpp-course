@@ -1,0 +1,5 @@
+/mnt/c/code/Cpp-course/4_Matrix/build/CMakeFiles/rebuild_cache.dir
+/mnt/c/code/Cpp-course/4_Matrix/build/CMakeFiles/edit_cache.dir
+/mnt/c/code/Cpp-course/4_Matrix/build/CMakeFiles/test.dir
+/mnt/c/code/Cpp-course/4_Matrix/build/CMakeFiles/matrix_unit_test.dir
+/mnt/c/code/Cpp-course/4_Matrix/build/CMakeFiles/matrix.dir
