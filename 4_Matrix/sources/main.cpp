@@ -5,7 +5,7 @@
 
 int main() {
 
-    std::vector<int> elems{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::vector<double> elems{1, 2, 3, 4, 5, 6, 7, 8, 9};
     matrix::matrix_t matrix(elems, 3);
 
     /*unsigned rang = 0;
