@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_BUILD_TYPE Debug)
 
 #main
-set (SOURCES sources/main.cpp)
+set (SOURCES sources/main.cpp sources/matrix.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCES})
 target_include_directories (${PROJECT_NAME} PRIVATE includes)
@@ -26,3 +26,12 @@ add_executable(${UNIT} ${TEST_SOURCES})
 
 target_include_directories (${UNIT} PRIVATE includes)
 target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+
+#endtoend test
+set(ENDTOEND end_to_end)
+set(TEST_SOURCES test/end_to_end.cpp test/test_generator.cpp)
+
+add_executable(${ENDTOEND} ${TEST_SOURCES})
+
+target_include_directories (${ENDTOEND} PRIVATE includes)
+target_link_libraries(${ENDTOEND} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
