@@ -6,26 +6,25 @@ namespace Triangles {
 
 namespace Geometric {
 
-class point_t {
-    public:
-    
+struct point_t {
+
     coord_t coord {};
 
     point_t(const double x = NAN, const double y = NAN, const double z = NAN) : coord{x, y, z} {};
 
-    inline point_t getMinX(const point_t& pt) const;
-    inline point_t getMinY(const point_t& pt) const;
-    inline point_t getMinZ(const point_t& pt) const;
+    point_t getMinX(const point_t& pt) const;
+    point_t getMinY(const point_t& pt) const;
+    point_t getMinZ(const point_t& pt) const;
 
-    inline void copy(const point_t& pt);
+    void copy(const point_t& pt);
 
-    inline bool isValid() const;
+    bool isValid() const;
 
-    inline bool isNull() const;
+    bool isNull() const;
 
-    inline bool isEqual(const point_t& pt) const;
+    bool isEqual(const point_t& pt) const;
 
-    inline vector_t toVector() const;
+    vector_t toVector() const;
 };
 
 
@@ -60,13 +59,13 @@ inline bool point_t::isValid() const {
 }
 
 inline bool point_t::isNull() const {
-    if ((std::abs(coord.x) <= accurasy) && (std::abs(coord.y) <= accurasy) && (std::abs(coord.z) <= accurasy))
+    if ((std::abs(coord.x) <= accuracy) && (std::abs(coord.y) <= accuracy) && (std::abs(coord.z) <= accuracy))
         return 0;
     return 1;
 }
 
 inline bool point_t::isEqual(const point_t& pt) const {
-    if ((std::abs(coord.x - pt.coord.x) <= accurasy) && (std::abs(coord.y - pt.coord.y) <= accurasy) && (std::abs(coord.z - pt.coord.z) <= accurasy))
+    if ((std::abs(coord.x - pt.coord.x) <= accuracy) && (std::abs(coord.y - pt.coord.y) <= accuracy) && (std::abs(coord.z - pt.coord.z) <= accuracy))
         return 1;
     return 0;
 }

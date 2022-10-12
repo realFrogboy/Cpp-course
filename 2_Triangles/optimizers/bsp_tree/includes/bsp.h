@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "triangle_t.h"
 #include "bounding_box.h"
+#include <algorithm>
 
 namespace bsp_tree {
 
@@ -27,22 +28,33 @@ location classifyTriangle(const plate_t& plt, const triangle_t& triag);
 std::pair<triangle_t, unsigned> getSplit(const nodeVec& arr);
 
 class bspTree_t {
-    public:
 
     std::unordered_map<unsigned, unsigned> crossedTriangles;
+    std::vector<unsigned> output;
 
-    inline bspTree_t(const nodeVec& triangles);
+    public:
 
-    inline void searchIntersectionsTree(const nodeVec& arr);
+    bspTree_t(const nodeVec& triangles);
 
-    inline std::pair<nodeVec, nodeVec> locateTriangles(const nodeVec& arr, const plate_t& plt);
+    void print();
 
-    inline void Intersections(const nodeVec& splitTriangles);
+    void searchIntersectionsTree(const nodeVec& arr);
+
+    std::pair<nodeVec, nodeVec> locateTriangles(const nodeVec& arr, const plate_t& plt);
+
+    void Intersections(const nodeVec& splitTriangles);
 };
 
 
 inline bspTree_t::bspTree_t(const nodeVec& triangles) {
     searchIntersectionsTree(triangles);
+}
+
+inline void bspTree_t::print() {
+        std::sort(output.begin(), output.end());
+
+        for (auto elem : output)
+            std::cout << elem << std::endl;
 }
 
 inline void bspTree_t::searchIntersectionsTree(const nodeVec& arr) {
@@ -127,7 +139,7 @@ inline void bspTree_t::Intersections(const nodeVec& splitTriangles) {
 
             if ((box.isIntersect(box1)) && (iter->first.isIntersection3D(iter1->first))) {
                 if (fl1)
-                    std::cout << iter1->second << std::endl;
+                    output.push_back(iter1->second);
                 fl = true;
                 crossedTriangles.insert({iter1->second, iter1->second});
             }
@@ -137,7 +149,7 @@ inline void bspTree_t::Intersections(const nodeVec& splitTriangles) {
             fl = false;
 
         if (fl) {
-            std::cout << iter->second << std::endl;
+            output.push_back(iter->second);
             crossedTriangles.insert({iter->second, iter->second});
         }
     }

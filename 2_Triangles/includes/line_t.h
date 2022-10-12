@@ -11,30 +11,25 @@ struct lineData_t {
     point_t linePt;
 };
 
-class line_t {
-    double countD(const coord_t& coord1, const coord_t& coord2, const coord_t& coord3, const coord_t& coord4) const {
-        return  (coord1.x - coord2.x) * (coord4.x - coord3.x) + 
-                (coord1.y - coord2.y) * (coord4.y - coord3.y) + 
-                (coord1.z - coord2.z) * (coord4.z - coord3.z);
-    }
-
-    public:
+struct line_t {
 
     lineData_t lineData {};
 
     line_t(const vector_t dir = {NAN, NAN, NAN}, const point_t pt = {NAN, NAN, NAN}) : lineData{dir, pt} {};
 
-    inline line_t(const point_t& firstPt, const point_t& secondPt);
+    line_t(const point_t& firstPt, const point_t& secondPt);
     
-    inline bool valid() const;
+    bool valid() const;
 
-    inline bool onLine(const point_t& pt) const;
+    bool onLine(const point_t& pt) const;
 
-    inline double getT(const point_t& pt) const;
+    double countD(const coord_t& coord1, const coord_t& coord2, const coord_t& coord3, const coord_t& coord4) const;
 
-    inline point_t projOfPoint(const point_t& pt) const;
+    double getT(const point_t& pt) const;
 
-    inline point_t shortestLine(const line_t& line) const;
+    point_t projOfPoint(const point_t& pt) const;
+
+    point_t shortestLine(const line_t& line) const;
 };
 
 inline line_t::line_t(const point_t& firstPt, const point_t& secondPt) {
@@ -125,7 +120,7 @@ inline point_t line_t::shortestLine(const line_t& line) const {
     vector_t lenVec = pt1 - pt2;
     double len = lenVec.length();
 
-    if (std::abs(len) < accurasy) {
+    if (std::abs(len) < accuracy) {
         coord_t resCoord = pt1.coord;
         point_t resPt {resCoord.x, resCoord.y, resCoord.z};
         return resPt;
@@ -133,6 +128,12 @@ inline point_t line_t::shortestLine(const line_t& line) const {
         point_t invalidPt {};
         return invalidPt;
     }
+}
+
+inline double line_t::countD(const coord_t& coord1, const coord_t& coord2, const coord_t& coord3, const coord_t& coord4) const {
+    return  (coord1.x - coord2.x) * (coord4.x - coord3.x) + 
+            (coord1.y - coord2.y) * (coord4.y - coord3.y) + 
+            (coord1.z - coord2.z) * (coord4.z - coord3.z);
 }
 
 } // Geometric
