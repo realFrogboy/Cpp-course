@@ -2,6 +2,7 @@
 
 #include "line_t.h"
 
+namespace Triangles {
 namespace Geometric {
 
 struct plateData_t {
@@ -10,36 +11,31 @@ struct plateData_t {
     double d;
 };
 
-class plate_t {
-    double getCoeff(const plate_t& plt, const double s1, const double s2) const {
-        return  (s2 * pltData.n.scalarMult(plt.pltData.n) - s1 * plt.pltData.n.scalarMult(plt.pltData.n)) / 
-                (pltData.n.scalarMult(plt.pltData.n) * pltData.n.scalarMult(plt.pltData.n) - 
-                 pltData.n.scalarMult(pltData.n) * plt.pltData.n.scalarMult(plt.pltData.n));
-    }
-
-    public:
+struct plate_t {
 
     plateData_t pltData {};
 
     plate_t(const vector_t norm = {NAN, NAN, NAN}, const point_t pt = {NAN, NAN, NAN}, const double d = NAN) : pltData{norm, pt, d} {};
 
-    inline plate_t(const point_t& firstPt, const point_t& secondPt, const point_t& thirdPt);
+    plate_t(const point_t& firstPt, const point_t& secondPt, const point_t& thirdPt);
 
-    inline bool valid() const ;
+    bool valid() const ;
 
-    inline bool isParallel(const plate_t& plt) const;
+    bool isParallel(const plate_t& plt) const;
 
-    inline bool isEqual(const plate_t& plt) const;
+    bool isEqual(const plate_t& plt) const;
 
-    inline double distToPoint(const point_t& pt) const;
+    double getCoeff(const plate_t& plt, const double s1, const double s2) const;
 
-    inline point_t projOfPoint(const point_t& pt) const;
+    double distToPoint(const point_t& pt) const;
 
-    inline vector_t projOfVector( vector_t& vec) const;
+    point_t projOfPoint(const point_t& pt) const;
 
-    inline line_t intsectOf2Plt(const plate_t& plt) const;
+    vector_t projOfVector( vector_t& vec) const;
 
-    inline point_t intersectionLine(const line_t& line) const;
+    line_t intsectOf2Plt(const plate_t& plt) const;
+
+    point_t intersectionLine(const line_t& line) const;
 };
 
 inline bool plate_t::valid() const {
@@ -55,7 +51,7 @@ inline bool plate_t::isParallel(const plate_t& plt) const {
 }
 
 inline bool plate_t::isEqual(const plate_t& plt) const {
-    if ((pltData.n.isParallel(plt.pltData.n)) && (std::abs(pltData.d - plt.pltData.d) <= accurasy))
+    if ((pltData.n.isParallel(plt.pltData.n)) && (std::abs(pltData.d - plt.pltData.d) <= accuracy))
         return 1;
     return 0;
 }
@@ -132,6 +128,12 @@ inline point_t plate_t::intersectionLine(const line_t& line) const {
     
     point_t pt(resCoord.x, resCoord.y, resCoord.z);
     return pt;
+}
+
+inline double plate_t::getCoeff(const plate_t& plt, const double s1, const double s2) const {
+    return  (s2 * pltData.n.scalarMult(plt.pltData.n) - s1 * plt.pltData.n.scalarMult(plt.pltData.n)) / 
+            (pltData.n.scalarMult(plt.pltData.n) * pltData.n.scalarMult(plt.pltData.n) - 
+                pltData.n.scalarMult(pltData.n) * plt.pltData.n.scalarMult(plt.pltData.n));
 }
 
 } // Geometric

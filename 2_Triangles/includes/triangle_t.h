@@ -5,6 +5,7 @@
 #include "assert.h"
 #include "plate_t.h"
 
+namespace Triangles {
 namespace Geometric {
 
 struct trianglePt_t {
@@ -13,44 +14,43 @@ struct trianglePt_t {
     point_t third;
 };
 
-class triangle_t {
-    public:
+struct  triangle_t {
 
     trianglePt_t trianglePt {};
 
     triangle_t(const point_t pt1 = {NAN, NAN, NAN}, const point_t pt2 = {NAN, NAN, NAN}, const point_t pt3 = {NAN, NAN, NAN}) : trianglePt{pt1, pt2, pt3} {};
 
-    inline bool operator==(const triangle_t& triag) const;
+    bool operator==(const triangle_t& triag) const;
 
     std::pair<point_t, point_t> getMinMax() const; 
 
-    inline bool isPoint() const;
+    bool isPoint() const;
 
-    inline bool isLine() const;
+    bool isLine() const;
 
-    inline int checkSpecialCases(const triangle_t& triag) const;
+    int checkSpecialCases(const triangle_t& triag) const;
 
-    inline bool checkSign(const double& vertT, const line_t& normal, const point_t& vert) const;
+    bool checkSign(const double& vertT, const line_t& normal, const point_t& vert) const;
 
-    inline bool checkSepAxe(const line_t& edge, const triangle_t& triang, const plate_t& plt) const;
+    bool checkSepAxe(const line_t& edge, const triangle_t& triang, const plate_t& plt) const;
 
-    inline int getDist(const double dist1, const double dist2, const double dist3) const;
+    int getDist(const double dist1, const double dist2, const double dist3) const;
 
-    inline std::pair<double, double> getTT(const triangle_t& triag, const line_t& interLine, const int p) const;
+    std::pair<double, double> getTT(const triangle_t& triag, const line_t& interLine, const int p) const;
 
-    inline triangle_t projOntoPlt(const plate_t& plt) const;
+    triangle_t projOntoPlt(const plate_t& plt) const;
 
-    inline bool isIntersection2D(const triangle_t& triang, const plate_t& plt) const;
+    bool isIntersection2D(const triangle_t& triang, const plate_t& plt) const;
 
-    inline bool isIntersectionWithPoint(const triangle_t triag) const;
+    bool isIntersectionWithPoint(const triangle_t triag) const;
 
-    inline bool isIntersectionLinePoint(const point_t pt) const;
+    bool isIntersectionLinePoint(const point_t pt) const;
 
-    inline bool isIntersectionLine(const triangle_t triag) const;
+    bool isIntersectionLine(const triangle_t triag) const;
 
-    inline bool isIntersectionLineLine(const triangle_t triag) const;
+    bool isIntersectionLineLine(const triangle_t triag) const;
 
-    inline bool isIntersection3D(const triangle_t& triag) const;
+    bool isIntersection3D(const triangle_t& triag) const;
 };
 
 inline bool triangle_t::isPoint() const {
@@ -108,7 +108,7 @@ inline std::pair<point_t, point_t> triangle_t::getMinMax() const {
 
 inline bool triangle_t::isIntersectionWithPoint(const triangle_t triag) const {
     plate_t plt(trianglePt.first, trianglePt.second, trianglePt.third);
-    if (std::abs(plt.distToPoint(triag.trianglePt.first)) > accurasy)
+    if (std::abs(plt.distToPoint(triag.trianglePt.first)) > accuracy)
         return 0;
 
     return isIntersection2D(triag, plt);
@@ -136,8 +136,8 @@ inline bool triangle_t::isIntersectionLine(const triangle_t triag) const {
     line_t line(pr.first, pr.second);
     lineData_t lineData = line.lineData;
 
-    if (std::abs(pltData.n.scalarMult(lineData.a)) < accurasy) {
-        if (std::abs(plt.distToPoint(lineData.linePt)) < accurasy)
+    if (std::abs(pltData.n.scalarMult(lineData.a)) < accuracy) {
+        if (std::abs(plt.distToPoint(lineData.linePt)) < accuracy)
             return isIntersection2D(triag, plt);
         else
             return 0;
@@ -245,22 +245,25 @@ inline bool triangle_t::checkSepAxe(const line_t& edge, const triangle_t& triang
 }
 
 inline int triangle_t::getDist(const double dist1, const double dist2, const double dist3) const {
-    if (((dist2 * dist1 < 0) && (dist3 * dist1 < 0))  || ((std::abs(dist2) < accurasy) && (std::abs(dist3) < accurasy)) || ((std::abs(dist2) < accurasy) && (dist3 * dist1 < 0)) || ((std::abs(dist3) < accurasy) && (dist2 * dist1 < 0)))
+    //if (((dist2 * dist1 < 0) && (dist3 * dist1 < 0)) || ((std::abs(dist2) < accuracy) && (std::abs(dist3) < accuracy)) || ((std::abs(dist2) < accuracy) && (dist3 * dist1 < 0)) || ((std::abs(dist3) < accuracy) && (dist2 * dist1 < 0)))
+    if (((dist2 * dist1 < 0) || (std::abs(dist2) < accuracy)) && ((dist3 * dist1 < 0) || (std::abs(dist3) < accuracy)))
             return 1;
 
-    if (((dist1 * dist2 < 0)  && (dist3 * dist2 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist3) < accurasy)) || ((std::abs(dist1) < accurasy) && (dist3 * dist2 < 0)) || ((std::abs(dist3) < accurasy) && (dist2 * dist1 < 0)))
+    //if (((dist1 * dist2 < 0) && (dist3 * dist2 < 0)) || ((std::abs(dist1) < accuracy) && (std::abs(dist3) < accuracy)) || ((std::abs(dist1) < accuracy) && (dist3 * dist2 < 0)) || ((std::abs(dist3) < accuracy) && (dist2 * dist1 < 0)))
+    if (((dist1 * dist2 < 0) || (std::abs(dist1) < accuracy)) && ((dist3 * dist2 < 0) || (std::abs(dist3) < accuracy)))        
             return 2;
 
-    if (((dist1 * dist3 < 0)  && (dist2 * dist3 < 0)) || ((std::abs(dist1) < accurasy) && (std::abs(dist2) < accurasy)) || ((std::abs(dist1) < accurasy) && (dist3 * dist2 < 0)) || ((std::abs(dist2) < accurasy) && (dist3 * dist1 < 0)))
+    //if (((dist1 * dist3 < 0) && (dist2 * dist3 < 0)) || ((std::abs(dist1) < accuracy) && (std::abs(dist2) < accuracy)) || ((std::abs(dist1) < accuracy) && (dist3 * dist2 < 0)) || ((std::abs(dist2) < accuracy) && (dist3 * dist1 < 0)))
+    if (((dist1 * dist3 < 0) || (std::abs(dist1) < accuracy)) && ((dist2 * dist3 < 0) || (std::abs(dist2) < accuracy)))
             return 3;
 
-    if (std::abs(dist1) < accurasy) 
+    if (std::abs(dist1) < accuracy) 
         return 23;
 
-    if (std::abs(dist2) < accurasy) 
+    if (std::abs(dist2) < accuracy) 
         return 13;
 
-    if (std::abs(dist3) < accurasy)
+    if (std::abs(dist3) < accuracy)
         return 12;
     
     return 0;
@@ -370,7 +373,7 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
     double dist22 = plt1.distToPoint(triag.trianglePt.second);
     double dist23 = plt1.distToPoint(triag.trianglePt.third);
 
-    if ((dist21 * dist22 > 0) && (dist21 * dist23 > 0) && (std::abs(dist21) > accurasy) && (std::abs(dist22) > accurasy) && (std::abs(dist23) > accurasy))
+    if ((dist21 * dist22 > 0) && (dist21 * dist23 > 0) && (std::abs(dist21) > accuracy) && (std::abs(dist22) > accuracy) && (std::abs(dist23) > accuracy))
         return 0;
 
     plate_t plt2(triag.trianglePt.first, triag.trianglePt.second, triag.trianglePt.third);
@@ -386,7 +389,7 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
     double dist12 = plt2.distToPoint(trianglePt.second);
     double dist13 = plt2.distToPoint(trianglePt.third);
 
-    if ((dist11 * dist12 > 0) && (dist11 * dist13 > 0) && (std::abs(dist11) > accurasy) && (std::abs(dist12) > accurasy) && (std::abs(dist13) > accurasy))
+    if ((dist11 * dist12 > 0) && (dist11 * dist13 > 0) && (std::abs(dist11) > accuracy) && (std::abs(dist12) > accuracy) && (std::abs(dist13) > accuracy))
         return 0;
 
     line_t interLine = plt1.intsectOf2Plt(plt2);
@@ -399,7 +402,7 @@ inline bool triangle_t::isIntersection3D(const triangle_t& triag) const {
 
     double t11 = pr1.first, t12 = pr1.second, t21 = pr2.first, t22 = pr2.second;
 
-    if ((std::abs(t11 - t21) < accurasy) || (std::abs(t11 - t22) < accurasy) || (std::abs(t12 - t21) < accurasy) || (std::abs(t12 - t22) < accurasy))
+    if ((std::abs(t11 - t21) < accuracy) || (std::abs(t11 - t22) < accuracy) || (std::abs(t12 - t21) < accuracy) || (std::abs(t12 - t22) < accuracy))
         return 1;
     
     if (((t11 <= t12) && (t12 < t21) && (t21 <= t22)) ||
