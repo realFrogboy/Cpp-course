@@ -12,19 +12,19 @@ bool isEqual(const double lhs, const double rhs) {
     return 0;
 }
 
-const int g_rang = 100;
-
 TEST(end_to_end, determinand) {
-    test_generator::test_generator(g_rang);
+    unsigned rank = 0;
+    std::cout << "Enter a rank" << std::endl;
+    std::cin >> rank;
+    test_generator::test_generator(rank);
     std::ifstream fp("Generation.txt");
 
-    unsigned rang = 0;
-    while (fp >> rang) {
-        std::vector<double> input(rang * rang);
+    while (fp >> rank) {
+        std::vector<double> input(rank * rank);
         for (auto& elem : input)
             assert(fp >> elem);
 
-        matrix::matrix_t matrix(input, rang);
+        matrix::matrix_t matrix(input, rank);
 
         double res = matrix.determinand();
 

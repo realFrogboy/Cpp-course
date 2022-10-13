@@ -3,7 +3,7 @@
 
 namespace test_generator {
 
-const unsigned num_tests = 1;
+const unsigned num_tests = 10;
 
 int all_random(std::ofstream& fp, const unsigned n) {
     const int xmin = -5;
@@ -62,13 +62,13 @@ int all_random(std::ofstream& fp, const unsigned n) {
     return 0;
 }
 
-void test_generator(const unsigned rang) {
+void test_generator(const unsigned rank) {
     srand(time(NULL));
 
     std::ofstream fp("Generation.txt");
     
     for (unsigned cnt = 0; cnt < num_tests; cnt++)
-        all_random(fp, rang);
+        all_random(fp, rank);
 }
 
 } // test_generator
