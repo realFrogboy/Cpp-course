@@ -7,10 +7,12 @@
 
 namespace matrix {
 
+std::pair<unsigned, std::vector<double>> get_data();
+
 class matrix_t {
     int *colons = nullptr;
     double **data = nullptr;
-    size_t rang;
+    size_t rank;
     size_t size;
 
     public:
@@ -23,28 +25,28 @@ class matrix_t {
         const double& operator[](const unsigned n_col) const { return row[(*matrix).colons[n_col - 1] - 1]; }
     };
 
-    inline matrix_t(std::vector<double>& input, size_t rg);
+    matrix_t(std::vector<double>& input, size_t rg);
 
-    inline matrix_t(const matrix_t& rhs);
+    matrix_t(const matrix_t& rhs);
 
-    inline void dump() const;
+    void dump() const;
 
-    inline proxy_row operator[](const unsigned n_row) const ;
+    proxy_row operator[](const unsigned n_row) const;
 
-    inline bool row_swap(const unsigned lhs, const unsigned rhs) const;
+    bool row_swap(const unsigned lhs, const unsigned rhs) const;
 
-    inline bool con_swap(const unsigned lhs, const unsigned rhs) const;
+    bool con_swap(const unsigned lhs, const unsigned rhs) const;
 
-    inline void row_sub(const unsigned lhs, const unsigned rhs, const double mult) const;
+    void row_sub(const unsigned lhs, const unsigned rhs, const double mult) const;
 
-    inline double determinand() const;
+    double determinand() const;
 
-    inline void eliminate(const unsigned curr) const;
+    void eliminate(const unsigned curr) const;
 
-    inline std::pair<unsigned, unsigned> maximum(const unsigned curr) const; 
+    std::pair<unsigned, unsigned> maximum(const unsigned curr) const; 
 
     ~matrix_t() {
-        for (unsigned idx = 0; idx < rang; idx++)
+        for (unsigned idx = 0; idx < rank; idx++)
             delete[] data[idx];
         delete[] data;
         delete[] colons;
@@ -52,7 +54,7 @@ class matrix_t {
 
 };
 
-inline matrix_t::matrix_t(std::vector<double>& input, size_t rg) : colons(new int[rg]), data(new double* [rg]), rang(rg), size(rg * rg) {
+inline matrix_t::matrix_t(std::vector<double>& input, size_t rg) : colons(new int[rg]), data(new double* [rg]), rank(rg), size(rg * rg) {
     auto iter = input.begin();
     for (unsigned idx = 0; idx < rg; ++idx) {
         colons[idx] = idx + 1;
@@ -64,12 +66,12 @@ inline matrix_t::matrix_t(std::vector<double>& input, size_t rg) : colons(new in
 
 }
 
-inline matrix_t::matrix_t(const matrix_t& rhs) : colons(new int[rhs.rang]), data(new double* [rhs.rang]), rang(rhs.rang), size(rhs.size) {
-    std::copy(rhs.colons, rhs.colons + rhs.rang, colons);
+inline matrix_t::matrix_t(const matrix_t& rhs) : colons(new int[rhs.rank]), data(new double* [rhs.rank]), rank(rhs.rank), size(rhs.size) {
+    std::copy(rhs.colons, rhs.colons + rhs.rank, colons);
 
-    for(unsigned idx = 0; idx < rhs.rang; ++idx) {
-        data[idx] = new double[rang];
-        std::copy(rhs.data[idx], rhs.data[idx] + rhs.rang, data[idx]);
+    for(unsigned idx = 0; idx < rhs.rank; ++idx) {
+        data[idx] = new double[rank];
+        std::copy(rhs.data[idx], rhs.data[idx] + rhs.rank, data[idx]);
     }
 }
 
@@ -93,8 +95,8 @@ inline std::pair<unsigned, unsigned> matrix_t::maximum(const unsigned curr) cons
     double max = std::abs(data[curr - 1][colons[curr - 1] - 1]);
     std::pair<unsigned, unsigned> pr = std::make_pair(curr, curr);
 
-    for (unsigned r_idx = curr - 1; r_idx < rang; r_idx++) {
-        for (unsigned c_idx = curr - 1; c_idx < rang; c_idx++) {
+    for (unsigned r_idx = curr - 1; r_idx < rank; r_idx++) {
+        for (unsigned c_idx = curr - 1; c_idx < rank; c_idx++) {
             if (std::abs(data[r_idx][colons[c_idx] - 1]) > max) {
                 max = std::abs(data[r_idx][colons[c_idx] - 1]);
                 pr.first = r_idx + 1;
@@ -109,7 +111,7 @@ inline void matrix_t::row_sub(const unsigned lhs, const unsigned rhs, const doub
     proxy_row row_l = (*this)[lhs];
     proxy_row row_r = (*this)[rhs];
 
-    for (unsigned idx = 0; idx < rang; ++idx) {
+    for (unsigned idx = 0; idx < rank; ++idx) {
         double tmp = row_r.row[colons[idx] - 1] * mult;
         row_l.row[colons[idx] - 1] -= tmp;
         //dump();
@@ -122,7 +124,7 @@ inline double matrix_t::determinand() const {
 
     //tmp.dump();
 
-    for (unsigned curr = 1; curr <= rang; ++curr) {
+    for (unsigned curr = 1; curr <= rank; ++curr) {
         std::pair<unsigned, unsigned> max = tmp.maximum(curr);
 
         bool is_swap = tmp.row_swap(curr, max.first);
@@ -158,7 +160,7 @@ inline matrix_t::proxy_row matrix_t::operator[](const unsigned n_row) const {
 inline void matrix_t::eliminate(const unsigned curr) const {
     double pivot = (*this)[curr][curr];
 
-    for (unsigned idx = curr + 1; idx <= rang; ++idx) {
+    for (unsigned idx = curr + 1; idx <= rank; ++idx) {
         double mult = (*this)[idx][curr] / pivot;
         row_sub(idx, curr, mult);
         //dump();
@@ -166,15 +168,13 @@ inline void matrix_t::eliminate(const unsigned curr) const {
 }
 
 inline void matrix_t::dump() const { 
-    for (unsigned r_cnt = 1; r_cnt <= rang; r_cnt++) {
-        for (unsigned c_cnt =1; c_cnt <= rang; c_cnt++) {
+    for (unsigned r_cnt = 1; r_cnt <= rank; r_cnt++) {
+        for (unsigned c_cnt =1; c_cnt <= rank; c_cnt++) {
             std::cout.width(5);
             std::cout << (*this)[r_cnt][c_cnt] << ' ';
         }
         std::cout << std::endl;
     }
 }
-
-std::pair<unsigned, std::vector<double>> get_data();
 
 } // matrix
