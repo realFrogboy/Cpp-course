@@ -8,7 +8,7 @@ using namespace Triangles;
 using namespace Geometric;
 
 inline bool isEqual(double first, double second) {
-    if (std::abs(first - second) <= accuracy)
+    if (std::abs(first - second) <= accurasy)
         return 1;
     return 0;
 }

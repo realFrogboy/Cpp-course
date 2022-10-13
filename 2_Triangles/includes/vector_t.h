@@ -2,6 +2,10 @@
 
 #include <cmath>
 
+namespace Triangles {
+
+const double accurasy = 0.0001;
+
 namespace Geometric {
 
 extern const double accuracy;
@@ -12,39 +16,40 @@ struct coord_t {
     double z;
 };
 
-struct vector_t {
-
+class vector_t {
+    public:
+    
     coord_t coord {};
 
     vector_t(const double x = NAN, const double y = NAN, const double z = NAN) : coord{x, y, z} {};
 
-    void copy(const vector_t& vec);
+    inline void copy(const vector_t& vec);
 
-    bool isValid() const;
+    inline bool isValid() const;
 
-    bool isNull() const;
+    inline bool isNull() const;
 
-    bool isEqual(const vector_t& vec) const;
+    inline bool isEqual(const vector_t& vec) const;
 
-    bool isParallel(const vector_t& vec) const;
+    inline bool isParallel(const vector_t& vec) const;
 
-    vector_t normal1() const;
+    inline vector_t normal1() const;
 
-    vector_t normal2() const;
+    inline vector_t normal2() const;
 
-    vector_t normal3() const;
+    inline vector_t normal3() const;
 
-    double scalarMult(const vector_t& vec) const;
+    inline double scalarMult(const vector_t& vec) const;
 
-    vector_t vectorMult(const vector_t& vec) const;
+    inline vector_t vectorMult(const vector_t& vec) const;
 
-    vector_t operator*(const double mul) const;
+    inline vector_t operator*(const double mul) const;
 
-    vector_t operator+(vector_t vec);
+    inline vector_t operator+(vector_t vec);
 
-    vector_t operator-(vector_t vec);
+    inline vector_t operator-(vector_t vec);
 
-    double length() const;
+    inline double length() const;
 };
 
 } // Geometric

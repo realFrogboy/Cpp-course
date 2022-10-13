@@ -12,11 +12,10 @@ point_t getMin(const triangle_t& triag);
 point_t getMax(const triangle_t& triag);
 
 class AABB {
- 
+    public:
+
     point_t min;
     point_t max;
-
-    public:
 
     AABB(const triangle_t& triag);
 
