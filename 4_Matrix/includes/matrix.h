@@ -39,7 +39,7 @@ class matrix_t {
 
     void row_sub(const unsigned lhs, const unsigned rhs, const double mult) const;
 
-    double determinand() const;
+    double determinant() const;
 
     void eliminate(const unsigned curr) const;
 
@@ -118,7 +118,7 @@ inline void matrix_t::row_sub(const unsigned lhs, const unsigned rhs, const doub
     }
 }
 
-inline double matrix_t::determinand() const {
+inline double matrix_t::determinant() const {
     matrix_t tmp(*this);
     double res = 1;
 

@@ -196,8 +196,8 @@ TEST_F(matrix_test, eliminate) {
     EXPECT_EQ(1, isEqual((*matrix)[4][4], 1.94594595));
 }
 
-TEST_F(matrix_test, determinand) {
-    EXPECT_EQ(1, isEqual((*matrix).determinand(), -144));
+TEST_F(matrix_test, determinant) {
+    EXPECT_EQ(1, isEqual((*matrix).determinant(), -144));
 }
 
 } // matrix_unit_tests

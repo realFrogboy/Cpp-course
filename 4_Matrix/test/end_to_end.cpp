@@ -12,24 +12,31 @@ bool isEqual(const double lhs, const double rhs) {
     return 0;
 }
 
-TEST(end_to_end, determinand) {
+TEST(end_to_end, determinant) {
     unsigned rank = 0;
+
     std::cout << "Enter a rank" << std::endl;
     std::cin >> rank;
+    assert(std::cin);
+
     test_generator::test_generator(rank);
     std::ifstream fp("Generation.txt");
 
     while (fp >> rank) {
+        assert(fp);
         std::vector<double> input(rank * rank);
-        for (auto& elem : input)
-            assert(fp >> elem);
+        for (auto& elem : input) {
+            fp >> elem;
+            assert(fp);
+        }
 
         matrix::matrix_t matrix(input, rank);
 
-        double res = matrix.determinand();
+        double res = matrix.determinant();
 
         double true_res = 0;
         fp >> true_res;
+        assert(fp);
 
         EXPECT_EQ(1, isEqual(res, true_res));
     }

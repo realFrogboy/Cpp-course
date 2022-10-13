@@ -7,7 +7,7 @@ int main() {
 
     matrix::matrix_t matrix(pr.second, pr.first);
 
-    double res = matrix.determinand();
+    double res = matrix.determinant();
 
     std::cout << res << std::endl;
 }
