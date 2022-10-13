@@ -3,7 +3,7 @@
 namespace bounding_box {
 
 point_t getMin(const triangle_t& triag) {
-    Triangles::Geometric::trianglePt_t triagPt = triag.trianglePt;
+    Geometric::trianglePt_t triagPt = triag.trianglePt;
 
     coord_t coordPt1 = triagPt.first.coord;
     coord_t coordPt2 = triagPt.second.coord;
@@ -29,7 +29,7 @@ point_t getMin(const triangle_t& triag) {
 }
 
 point_t getMax(const triangle_t& triag) {
-    Triangles::Geometric::trianglePt_t triagPt = triag.trianglePt;
+    Geometric::trianglePt_t triagPt = triag.trianglePt;
 
     coord_t coordPt1 = triagPt.first.coord;
     coord_t coordPt2 = triagPt.second.coord;
@@ -52,6 +52,24 @@ point_t getMax(const triangle_t& triag) {
 
     point_t res {maxX, maxY, maxZ};
     return res;
+}
+
+AABB::AABB(const triangle_t& triag) {
+    max = getMax(triag);
+    min = getMin(triag);
+}
+
+bool AABB::isIntersect(const AABB& box) const {
+    coord_t coordMax1 = max.coord;
+    coord_t coordMin1 = min.coord;
+    coord_t coordMax2 = box.max.coord;
+    coord_t coordMin2 = box.min.coord;
+
+    if (coordMax1.x < coordMin2.x || coordMin1.x > coordMax2.x) return false;
+    if (coordMax1.y < coordMin2.y || coordMin1.y > coordMax2.y) return false;
+    if (coordMax1.z < coordMin2.z || coordMin1.z > coordMax2.z) return false;
+    
+    return true;
 }
 
 } // bounding_box

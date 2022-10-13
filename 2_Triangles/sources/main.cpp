@@ -3,7 +3,7 @@
 
 
 int main() {
-    std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>> triangles;
+    std::vector<std::pair<Geometric::triangle_t, unsigned>> triangles;
     Triangles::getData(triangles);
 
     bsp_tree::bspTree_t tree(triangles);

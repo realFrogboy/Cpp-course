@@ -14,17 +14,17 @@ Geometric::point_t getPoint() {
 
 } //namespace
 
-void getData(std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
+void getData(std::vector<std::pair<Geometric::triangle_t, unsigned>>& triangles) {
     unsigned n = 0;
     std::cin >> n;
     assert(std::cin.good());
 
     for (unsigned cnt = 0; cnt < n; cnt++) {
-        Triangles::Geometric::point_t pt1 = Triangles::getPoint();
-        Triangles::Geometric::point_t pt2 = Triangles::getPoint();
-        Triangles::Geometric::point_t pt3 = Triangles::getPoint();
+        Geometric::point_t pt1 = getPoint();
+        Geometric::point_t pt2 = getPoint();
+        Geometric::point_t pt3 = getPoint();
 
-        Triangles::Geometric::triangle_t triag(pt1, pt2, pt3);
+        Geometric::triangle_t triag(pt1, pt2, pt3);
 
         triangles.push_back({triag, cnt});
     }
