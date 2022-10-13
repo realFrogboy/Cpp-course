@@ -4,7 +4,7 @@
 
 namespace end_to_end {
 
-const double accurasy = 0.1;
+const double accurasy = 0.01;
 
 bool isEqual(const double lhs, const double rhs) {
     if (std::abs(lhs - rhs) < accurasy)
@@ -12,7 +12,7 @@ bool isEqual(const double lhs, const double rhs) {
     return 0;
 }
 
-const int g_rang = 30;
+const int g_rang = 100;
 
 TEST(end_to_end, determinand) {
     test_generator::test_generator(g_rang);

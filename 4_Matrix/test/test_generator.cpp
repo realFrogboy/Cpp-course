@@ -3,11 +3,11 @@
 
 namespace test_generator {
 
-const unsigned num_tests = 100;
+const unsigned num_tests = 1;
 
 int all_random(std::ofstream& fp, const unsigned n) {
-    const double xmin = -5;
-    const double xmax = 5;
+    const int xmin = -5;
+    const int xmax = 5;
 
     double det = 1;
     std::vector<double> data;
@@ -17,13 +17,13 @@ int all_random(std::ofstream& fp, const unsigned n) {
             data.push_back(0);
 
         double s = 0;
-        (i % 2) ? s = 2 : s = -0.5;
+        (i == 0) ? s = 42 : s = 1;
             data.push_back(s);
 
         det *= s;
 
         for (unsigned j = i + 1; j < n; j++) {
-            double s = (double)rand() / RAND_MAX * (xmax-xmin) + xmin;
+            int s = (double)rand() / RAND_MAX * (xmax-xmin) + xmin;
             data.push_back(s);
         }       
     }

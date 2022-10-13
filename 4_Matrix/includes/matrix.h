@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <iostream>
 
 namespace matrix {
 
@@ -25,6 +26,8 @@ class matrix_t {
     inline matrix_t(std::vector<double>& input, size_t rg);
 
     inline matrix_t(const matrix_t& rhs);
+
+    inline void dump() const;
 
     inline proxy_row operator[](const unsigned n_row) const ;
 
@@ -107,14 +110,17 @@ inline void matrix_t::row_sub(const unsigned lhs, const unsigned rhs, const doub
     proxy_row row_r = (*this)[rhs];
 
     for (unsigned idx = 0; idx < rang; ++idx) {
-        double tmp = row_r.row[idx] * mult;
-        row_l.row[idx] -= tmp;
+        double tmp = row_r.row[colons[idx] - 1] * mult;
+        row_l.row[colons[idx] - 1] -= tmp;
+        //dump();
     }
 }
 
 inline double matrix_t::determinand() const {
     matrix_t tmp(*this);
     double res = 1;
+
+    //tmp.dump();
 
     for (unsigned curr = 1; curr <= rang; ++curr) {
         std::pair<unsigned, unsigned> max = tmp.maximum(curr);
@@ -123,11 +129,17 @@ inline double matrix_t::determinand() const {
         if (is_swap)
             res *= -1;
 
+        //tmp.dump();
+
         is_swap = tmp.con_swap(curr, max.second);
         if (is_swap)
             res *= -1;
 
+        //tmp.dump();
+
         tmp.eliminate(curr);
+
+        //tmp.dump();
 
         res *= tmp[curr][curr];
     }
@@ -149,6 +161,17 @@ inline void matrix_t::eliminate(const unsigned curr) const {
     for (unsigned idx = curr + 1; idx <= rang; ++idx) {
         double mult = (*this)[idx][curr] / pivot;
         row_sub(idx, curr, mult);
+        //dump();
+    }
+}
+
+inline void matrix_t::dump() const { 
+    for (unsigned r_cnt = 1; r_cnt <= rang; r_cnt++) {
+        for (unsigned c_cnt =1; c_cnt <= rang; c_cnt++) {
+            std::cout.width(5);
+            std::cout << (*this)[r_cnt][c_cnt] << ' ';
+        }
+        std::cout << std::endl;
     }
 }
 
