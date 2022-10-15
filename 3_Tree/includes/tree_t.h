@@ -2,500 +2,89 @@
 
 #include "node_t.h"
 #include <fstream>
-#include <assert.h> 
-#include <algorithm>
-#include <iostream>
-#include <list>
+#include <vector>
 
 namespace tree {
 
 using tree_node::node_t;
 
-namespace tree_dump {
+int position(const node_t *nil, const node_t *node, const int key);
 
-    inline void graph_node(const node_t *nil, const node_t *node, std::ofstream& file);
+enum class side {
+    RIGHT,
+    LEFT
+};
 
-    inline void connect_node(const node_t *nil, const node_t *node, std::ofstream& file);
+struct tree_dump {
 
-} // tree_dump
+    int num = 0;
+    
+    void graph_node(const node_t *nil, const node_t *node, std::ofstream& file);
+    void connect_node(const node_t *nil, const node_t *node, std::ofstream& file);
 
-class tree_t {
+};
 
-    inline void left_rotate(node_t *node);
-
-    inline void right_rotate(node_t *node);
-
-    inline void rb_insert_fixup(node_t *node);
-
-    inline void rb_transplant(node_t *node_f, node_t *node_s);
-
-    inline void rb_delete_fixup(node_t *node);
+class node_mgr {
+    
+    std::vector<node_t*> nodes;
 
     public:
 
-    std::list<node_t*> nodes;
+    node_t *create(const int key); 
 
-    node_t *root = nullptr;
-    node_t *nil;
+    void destruct(const node_t *node);
 
-    inline tree_t(node_t *node);
-
-    inline node_t* tree_minimum(node_t *node) const;
-    
-    inline void rb_insert(node_t *node);
-    
-    inline void rb_delete(node_t *node);
-
-    inline int inorder_pos(const node_t *node) const;
-
-    inline int position(const node_t *node, const int key) const;
-
-    inline int k_th_min(const node_t *node, const int num) const;
-
-    inline void dump() const;
-
-    ~tree_t() { 
+    ~node_mgr() {
         for (auto node : nodes)
             delete node;
     }
 };
 
-inline tree_t::tree_t(node_t *node) : root(node), nil(new node_t{0, 0}) {
-    nil->lhs = node;
-    nil->rhs = node;
+class tree_t {
 
-    node->lhs = nil;
-    node->rhs = nil;
-    node->parent = nil;
+    std::vector<node_t*> nodes;
 
-    nodes.push_back(root);
-    nodes.push_back(nil);
-}
+    node_t *root = nullptr;
+    node_t *nil = nullptr;
 
-inline node_t* tree_t::tree_minimum(node_t *node) const {
-    assert(node);
+    void left_rotate(node_t *node);
 
-    node_t *copy = node;
+    void right_rotate(node_t *node);
 
-    while (copy->lhs != nil)
-        copy = copy->lhs;
+    void rb_insert_fixup(node_t *node);
 
-    return copy;
-}
+    void rb_transplant(node_t *node_f, node_t *node_s);
 
-inline void tree_t::left_rotate(node_t *node) {
-    assert(node);
-    assert(node->rhs != nil);
+    void rb_delete_fixup(node_t *node);
 
-    node_t *y = node->rhs;
-    node->rhs = y->lhs;
+    public:
 
-    if (y->lhs != nil)
-        y->lhs->parent = node;
+    tree_t() {};
 
-    y->parent = node->parent;
+    tree_t(node_t *node);
 
-    if (node->parent == nil)
-        root = y;
-    else if (node == node->parent->lhs) 
-        node->parent->lhs = y;
-    else 
-        node->parent->rhs = y;
+    node_t *get_root() const;
 
-    y->lhs = node;
-    node->parent = y;
+    node_t *get_nil() const;
 
-    node->r_subtree_size = y->l_subtree_size;
-    y->l_subtree_size += node->l_subtree_size + 1;
-}
+    tree_t(tree_t&& rhs);
 
-inline void tree_t::right_rotate(node_t *node) {
-    assert(node);
-    assert(node->lhs != nil);
+    tree_t& operator=(tree_t&& rhs);
 
-    node_t *y = node->lhs;
-    node->lhs = y->rhs;
-
-    if (y->rhs != nil)
-        y->rhs->parent = node;
-
-    y->parent = node->parent;
-
-    if (node->parent == nil) 
-        root = y;
-    else if (node == node->parent->rhs)
-        node->parent->rhs = y;
-    else
-        node->parent->lhs = y;
-
-    y->rhs = node;
-    node->parent = y;
-
-    node->l_subtree_size = y->r_subtree_size;
-    y->r_subtree_size += node->r_subtree_size + 1;
-}
-
-inline void tree_t::rb_insert(node_t *node) {
-    assert(node);
-
-    node_t *y = nil;
-    node_t *x = root;
-
-    while (x != nil) {
-        y = x;
-        if (node->key < x->key) {
-            x = x->lhs;
-            y->l_subtree_size++;
-
-            /*dump();
-            system("dot -Tpng tree_dump.dot -o image.png");*/
-
-        } else {
-            x = x->rhs;
-            y->r_subtree_size++;
-
-            /*dump();
-            system("dot -Tpng tree_dump.dot -o image.png");*/
-        }
-    }
-
-    node->parent = y;
-
-    if (y == nil)
-        root = node;
-    else if (node->key < y->key)
-        y->lhs = node;
-    else    
-        y->rhs = node;
+    node_t* tree_minimum(node_t *node) const;
     
-    node->lhs = nil;
-    node->rhs = nil;
-    node->color = tree_node::node_color::RED;
-
-   /*dump();
-    system("dot -Tpng tree_dump.dot -o image.png");*/
-
-    rb_insert_fixup(node);
+    void rb_insert(node_t *node);
     
-    nodes.push_back(node);
-}
+    void rb_delete(node_t *node);
 
-inline void tree_t::rb_insert_fixup(node_t *node) {
-    assert(node);
+    int k_th_min(const node_t *node, const int num) const;
 
-    while (node->parent->color == tree_node::node_color::RED) {
+    void dump() const;
 
-        if (node->parent == node->parent->parent->rhs) {
-            node_t *y = node->parent->parent->lhs;
-            
-            if (y->color == tree_node::node_color::RED) {
-                node->parent->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                y->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node->parent->parent->color = tree_node::node_color::RED;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node = node->parent->parent;
-            } else {
-                
-                if (node == node->parent->lhs) {
-                    node = node->parent;
-                    right_rotate(node);
-
-                    /*dump();
-                    system("dot -Tpng tree_dump.dot -o image.png");*/
-                }
-
-                node->parent->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node->parent->parent->color = tree_node::node_color::RED;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                left_rotate(node->parent->parent);
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-            }
-        } else {
-            node_t *y = node->parent->parent->rhs;
-            
-            if (y->color == tree_node::node_color::RED) {
-                node->parent->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                y->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node->parent->parent->color = tree_node::node_color::RED;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node = node->parent->parent;
-            } else {
-                
-                if (node == node->parent->rhs) {
-                    node = node->parent;
-                    left_rotate(node);
-
-                    /*dump();
-                    system("dot -Tpng tree_dump.dot -o image.png");*/
-                }
-
-                node->parent->color = tree_node::node_color::BLACK;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                node->parent->parent->color = tree_node::node_color::RED;
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-
-                right_rotate(node->parent->parent);
-
-                /*dump();
-                system("dot -Tpng tree_dump.dot -o image.png");*/
-            }
-        }
-    }
-    root->color = tree_node::node_color::BLACK;
-
-    /*dump();
-    system("dot -Tpng tree_dump.dot -o image.png");*/
-}
-
-inline void tree_t::rb_transplant(node_t *node_f, node_t *node_s) {
-    assert(node_f);
-    assert(node_s);
-
-    if (node_f->parent == nil)
-        root = node_s;
-    else if (node_f == node_f->parent->lhs)
-        node_f->parent->lhs = node_s;
-    else
-        node_f->parent->rhs = node_s;
-    
-    node_s->parent = node_f->parent;
-}
-
-inline void tree_t::rb_delete(node_t *node) {
-    assert(node);
-
-    node_t *y = node;
-    tree_node::node_color y_original_color = y->color;
-    node_t *x = nullptr;
-
-    if (node->lhs == nil) {
-        x = node->rhs;
-        rb_transplant(node, node->rhs);
-    } else if (node->rhs == nil) {
-        x = node->lhs;
-        rb_transplant(node, node->lhs);
-    } else {
-        y = tree_minimum(node->rhs);
-        y_original_color = y->color;
-        x = y->rhs;
-
-        if (y->parent == node) 
-            x->parent = y;
-        else {
-            rb_transplant(y, y->rhs);
-            y->rhs = node->rhs;
-            y->rhs->parent = y;
-        }
-
-        rb_transplant(node, y);
-        y->lhs = node->lhs;
-        y->lhs->parent = y;
-        y->color = node->color;
-    }
-
-    if (y_original_color == tree_node::node_color::BLACK)
-        rb_delete_fixup(x);
-    
-    auto nodeIter = std::find(nodes.begin(), nodes.end(), node);
-    nodes.erase(nodeIter);
-    delete node;
-}
-
-inline void tree_t::rb_delete_fixup(node_t *node) {
-    assert(node);
-
-    while ((node != root) && (node->color == tree_node::node_color::BLACK)) {
-        if (node == node->parent->lhs) {
-            node_t *w = node->parent->rhs;
-
-            if(w->color == tree_node::node_color::RED) {
-                w->color = tree_node::node_color::BLACK;
-                node->parent->color = tree_node::node_color::RED;
-                left_rotate(node->parent);
-                w = node->parent->rhs;
-            }
-
-            if ((w->lhs->color == tree_node::node_color::BLACK) && (w->rhs->color == tree_node::node_color::BLACK)) {
-                w->color = tree_node::node_color::RED;
-                node = node->parent;
-            } else {
-                if (w->rhs->color == tree_node::node_color::BLACK) {
-                    w->lhs->color = tree_node::node_color::BLACK;
-                    w->color = tree_node::node_color::RED;
-                    right_rotate(w);
-                    w = node->parent->rhs;
-                }
-
-                w->color = node->parent->color;
-                node->parent->color = tree_node::node_color::BLACK;
-                w->rhs->color = tree_node::node_color::BLACK;
-                left_rotate(node->parent);
-                node = root;
-            }
-        } else {
-            node_t *w = node->parent->lhs;
-
-            if(w->color == tree_node::node_color::RED) {
-                w->color = tree_node::node_color::BLACK;
-                node->parent->color = tree_node::node_color::RED;
-                right_rotate(node->parent);
-                w = node->parent->lhs;
-            }
-
-            if ((w->rhs->color == tree_node::node_color::BLACK) && (w->lhs->color == tree_node::node_color::BLACK)) {
-                w->color = tree_node::node_color::RED;
-                node = node->parent;
-            } else {
-                if (w->lhs->color == tree_node::node_color::BLACK) {
-                    w->rhs->color = tree_node::node_color::BLACK;
-                    w->color = tree_node::node_color::RED;
-                    left_rotate(w);
-                    w = node->parent->lhs;
-                }
-
-                w->color = node->parent->color;
-                node->parent->color = tree_node::node_color::BLACK;
-                w->lhs->color = tree_node::node_color::BLACK;
-                right_rotate(node->parent);
-                node = root;
-            }
-        }
-    }
-    node->color = tree_node::node_color::BLACK;
-}
-
-inline int tree_t::inorder_pos(const node_t *node) const {
-    assert(node);
-
-    if (node == nil)
-        return 0;
-
-    int cnt = node->l_subtree_size;
-    cnt++;
-    cnt += node->r_subtree_size;
-
-    return cnt;
-}
-
-inline int tree_t::position(const node_t *node, const int key) const {
-    assert(node);
-
-    if (node == nil)
-        return 0;
-
-    if (key < node->key)
-        return position(node->lhs, key);
-    else if (key > node->key) 
-        return position(node->rhs, key) + node->l_subtree_size + 1;
-    else
-        return node->l_subtree_size;
-}
-
-inline int tree_t::k_th_min(const node_t *node, const int num) const {
-    assert(node);
-
-    if (node == nil)
-        return 0;
-
-    if (num <= node->l_subtree_size)
-        return k_th_min(node->lhs, num);
-    else if (num > node->l_subtree_size + 1) 
-        return k_th_min(node->rhs, num - node->l_subtree_size - 1);
-    else
-        return node->key;
-}
-
-inline void tree_t::dump() const {
-    std::ofstream file("tree_dump.dot");
-    file << "digraph tree {\n";
-    tree_dump::graph_node(nil, root, file);
-    tree_dump::connect_node(nil, root, file);
-    file << "}";
-    return;
-}
-
-inline void tree_dump::graph_node(const node_t *nil, const node_t *node, std::ofstream& file) {
-    if (node == nil)
-        return;
-
-    static int num = 0;
-    int curr = num;
-
-    if (node->color == tree_node::node_color::RED) {
-        file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"red\", label = \"" << node->key << " : " << node->l_subtree_size << " : " << node->r_subtree_size << "\"];\n";
-        num++;
-    } else {
-        file << "\tnode" << num << " [shape = \"record\", fontcolor = \"white\", style = \"filled\", fillcolor = \"grey28\", label = \"" << node->key << " : " << node->l_subtree_size << " : " << node->r_subtree_size << "\"];\n";
-        num++;
-    }
-
-    graph_node(nil, node->lhs, file);
-    graph_node(nil, node->rhs, file);
-
-    if (!curr)
-        num = 0;
-    return;
-}
-
-inline void tree_dump::connect_node(const node_t *nil, const node_t *node, std::ofstream& file) {
-    if ((node->lhs == nil) && (node->rhs == nil))
-        return;
-
-    static int num = 0;
-    int curr = num;
-
-    if (node->lhs != nil) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        connect_node(nil, node->lhs, file);
-    }
-
-    if (node->rhs != nil) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        connect_node(nil, node->rhs, file);
-    }
-    if (!curr)
-        num = 0;
-    return;
-}
+    /*~tree_t() { 
+        for (auto node : nodes)
+            delete node;
+    }*/
+};
 
 } // tree_t

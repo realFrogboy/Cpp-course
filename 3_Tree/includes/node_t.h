@@ -18,12 +18,10 @@ struct node_t {
 
     node_t(const int k, const int l_sz = 0, const int r_sz = 0, const node_color cl = node_color::BLACK) : key(k), l_subtree_size(l_sz), r_subtree_size(r_sz), color(cl) {};
 
-    ~node_t() = default;
-
     node_t(const node_t&) = delete;
     node_t &operator=(const node_t&) = delete;
 
-    node_t(const node_t&&) = delete;
+    node_t(node_t&& rhs_) = delete;
     node_t &operator=(const node_t&&) = delete;
 };
 
