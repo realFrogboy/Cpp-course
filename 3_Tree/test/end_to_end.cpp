@@ -38,7 +38,7 @@ namespace {
         r_border++; // algorithm count number of keys in [l_board, r_board) => 
                     // if you whant find number of keys in [l_board, r_board] you should increment r_board
 
-        return tree.position(tree.root, r_border) - tree.position(tree.root, l_border);
+        return tree::position(tree.get_nil(), tree.get_root(), r_border) - tree::position(tree.get_nil(), tree.get_root(), l_border);
     }
 
     int n_processing(const tree::tree_t& tree, std::ifstream& file) {
@@ -48,14 +48,14 @@ namespace {
         //border++;    algorithm count number of keys in (-oo, border) =>
                     // if you whant find number of keys in (-oo, border] you should increment board 
 
-        return tree.position(tree.root, border);
+        return tree::position(tree.get_nil(), tree.get_root(), border);
     }
 
     int m_processing(const tree::tree_t& tree, std::ifstream& file) {
         int num = 0;
         file >> num;
 
-        return tree.k_th_min(tree.root, num);
+        return tree.k_th_min(tree.get_root(), num);
     }
 
 }
