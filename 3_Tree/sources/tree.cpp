@@ -7,16 +7,15 @@ namespace tree {
 
 using tree_node::node_t;
 
-tree_t::tree_t(node_t *node) : root(node), nil(new node_t{0, 0}) {
+tree_t::tree_t(node_t *node) : root(node) {
+    node_t *nil = mgr.create(0);
+
     nil->lhs = node;
     nil->rhs = node;
 
     node->lhs = nil;
     node->rhs = nil;
     node->parent = nil;
-
-    nodes.push_back(root);
-    nodes.push_back(nil);
 }
 
 node_t *tree_t::get_root() const {
@@ -25,30 +24,6 @@ node_t *tree_t::get_root() const {
 
 node_t *tree_t::get_nil() const {
     return nil;
-}
-
-tree_t::tree_t(tree_t&& rhs) : root(rhs.root), nil(rhs.nil) {
-    rhs.root = nullptr;
-    rhs.nil = nullptr;
-    nodes = std::move(rhs.nodes);
-}
-
-tree_t& tree_t::operator=(tree_t&& rhs) {
-    if (this == &rhs)
-        return *this;
-
-    delete root;
-    delete nil;
-
-    root = rhs.root;
-    nil = rhs.nil;
-    
-    nodes = std::move(rhs.nodes);
-
-    rhs.root = nullptr;
-    rhs.nil = nullptr;
-
-    return *this;
 }
 
 node_t* tree_t::tree_minimum(node_t *node) const {
@@ -117,6 +92,21 @@ void tree_t::right_rotate(node_t *node) {
 void tree_t::rb_insert(node_t *node) {
     assert(node);
 
+    if (!root) {
+        root = node;
+        nil = mgr.create(0);
+
+        nil->lhs = node;
+        nil->rhs = node;
+
+        node->lhs = nil;
+        node->rhs = nil;
+        node->parent = nil;
+        root->color = tree_node::node_color::BLACK;
+
+        return;
+    }
+
     node_t *y = nil;
     node_t *x = root;
 
@@ -145,8 +135,6 @@ void tree_t::rb_insert(node_t *node) {
     node->color = tree_node::node_color::RED;
 
     rb_insert_fixup(node);
-    
-    nodes.push_back(node);
 }
 
 void tree_t::rb_insert_fixup(node_t *node) {
@@ -246,10 +234,7 @@ void tree_t::rb_delete(node_t *node) {
     if (y_original_color == tree_node::node_color::BLACK)
         rb_delete_fixup(x);
     
-    auto nodeIter = std::find(nodes.begin(), nodes.end(), node);
-    std::swap(*nodes.begin(), *nodeIter);
-    nodes.pop_back();
-    delete node;
+    mgr.destruct(node);
 }
 
 void tree_t::rb_delete_fixup(node_t *node) {

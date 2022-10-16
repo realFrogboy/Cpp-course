@@ -42,8 +42,6 @@ class node_mgr {
 
 class tree_t {
 
-    std::vector<node_t*> nodes;
-
     node_t *root = nullptr;
     node_t *nil = nullptr;
 
@@ -59,6 +57,8 @@ class tree_t {
 
     public:
 
+    node_mgr mgr;
+
     tree_t() {};
 
     tree_t(node_t *node);
@@ -67,9 +67,13 @@ class tree_t {
 
     node_t *get_nil() const;
 
-    tree_t(tree_t&& rhs);
+    node_mgr get_mgr() const;
 
-    tree_t& operator=(tree_t&& rhs);
+    tree_t(const tree_t& rhs) = delete;
+    tree_t& operator=(const tree_t& rhs) = delete;
+
+    tree_t(tree_t&& rhs) = delete;
+    tree_t& operator=(tree_t&& rhs) = delete;
 
     node_t* tree_minimum(node_t *node) const;
     
@@ -80,11 +84,6 @@ class tree_t {
     int k_th_min(const node_t *node, const int num) const;
 
     void dump() const;
-
-    /*~tree_t() { 
-        for (auto node : nodes)
-            delete node;
-    }*/
 };
 
 } // tree_t
