@@ -9,6 +9,7 @@ using tree_node::node_t;
 class rb_tree_test : public ::testing::Test {
     protected:
     void SetUp() override {
+        tree.rb_insert(node1);
         tree.rb_insert(root);
         tree.rb_insert(node5);
         tree.rb_insert(node3);
@@ -18,15 +19,15 @@ class rb_tree_test : public ::testing::Test {
         tree.rb_insert(node7);
     } 
 
-    node_t *root = new node_t{7};
-    node_t *node1 = new node_t{3};
-    node_t *node2 = new node_t{18};
-    node_t *node3 = new node_t{10};
-    node_t *node4 = new node_t{22};
-    node_t *node5 = new node_t{8};
-    node_t *node6 = new node_t{11};
-    node_t *node7 = new node_t{26};
-    tree::tree_t tree{node1};
+    tree::tree_t tree{};
+    node_t *root = tree.mgr.create(7);
+    node_t *node1 = tree.mgr.create(3);
+    node_t *node2 = tree.mgr.create(18);
+    node_t *node3 = tree.mgr.create(10);
+    node_t *node4 = tree.mgr.create(22);
+    node_t *node5 = tree.mgr.create(8);
+    node_t *node6 = tree.mgr.create(11);
+    node_t *node7 = tree.mgr.create(26);
 };
 
 TEST_F(rb_tree_test, tree_minimum) {
