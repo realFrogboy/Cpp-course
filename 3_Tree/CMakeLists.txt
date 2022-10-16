@@ -13,12 +13,12 @@ if (DUMP)
 endif()
 
 #main
-set (SOURCES sources/main.cpp sources/range_queries.cpp sources/tree.cpp sources/tree_dump.cpp)
+set (SOURCES sources/main.cpp sources/range_queries.cpp sources/tree.cpp sources/tree_dump.cpp sources/input.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCES})
 target_include_directories (${PROJECT_NAME} PRIVATE includes)
 
-add_compile_options (-g -Wall -Wextra -Wpedantic)
+add_compile_options (-g -Wall -Werror -Wextra -Wpedantic)
 
 #unit_test
 enable_testing()
@@ -35,7 +35,7 @@ target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread
 
 #end_to_end
 set (ETE end_to_end)
-set (ETE_SOURCES sources/tree.cpp test/end_to_end.cpp sources/tree_dump.cpp)
+set (ETE_SOURCES sources/tree.cpp sources/range_queries.cpp test/end_to_end.cpp sources/tree_dump.cpp sources/input.cpp)
 
 add_executable(${ETE} ${ETE_SOURCES})
 
