@@ -8,7 +8,7 @@ namespace tree {
 
 using tree_node::node_t;
 
-int position(const node_t *nil, const node_t *node, const int key);
+int position(const node_t *node, const int key);
 
 enum class side {
     RIGHT,
@@ -19,8 +19,8 @@ struct tree_dump {
 
     int num = 0;
     
-    void graph_node(const node_t *nil, const node_t *node, std::ofstream& file);
-    void connect_node(const node_t *nil, const node_t *node, std::ofstream& file);
+    void graph_node(const node_t *node, std::ofstream& file);
+    void connect_node(const node_t *node, std::ofstream& file);
 
 };
 
@@ -42,6 +42,8 @@ class node_mgr {
 
 class tree_t {
 
+    node_mgr *mgr;
+
     node_t *root = nullptr;
     node_t *nil = nullptr;
 
@@ -59,17 +61,17 @@ class tree_t {
 
     public:
 
-    node_mgr mgr;
-
-    tree_t() {};
+    tree_t() {
+        mgr = new node_mgr{};
+    }
 
     tree_t(node_t *node);
 
-    node_t *get_root() const;
+    node_t *get_root() const { return root; }
 
-    node_t *get_nil() const;
+    node_t *get_nil() const { return nil; }
 
-    node_mgr get_mgr() const;
+    node_mgr *get_mgr() const { return mgr; }
 
     tree_t(const tree_t& rhs) = delete;
     tree_t& operator=(const tree_t& rhs) = delete;
@@ -86,6 +88,10 @@ class tree_t {
     int k_th_min(const node_t *node, const int num) const;
 
     void dump() const;
+
+    ~tree_t() {
+        delete mgr;
+    }
 };
 
 } // tree_t

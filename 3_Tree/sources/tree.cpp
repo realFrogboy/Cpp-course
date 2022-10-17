@@ -17,7 +17,8 @@ namespace tree {
 using tree_node::node_t;
 
 tree_t::tree_t(node_t *node) : root(node) {
-    node_t *nil = mgr.create(0);
+    mgr = new node_mgr{};
+    node_t *nil = mgr->create(0);
 
     nil->lhs = node;
     nil->rhs = node;
@@ -25,14 +26,6 @@ tree_t::tree_t(node_t *node) : root(node) {
     node->lhs = nil;
     node->rhs = nil;
     node->parent = nil;
-}
-
-node_t *tree_t::get_root() const {
-    return root;
-}
-
-node_t *tree_t::get_nil() const {
-    return nil;
 }
 
 node_t* tree_t::tree_minimum(node_t *node) const {
@@ -148,10 +141,12 @@ void tree_t::rb_insert(node_t *node) {
 
     if (!root) {
         root = node;
-        nil = mgr.create(0);
+        nil = mgr->create(0);
 
         nil->lhs = node;
         nil->rhs = node;
+        nil->l_subtree_size = -1;
+        nil->r_subtree_size = -1;
 
         node->lhs = nil;
         node->rhs = nil;
@@ -288,7 +283,7 @@ void tree_t::rb_delete(node_t *node) {
     if (y_original_color == tree_node::node_color::BLACK)
         rb_delete_fixup(x);
     
-    mgr.destruct(node);
+    mgr->destruct(node);
 }
 
 void tree_t::rb_delete_fixup(node_t *node) {
@@ -354,16 +349,16 @@ void tree_t::rb_delete_fixup(node_t *node) {
     node->color = tree_node::node_color::BLACK;
 }
 
-int position(const node_t *nil_, const node_t *node, const int key) {
+int position(const node_t *node, const int key) {
     assert(node);
 
-    if (node == nil_)
+    if (node->l_subtree_size < 0)
         return 0;
 
     if (key < node->key)
-        return position(nil_, node->lhs, key);
+        return position(node->lhs, key);
     else if (key > node->key) 
-        return position(nil_, node->rhs, key) + node->l_subtree_size + 1;
+        return position(node->rhs, key) + node->l_subtree_size + 1;
     else
         return node->l_subtree_size;
 }
@@ -387,9 +382,9 @@ void tree_t::dump() const {
     file << "digraph tree {\n";
 
     tree_dump dump{};
-    dump.graph_node(nil, root, file);
+    dump.graph_node(root, file);
     dump.num = 0;
-    dump.connect_node(nil, root, file);
+    dump.connect_node(root, file);
 
     file << "}";
     return;

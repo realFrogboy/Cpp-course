@@ -4,8 +4,8 @@ namespace tree {
 
 using tree_node::node_t;
 
-void tree_dump::graph_node(const node_t *nil, const node_t *node, std::ofstream& file) {
-    if (node == nil)
+void tree_dump::graph_node(const node_t *node, std::ofstream& file) {
+    if (node->l_subtree_size < 0)
         return;
 
     int curr = num;
@@ -18,32 +18,32 @@ void tree_dump::graph_node(const node_t *nil, const node_t *node, std::ofstream&
         num++;
     }
 
-    graph_node(nil, node->lhs, file);
-    graph_node(nil, node->rhs, file);
+    graph_node(node->lhs, file);
+    graph_node(node->rhs, file);
 
     if (!curr)
         num = 0;
     return;
 }
 
-void tree_dump::connect_node(const node_t *nil, const node_t *node, std::ofstream& file) {
-    if ((node->lhs == nil) && (node->rhs == nil))
+void tree_dump::connect_node(const node_t *node, std::ofstream& file) {
+    if ((node->lhs->l_subtree_size < 0) && (node->rhs->l_subtree_size < 0))
         return;
 
     int curr = num;
 
-    if (node->lhs != nil) {
+    if (node->lhs->l_subtree_size >= 0) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(nil, node->lhs, file);
+        connect_node(node->lhs, file);
     }
 
-    if (node->rhs != nil) {
+    if (node->rhs->l_subtree_size >= 0) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(nil, node->rhs, file);
+        connect_node(node->rhs, file);
     }
     if (!curr)
         num = 0;

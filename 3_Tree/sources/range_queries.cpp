@@ -9,21 +9,21 @@
 namespace range_queries {
 
 void processing_tree::k_processing(const int val) {
-    tree.rb_insert(tree.mgr.create(val));
+    tree.rb_insert(tree.get_mgr()->create(val));
 }
 
 int processing_tree::q_processing(const int l_border,const int r_border) const {    
     int r_border_c = r_border + 1;  // algorithm count number of keys in [l_board, r_board) => 
                                     // if you whant find number of keys in [l_board, r_board] you should increment r_board
 
-    return tree::position(tree.get_nil(), tree.get_root(), r_border_c) - tree::position(tree.get_nil(), tree.get_root(), l_border);
+    return tree::position(tree.get_root(), r_border_c) - tree::position(tree.get_root(), l_border);
 }
 
 int processing_tree::n_processing(const int border) const {
     //border++;    algorithm count number of keys in (-oo, border) =>
                 // if you whant find number of keys in (-oo, border] you should increment board 
 
-    return tree::position(tree.get_nil(), tree.get_root(), border);
+    return tree::position(tree.get_root(), border);
 }
 
 int processing_tree::m_processing(const int num) const {
