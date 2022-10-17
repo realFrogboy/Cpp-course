@@ -45,6 +45,8 @@ class tree_t {
     node_t *root = nullptr;
     node_t *nil = nullptr;
 
+    void rotate(node_t *node, side side);
+
     void left_rotate(node_t *node);
 
     void right_rotate(node_t *node);

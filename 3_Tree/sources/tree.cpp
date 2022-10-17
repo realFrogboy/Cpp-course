@@ -3,6 +3,15 @@
 #include <iostream>
 #include "tree_t.h"
 
+namespace {
+
+    using tree_node::node_t;
+
+    node_t **left (node_t *node) { return &node->lhs; }
+    node_t **right(node_t *node) { return &node->rhs; }
+
+}
+
 namespace tree {
 
 using tree_node::node_t;
@@ -35,6 +44,51 @@ node_t* tree_t::tree_minimum(node_t *node) const {
         copy = copy->lhs;
 
     return copy;
+}
+
+void tree_t::rotate(node_t *node, side side) {
+    assert(node);
+    assert(node->rhs != nil);
+
+    node_t** (*lhs)(node_t*) = nullptr;
+    node_t** (*rhs)(node_t*) = nullptr;
+
+    if (side == side::LEFT) {
+        lhs = left;
+        rhs = right;
+    } else {
+        lhs = right;
+        rhs = left;
+    }
+
+    node_t *y = *rhs(node);
+
+    node_t **node_side = rhs(node);
+    *node_side = *lhs(y);
+
+    if (*lhs(y) != nil)
+        (*lhs(y))->parent = node;
+
+    y->parent = node->parent;
+
+    if (node->parent == nil)
+        root = y;
+    else if (node == node->parent->lhs) 
+        node->parent->lhs = y;
+    else 
+        node->parent->rhs = y;
+
+    node_t **y_side = lhs(y);
+    *y_side = node;
+    node->parent = y;
+
+    if(side == side::LEFT) {
+        node->r_subtree_size = y->l_subtree_size;
+        y->l_subtree_size += node->l_subtree_size + 1;
+    } else {
+        node->l_subtree_size = y->r_subtree_size;
+        y->r_subtree_size += node->r_subtree_size + 1;
+    }
 }
 
 void tree_t::left_rotate(node_t *node) {
@@ -154,12 +208,12 @@ void tree_t::rb_insert_fixup(node_t *node) {
                 
                 if (node == node->parent->lhs) {
                     node = node->parent;
-                    right_rotate(node);
+                    rotate(node, side::RIGHT);
                 }
 
                 node->parent->color = tree_node::node_color::BLACK;
                 node->parent->parent->color = tree_node::node_color::RED;
-                left_rotate(node->parent->parent);
+                rotate(node->parent->parent, side::LEFT);
             }
         } else {
             node_t *y = node->parent->parent->rhs;
@@ -173,12 +227,12 @@ void tree_t::rb_insert_fixup(node_t *node) {
                 
                 if (node == node->parent->rhs) {
                     node = node->parent;
-                    left_rotate(node);
+                    rotate(node, side::LEFT);
                 }
 
                 node->parent->color = tree_node::node_color::BLACK;
                 node->parent->parent->color = tree_node::node_color::RED;
-                right_rotate(node->parent->parent);
+                rotate(node->parent->parent, side::RIGHT);
             }
         }
     }
@@ -247,7 +301,7 @@ void tree_t::rb_delete_fixup(node_t *node) {
             if(w->color == tree_node::node_color::RED) {
                 w->color = tree_node::node_color::BLACK;
                 node->parent->color = tree_node::node_color::RED;
-                left_rotate(node->parent);
+                rotate(node->parent, side::LEFT);
                 w = node->parent->rhs;
             }
 
@@ -258,14 +312,14 @@ void tree_t::rb_delete_fixup(node_t *node) {
                 if (w->rhs->color == tree_node::node_color::BLACK) {
                     w->lhs->color = tree_node::node_color::BLACK;
                     w->color = tree_node::node_color::RED;
-                    right_rotate(w);
+                    rotate(w, side::RIGHT);
                     w = node->parent->rhs;
                 }
 
                 w->color = node->parent->color;
                 node->parent->color = tree_node::node_color::BLACK;
                 w->rhs->color = tree_node::node_color::BLACK;
-                left_rotate(node->parent);
+                rotate(node->parent, side::RIGHT);
                 node = root;
             }
         } else {
@@ -274,7 +328,7 @@ void tree_t::rb_delete_fixup(node_t *node) {
             if(w->color == tree_node::node_color::RED) {
                 w->color = tree_node::node_color::BLACK;
                 node->parent->color = tree_node::node_color::RED;
-                right_rotate(node->parent);
+                rotate(node->parent, side::RIGHT);
                 w = node->parent->lhs;
             }
 
@@ -285,14 +339,14 @@ void tree_t::rb_delete_fixup(node_t *node) {
                 if (w->lhs->color == tree_node::node_color::BLACK) {
                     w->rhs->color = tree_node::node_color::BLACK;
                     w->color = tree_node::node_color::RED;
-                    left_rotate(w);
+                    rotate(w, side::LEFT);
                     w = node->parent->lhs;
                 }
 
                 w->color = node->parent->color;
                 node->parent->color = tree_node::node_color::BLACK;
                 w->lhs->color = tree_node::node_color::BLACK;
-                right_rotate(node->parent);
+                rotate(node->parent, side::RIGHT);
                 node = root;
             }
         }
