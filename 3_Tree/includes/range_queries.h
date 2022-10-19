@@ -1,16 +1,19 @@
 #pragma once
 
 #include <vector>
+#include <utility>
 
 namespace range_queries {
 
-using tree_node::node_t;
+using tree::node_t;
 
-std::vector<int> range_queries(std::vector<int>& commands);
+std::vector<int> range_queries(const std::pair<std::vector<char>, std::vector<int>>& data);
 
-struct processing_tree {
+class processing_tree {
 
     tree::tree_t tree;
+
+    public:
 
     processing_tree() {};
 
@@ -21,6 +24,10 @@ struct processing_tree {
     int n_processing(const int border) const;
 
     int m_processing(const int num) const;
+
+    void dump() {
+        tree.dump();
+    }
 };
 
 } // range_queries

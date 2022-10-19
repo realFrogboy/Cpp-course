@@ -2,15 +2,13 @@
 
 namespace tree {
 
-using tree_node::node_t;
-
 void tree_dump::graph_node(const node_t *node, std::ofstream& file) {
     if (node->l_subtree_size < 0)
         return;
 
     int curr = num;
 
-    if (node->color == tree_node::node_color::RED) {
+    if (node->color == node_color::RED) {
         file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"red\", label = \"" << node->key << " : " << node->l_subtree_size << " : " << node->r_subtree_size << "\"];\n";
         num++;
     } else {

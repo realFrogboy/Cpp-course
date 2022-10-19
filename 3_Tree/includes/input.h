@@ -8,6 +8,6 @@ enum class command_codes {
     M
 };
 
-std::vector<int> get_commands();
+std::pair<std::vector<char>, std::vector<int>> get_commands();
 
 }

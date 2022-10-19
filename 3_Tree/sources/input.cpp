@@ -1,6 +1,7 @@
 #include <vector>
 #include <iostream>
 #include "input.h"
+#include <limits>
 
 namespace {
 
@@ -10,88 +11,50 @@ void cls() {
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+template <typename T>
+T get() {
+    T val;
+    std::cin >> val;
+    while(!std::cin) {
+        cls();
+        std::cin >> val;
+    }
+    return val;
+}
+
 }
 
 namespace get_commands {
 
-std::vector<int> get_commands() {
+std::pair<std::vector<char>, std::vector<int>> get_commands() {
 
-    std::vector<int> commands;
+    std::vector<char> commands;
+    std::vector<int> numbers; 
 
     bool is_end = false;
     while ((!std::cin.eof()) && (!is_end)) {
-        char command = 0;
-        
-        std::cin >> command;
-        while(!std::cin) {
-            cls();
-            std::cin >> command;
-        }
+        char command = get<char>();
+        commands.push_back(command);
 
-        switch (command) {
-            case 'k': {
-                commands.push_back(static_cast<int>(command_codes::K));
+        if (command == 'q') {
 
-                int val = 0;
-                std::cin >> val;
-                while(!std::cin) {
-                    cls();
-                    std::cin >> val;
-                }
+            int l_border = get<int>();
+            int r_border = get<int>();
 
-                commands.push_back(val);
-                break;
-            }
+            numbers.push_back(l_border);
+            numbers.push_back(r_border);
 
-            case 'q': {
-                commands.push_back(static_cast<int>(command_codes::Q));
+        } else if ((command == 'k') || (command == 'n') || (command == 'm')) {
 
-                int l_border = 0, r_border = 0;
-                std::cin >> l_border >> r_border;
-                while(!std::cin) {
-                    cls();
-                    std::cin >> l_border >> r_border;
-                }
+            int val = get<int>();
+            numbers.push_back(val);
 
-                commands.push_back(l_border);
-                commands.push_back(r_border);
-                break;
-            }
-
-            case 'n': {
-                commands.push_back(static_cast<int>(command_codes::N));
-
-                int border = 0;
-                std::cin >> border;
-                while(!std::cin) {
-                    cls();
-                    std::cin >> border;
-                }
-
-                commands.push_back(border);
-                break;
-            }
-
-            case 'm': {
-                commands.push_back(static_cast<int>(command_codes::M));
-
-                int num = 0;
-                std::cin >> num;
-                while(!std::cin) {
-                    cls();
-                    std::cin >> num;
-                }
-
-                commands.push_back(num);
-                break;
-            }
-
-            default:
-                is_end = true;
+        } else {
+            is_end = true;
         }
     }
 
-    return commands;
+    return {commands, numbers};
 }
 
 } // get_commands

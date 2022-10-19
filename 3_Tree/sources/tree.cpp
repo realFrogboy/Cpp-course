@@ -3,22 +3,10 @@
 #include <iostream>
 #include "tree_t.h"
 
-namespace {
-
-    using tree_node::node_t;
-
-    node_t **left (node_t *node) { return &node->lhs; }
-    node_t **right(node_t *node) { return &node->rhs; }
-
-}
-
 namespace tree {
 
-using tree_node::node_t;
-
 tree_t::tree_t(node_t *node) : root(node) {
-    mgr = new node_mgr{};
-    node_t *nil = mgr->create(0);
+    node_t *nil = mgr.create(0);
 
     nil->lhs = node;
     nil->rhs = node;
@@ -39,28 +27,28 @@ node_t* tree_t::tree_minimum(node_t *node) const {
     return copy;
 }
 
-void tree_t::rotate(node_t *node, side side) {
+void tree_t::rotate(node_t *node, const side side) {
     assert(node);
-    assert(node->rhs != nil);
 
-    node_t** (*lhs)(node_t*) = nullptr;
-    node_t** (*rhs)(node_t*) = nullptr;
+    node_t** (node_t::*p_lhs)();
+    node_t** (node_t::*p_rhs)();
 
     if (side == side::LEFT) {
-        lhs = left;
-        rhs = right;
+        p_lhs = &node_t::left;
+        p_rhs = &node_t::right;
     } else {
-        lhs = right;
-        rhs = left;
+        p_lhs = &node_t::right;
+        p_rhs = &node_t::left;
     }
 
-    node_t *y = *rhs(node);
+    assert(*(node->*p_rhs)() != nil);
 
-    node_t **node_side = rhs(node);
-    *node_side = *lhs(y);
+    node_t *y = *(node->*p_rhs)();
+    node_t **node_side = (node->*p_rhs)();
+    *node_side = *(y->*p_lhs)();
 
-    if (*lhs(y) != nil)
-        (*lhs(y))->parent = node;
+    if (*(y->*p_lhs)() != nil)
+        (*(y->*p_lhs)())->parent = node;
 
     y->parent = node->parent;
 
@@ -71,7 +59,7 @@ void tree_t::rotate(node_t *node, side side) {
     else 
         node->parent->rhs = y;
 
-    node_t **y_side = lhs(y);
+    node_t **y_side = (y->*p_lhs)();
     *y_side = node;
     node->parent = y;
 
@@ -84,64 +72,12 @@ void tree_t::rotate(node_t *node, side side) {
     }
 }
 
-void tree_t::left_rotate(node_t *node) {
-    assert(node);
-    assert(node->rhs != nil);
-
-    node_t *y = node->rhs;
-    node->rhs = y->lhs;
-
-    if (y->lhs != nil)
-        y->lhs->parent = node;
-
-    y->parent = node->parent;
-
-    if (node->parent == nil)
-        root = y;
-    else if (node == node->parent->lhs) 
-        node->parent->lhs = y;
-    else 
-        node->parent->rhs = y;
-
-    y->lhs = node;
-    node->parent = y;
-
-    node->r_subtree_size = y->l_subtree_size;
-    y->l_subtree_size += node->l_subtree_size + 1;
-}
-
-void tree_t::right_rotate(node_t *node) {
-    assert(node);
-    assert(node->lhs != nil);
-
-    node_t *y = node->lhs;
-    node->lhs = y->rhs;
-
-    if (y->rhs != nil)
-        y->rhs->parent = node;
-
-    y->parent = node->parent;
-
-    if (node->parent == nil) 
-        root = y;
-    else if (node == node->parent->rhs)
-        node->parent->rhs = y;
-    else
-        node->parent->lhs = y;
-
-    y->rhs = node;
-    node->parent = y;
-
-    node->l_subtree_size = y->r_subtree_size;
-    y->r_subtree_size += node->r_subtree_size + 1;
-}
-
 void tree_t::rb_insert(node_t *node) {
     assert(node);
 
     if (!root) {
         root = node;
-        nil = mgr->create(0);
+        nil = mgr.create(0);
 
         nil->lhs = node;
         nil->rhs = node;
@@ -151,7 +87,7 @@ void tree_t::rb_insert(node_t *node) {
         node->lhs = nil;
         node->rhs = nil;
         node->parent = nil;
-        root->color = tree_node::node_color::BLACK;
+        root->color = node_color::BLACK;
 
         return;
     }
@@ -181,7 +117,7 @@ void tree_t::rb_insert(node_t *node) {
     
     node->lhs = nil;
     node->rhs = nil;
-    node->color = tree_node::node_color::RED;
+    node->color = node_color::RED;
 
     rb_insert_fixup(node);
 }
@@ -189,15 +125,15 @@ void tree_t::rb_insert(node_t *node) {
 void tree_t::rb_insert_fixup(node_t *node) {
     assert(node);
 
-    while (node->parent->color == tree_node::node_color::RED) {
+    while (node->parent->color == node_color::RED) {
 
         if (node->parent == node->parent->parent->rhs) {
             node_t *y = node->parent->parent->lhs;
             
-            if (y->color == tree_node::node_color::RED) {
-                node->parent->color = tree_node::node_color::BLACK;
-                y->color = tree_node::node_color::BLACK;
-                node->parent->parent->color = tree_node::node_color::RED;
+            if (y->color == node_color::RED) {
+                node->parent->color = node_color::BLACK;
+                y->color = node_color::BLACK;
+                node->parent->parent->color = node_color::RED;
                 node = node->parent->parent;
             } else {
                 
@@ -206,17 +142,17 @@ void tree_t::rb_insert_fixup(node_t *node) {
                     rotate(node, side::RIGHT);
                 }
 
-                node->parent->color = tree_node::node_color::BLACK;
-                node->parent->parent->color = tree_node::node_color::RED;
+                node->parent->color = node_color::BLACK;
+                node->parent->parent->color = node_color::RED;
                 rotate(node->parent->parent, side::LEFT);
             }
         } else {
             node_t *y = node->parent->parent->rhs;
             
-            if (y->color == tree_node::node_color::RED) {
-                node->parent->color = tree_node::node_color::BLACK;
-                y->color = tree_node::node_color::BLACK;
-                node->parent->parent->color = tree_node::node_color::RED;
+            if (y->color == node_color::RED) {
+                node->parent->color = node_color::BLACK;
+                y->color = node_color::BLACK;
+                node->parent->parent->color = node_color::RED;
                 node = node->parent->parent;
             } else {
                 
@@ -225,13 +161,13 @@ void tree_t::rb_insert_fixup(node_t *node) {
                     rotate(node, side::LEFT);
                 }
 
-                node->parent->color = tree_node::node_color::BLACK;
-                node->parent->parent->color = tree_node::node_color::RED;
+                node->parent->color = node_color::BLACK;
+                node->parent->parent->color = node_color::RED;
                 rotate(node->parent->parent, side::RIGHT);
             }
         }
     }
-    root->color = tree_node::node_color::BLACK;
+    root->color = node_color::BLACK;
 }
 
 void tree_t::rb_transplant(node_t *node_f, node_t *node_s) {
@@ -252,7 +188,7 @@ void tree_t::rb_delete(node_t *node) {
     assert(node);
 
     node_t *y = node;
-    tree_node::node_color y_original_color = y->color;
+    node_color y_original_color = y->color;
     node_t *x = nullptr;
 
     if (node->lhs == nil) {
@@ -280,76 +216,76 @@ void tree_t::rb_delete(node_t *node) {
         y->color = node->color;
     }
 
-    if (y_original_color == tree_node::node_color::BLACK)
+    if (y_original_color == node_color::BLACK)
         rb_delete_fixup(x);
     
-    mgr->destruct(node);
+    mgr.destruct(node);
 }
 
 void tree_t::rb_delete_fixup(node_t *node) {
     assert(node);
 
-    while ((node != root) && (node->color == tree_node::node_color::BLACK)) {
+    while ((node != root) && (node->color == node_color::BLACK)) {
         if (node == node->parent->lhs) {
             node_t *w = node->parent->rhs;
 
-            if(w->color == tree_node::node_color::RED) {
-                w->color = tree_node::node_color::BLACK;
-                node->parent->color = tree_node::node_color::RED;
+            if(w->color == node_color::RED) {
+                w->color = node_color::BLACK;
+                node->parent->color = node_color::RED;
                 rotate(node->parent, side::LEFT);
                 w = node->parent->rhs;
             }
 
-            if ((w->lhs->color == tree_node::node_color::BLACK) && (w->rhs->color == tree_node::node_color::BLACK)) {
-                w->color = tree_node::node_color::RED;
+            if ((w->lhs->color == node_color::BLACK) && (w->rhs->color == node_color::BLACK)) {
+                w->color = node_color::RED;
                 node = node->parent;
             } else {
-                if (w->rhs->color == tree_node::node_color::BLACK) {
-                    w->lhs->color = tree_node::node_color::BLACK;
-                    w->color = tree_node::node_color::RED;
+                if (w->rhs->color == node_color::BLACK) {
+                    w->lhs->color = node_color::BLACK;
+                    w->color = node_color::RED;
                     rotate(w, side::RIGHT);
                     w = node->parent->rhs;
                 }
 
                 w->color = node->parent->color;
-                node->parent->color = tree_node::node_color::BLACK;
-                w->rhs->color = tree_node::node_color::BLACK;
+                node->parent->color = node_color::BLACK;
+                w->rhs->color = node_color::BLACK;
                 rotate(node->parent, side::RIGHT);
                 node = root;
             }
         } else {
             node_t *w = node->parent->lhs;
 
-            if(w->color == tree_node::node_color::RED) {
-                w->color = tree_node::node_color::BLACK;
-                node->parent->color = tree_node::node_color::RED;
+            if(w->color == node_color::RED) {
+                w->color = node_color::BLACK;
+                node->parent->color = node_color::RED;
                 rotate(node->parent, side::RIGHT);
                 w = node->parent->lhs;
             }
 
-            if ((w->rhs->color == tree_node::node_color::BLACK) && (w->lhs->color == tree_node::node_color::BLACK)) {
-                w->color = tree_node::node_color::RED;
+            if ((w->rhs->color == node_color::BLACK) && (w->lhs->color == node_color::BLACK)) {
+                w->color = node_color::RED;
                 node = node->parent;
             } else {
-                if (w->lhs->color == tree_node::node_color::BLACK) {
-                    w->rhs->color = tree_node::node_color::BLACK;
-                    w->color = tree_node::node_color::RED;
+                if (w->lhs->color == node_color::BLACK) {
+                    w->rhs->color = node_color::BLACK;
+                    w->color = node_color::RED;
                     rotate(w, side::LEFT);
                     w = node->parent->lhs;
                 }
 
                 w->color = node->parent->color;
-                node->parent->color = tree_node::node_color::BLACK;
-                w->lhs->color = tree_node::node_color::BLACK;
+                node->parent->color = node_color::BLACK;
+                w->lhs->color = node_color::BLACK;
                 rotate(node->parent, side::RIGHT);
                 node = root;
             }
         }
     }
-    node->color = tree_node::node_color::BLACK;
+    node->color = node_color::BLACK;
 }
 
-int position(const node_t *node, const int key) {
+int tree_t::position(const node_t *node, const int key) {
     assert(node);
 
     if (node->l_subtree_size < 0)
@@ -383,7 +319,6 @@ void tree_t::dump() const {
 
     tree_dump dump{};
     dump.graph_node(root, file);
-    dump.num = 0;
     dump.connect_node(root, file);
 
     file << "}";
@@ -397,11 +332,7 @@ node_t *node_mgr::create(const int key) {
 }
 
 void node_mgr::destruct(const node_t *node) {
-    auto iter = std::find(nodes.begin(), nodes.end(), node);
-
-    std::swap(*nodes.end(), *iter);
-    nodes.pop_back();
-
+    nodes.erase(std::remove_if(nodes.begin(), nodes.end(), [node](node_t *curr){ return curr == node; }), nodes.end());
     delete node;
 }
 

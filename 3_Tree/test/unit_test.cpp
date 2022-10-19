@@ -4,7 +4,7 @@
 
 namespace tree_unit_test {
 
-using tree_node::node_t;
+using tree::node_t;
 
 class rb_tree_test : public ::testing::Test {
     protected:
@@ -32,66 +32,65 @@ class rb_tree_test : public ::testing::Test {
 
 TEST_F(rb_tree_test, tree_minimum) {
     node_t *res = tree.tree_minimum(tree.get_root());
-    EXPECT_EQ(1, res->key == 3);
+    EXPECT_EQ(1, res->get_key() == 3);
 
     res = tree.tree_minimum(node1);
-    EXPECT_EQ(1, res->key == 3);
+    EXPECT_EQ(1, res->get_key() == 3);
 
     res = tree.tree_minimum(node2);
-    EXPECT_EQ(1, res->key == 11);
+    EXPECT_EQ(1, res->get_key() == 11);
 
     res = tree.tree_minimum(node4);
-    EXPECT_EQ(1, res->key == 22);
+    EXPECT_EQ(1, res->get_key() == 22);
 }
 
 TEST_F(rb_tree_test, position) {
-    int res = tree::position(tree.get_root(), 2);
+    int res = tree::tree_t::position(tree.get_root(), 2);
     EXPECT_EQ(1, res == 0);
 
-    res = tree::position(tree.get_root(), 3);
+    res = tree::tree_t::position(tree.get_root(), 3);
     EXPECT_EQ(1, res == 0);
 
-    res = tree::position(tree.get_root(), 4);
+    res = tree::tree_t::position(tree.get_root(), 4);
     EXPECT_EQ(1, res == 1);
 
-    res = tree::position(tree.get_root(), 5);
+    res = tree::tree_t::position(tree.get_root(), 5);
     EXPECT_EQ(1, res == 1);
 
-    res = tree::position(tree.get_root(), 7);
+    res = tree::tree_t::position(tree.get_root(), 7);
     EXPECT_EQ(1, res == 1);
 
-    res = tree::position(tree.get_root(), 8);
+    res = tree::tree_t::position(tree.get_root(), 8);
     EXPECT_EQ(1, res == 2);
 
-    res = tree::position(tree.get_root(), 9);
+    res = tree::tree_t::position(tree.get_root(), 9);
     EXPECT_EQ(1, res == 3);
 
-    res = tree::position(tree.get_root(), 10);
+    res = tree::tree_t::position(tree.get_root(), 10);
     EXPECT_EQ(1, res == 3);
 
-    res = tree::position(tree.get_root(), 11);
-
+    res = tree::tree_t::position(tree.get_root(), 11);
     EXPECT_EQ(1, res == 4);
 
-    res = tree::position(tree.get_root(), 12);
+    res = tree::tree_t::position(tree.get_root(), 12);
     EXPECT_EQ(1, res == 5);
 
-    res = tree::position(tree.get_root(), 18);
+    res = tree::tree_t::position(tree.get_root(), 18);
     EXPECT_EQ(1, res == 5);
 
-    res = tree::position(tree.get_root(), 19);
+    res = tree::tree_t::position(tree.get_root(), 19);
     EXPECT_EQ(1, res == 6);
 
-    res = tree::position(tree.get_root(), 22);
+    res = tree::tree_t::position(tree.get_root(), 22);
     EXPECT_EQ(1, res == 6);
 
-    res = tree::position(tree.get_root(), 23);
+    res = tree::tree_t::position(tree.get_root(), 23);
     EXPECT_EQ(1, res == 7);
 
-    res = tree::position(tree.get_root(), 26);
+    res = tree::tree_t::position(tree.get_root(), 26);
     EXPECT_EQ(1, res == 7);
 
-    res = tree::position(tree.get_root(), 27);
+    res = tree::tree_t::position(tree.get_root(), 27);
     EXPECT_EQ(1, res == 8);
 }
 

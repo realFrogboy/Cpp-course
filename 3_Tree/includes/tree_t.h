@@ -1,23 +1,54 @@
 #pragma once
 
-#include "node_t.h"
 #include <fstream>
 #include <vector>
 
 namespace tree {
 
-using tree_node::node_t;
-
-int position(const node_t *node, const int key);
+enum class node_color {
+    BLACK,
+    RED
+};
 
 enum class side {
     RIGHT,
     LEFT
 };
 
-struct tree_dump {
+class node_t {
+
+    friend class tree_t;
+    friend struct tree_dump;
+
+    int key;
+    int l_subtree_size = 0;
+    int r_subtree_size = 0;
+    node_color color = node_color::BLACK;
+    node_t *lhs = nullptr;
+    node_t *rhs = nullptr;
+    node_t *parent = nullptr;
+
+    public:
+
+    node_t(const int k) : key(k) {};
+
+    int get_key() { return key; };
+
+    node_t(const node_t&) = delete;
+    node_t &operator=(const node_t&) = delete;
+
+    node_t(node_t&& rhs_) = delete;
+    node_t &operator=(const node_t&&) = delete;
+
+    node_t **left () { return &lhs; }
+    node_t **right() { return &rhs; }
+};
+
+class tree_dump {
 
     int num = 0;
+
+    public:
     
     void graph_node(const node_t *node, std::ofstream& file);
     void connect_node(const node_t *node, std::ofstream& file);
@@ -42,12 +73,12 @@ class node_mgr {
 
 class tree_t {
 
-    node_mgr *mgr;
+    node_mgr mgr;
 
     node_t *root = nullptr;
     node_t *nil = nullptr;
 
-    void rotate(node_t *node, side side);
+    void rotate(node_t *node, const side side);
 
     void left_rotate(node_t *node);
 
@@ -61,9 +92,7 @@ class tree_t {
 
     public:
 
-    tree_t() {
-        mgr = new node_mgr{};
-    }
+    tree_t() {}
 
     tree_t(node_t *node);
 
@@ -71,7 +100,7 @@ class tree_t {
 
     node_t *get_nil() const { return nil; }
 
-    node_mgr *get_mgr() const { return mgr; }
+    node_mgr *get_mgr() { return &mgr; }
 
     tree_t(const tree_t& rhs) = delete;
     tree_t& operator=(const tree_t& rhs) = delete;
@@ -85,13 +114,11 @@ class tree_t {
     
     void rb_delete(node_t *node);
 
+    static int position(const node_t *node, const int key);
+
     int k_th_min(const node_t *node, const int num) const;
 
     void dump() const;
-
-    ~tree_t() {
-        delete mgr;
-    }
 };
 
 } // tree_t
