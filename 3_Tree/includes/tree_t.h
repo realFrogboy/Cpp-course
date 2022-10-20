@@ -15,10 +15,7 @@ enum class side {
     LEFT
 };
 
-class node_t {
-
-    friend class tree_t;
-    friend struct tree_dump;
+struct node_t {
 
     int key;
     int l_subtree_size = 0;
@@ -27,8 +24,6 @@ class node_t {
     node_t *lhs = nullptr;
     node_t *rhs = nullptr;
     node_t *parent = nullptr;
-
-    public:
 
     node_t(const int k) : key(k) {};
 
