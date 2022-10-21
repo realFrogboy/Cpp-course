@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 #main
-set (SOURCES sources/main.cpp sources/matrix.cpp)
+set (SOURCES sources/main.cpp sources/matrix.cpp sources/input.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCES})
 target_include_directories (${PROJECT_NAME} PRIVATE includes)
@@ -22,7 +22,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 set (UNIT matrix_unit_test)
-set (TEST_SOURCES test/unit_test.cpp)
+set (TEST_SOURCES sources/matrix.cpp test/unit_test.cpp)
 
 add_executable(${UNIT} ${TEST_SOURCES})
 
@@ -31,7 +31,7 @@ target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread
 
 #endtoend test
 set(ENDTOEND end_to_end)
-set(TEST_SOURCES test/end_to_end.cpp test/test_generator.cpp)
+set(TEST_SOURCES sources/matrix.cpp test/end_to_end.cpp test/test_generator.cpp)
 
 add_executable(${ENDTOEND} ${TEST_SOURCES})
 
