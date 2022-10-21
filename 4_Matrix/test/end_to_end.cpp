@@ -5,6 +5,7 @@
 namespace end_to_end {
 
 const double accurasy = 0.01;
+const unsigned g_rank = 100;
 
 bool isEqual(const double lhs, const double rhs) {
     if (std::abs(lhs - rhs) < accurasy)
@@ -13,11 +14,7 @@ bool isEqual(const double lhs, const double rhs) {
 }
 
 TEST(end_to_end, determinant) {
-    unsigned rank = 0;
-
-    std::cout << "Enter a rank" << std::endl;
-    std::cin >> rank;
-    assert(std::cin);
+    unsigned rank = g_rank;
 
     test_generator::test_generator(rank);
     std::ifstream fp("Generation.txt");

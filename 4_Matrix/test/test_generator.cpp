@@ -3,16 +3,14 @@
 
 namespace test_generator {
 
-const unsigned num_tests = 10;
+const unsigned num_tests = 100;
 
-int all_random(std::ofstream& fp, const unsigned n) {
-    const int xmin = -5;
-    const int xmax = 5;
+int random_matrix(std::ofstream& fp, const unsigned n) {
 
     double det = 1;
     std::vector<double> data;
 
-    for (unsigned i = 0; i < n; i++) {
+    for (unsigned i = 0; i < n; ++i) {
         for (unsigned null_cnt = 0; null_cnt < i; null_cnt++)
             data.push_back(0);
 
@@ -22,24 +20,26 @@ int all_random(std::ofstream& fp, const unsigned n) {
 
         det *= s;
 
-        for (unsigned j = i + 1; j < n; j++) {
-            int s = (double)rand() / RAND_MAX * (xmax-xmin) + xmin;
-            data.push_back(s);
+        for (unsigned j = i + 1; j < n; ++j) {
+            data.push_back(1);
         }       
     }
 
     matrix::matrix_t matrix(data, n);
 
-    for (int cnt = 0; cnt < 50; cnt++) {
+    for (int cnt = 0; cnt < 400; ++cnt) {
         unsigned lhs = 1 + (unsigned)rand() % n;
         unsigned rhs = 1 + (unsigned)rand() % n;
 
-        bool is_swap = matrix.row_swap(lhs, rhs);
-        if (is_swap)
-            det *= -1;
+        if (lhs == rhs) continue;
+
+        matrix::matrix_t::proxy_row row_l = matrix[lhs];
+        matrix::matrix_t::proxy_row row_r = matrix[rhs];
+
+        row_l += row_r;
     }
 
-    for (int cnt = 0; cnt < 50; cnt++) {
+    for (unsigned cnt = 0; cnt < 200; ++cnt) {
         unsigned lhs = 1 + (unsigned)rand() % n;
         unsigned rhs = 1 + (unsigned)rand() % n;
 
@@ -48,10 +48,22 @@ int all_random(std::ofstream& fp, const unsigned n) {
             det *= -1;
     }
 
+    for (int cnt = 0; cnt < 400; ++cnt) {
+        unsigned lhs = 1 + (unsigned)rand() % n;
+        unsigned rhs = 1 + (unsigned)rand() % n;
+
+        if (lhs == rhs) continue;
+
+        matrix::matrix_t::proxy_row row_l = matrix[lhs];
+        matrix::matrix_t::proxy_row row_r = matrix[rhs];
+
+        row_l -= row_r;
+    }
+
     fp << n << std::endl;
 
-    for (unsigned r_idx = 1; r_idx <= n; r_idx++) {
-        for (unsigned l_idx = 1; l_idx <= n; l_idx++)
+    for (unsigned r_idx = 1; r_idx <= n; ++r_idx) {
+        for (unsigned l_idx = 1; l_idx <= n; ++l_idx)
             fp << matrix[r_idx][l_idx] << ' ';
         fp << std::endl;
     }
@@ -63,12 +75,10 @@ int all_random(std::ofstream& fp, const unsigned n) {
 }
 
 void test_generator(const unsigned rank) {
-    srand(time(NULL));
-
     std::ofstream fp("Generation.txt");
     
-    for (unsigned cnt = 0; cnt < num_tests; cnt++)
-        all_random(fp, rank);
+    for (unsigned cnt = 0; cnt < num_tests; ++cnt)
+        random_matrix(fp, rank);
 }
 
 } // test_generator
