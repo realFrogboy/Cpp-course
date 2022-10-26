@@ -2,10 +2,15 @@
 #include <iostream>
 #include "assert.h"
 #include <cmath>
+#include <exception>
 
 namespace matrix {
 
 matrix_t::matrix_t(std::vector<double>& input, size_t rg) : colons(new int[rg]), data(new double* [rg]), rank(rg), size(rg * rg) {
+    if (input.size() < size) {
+        throw std::runtime_error("not enough data to create a matrix");
+    }
+
     auto iter = input.begin();
     for (unsigned idx = 0; idx < rg; ++idx) {
         colons[idx] = idx;
