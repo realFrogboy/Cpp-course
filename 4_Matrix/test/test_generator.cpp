@@ -1,9 +1,11 @@
 #include "matrix.h"
 #include "test_generator.h"
+#include <exception>
+
 
 namespace test_generator {
 
-const unsigned num_tests = 100;
+constexpr unsigned num_tests = 100;
 
 int random_matrix(std::ofstream& fp, const unsigned n) {
 
@@ -76,6 +78,9 @@ int random_matrix(std::ofstream& fp, const unsigned n) {
 
 void test_generator(const unsigned rank) {
     std::ofstream fp("Generation.txt");
+    if (!fp.is_open()) {
+        throw std::runtime_error("failed to open file!");
+    }
     
     for (unsigned cnt = 0; cnt < num_tests; ++cnt)
         random_matrix(fp, rank);

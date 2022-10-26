@@ -13,7 +13,7 @@ template <typename T>
 T get() {
     T val;
     std::cin >> val;
-    while(!std::cin) {
+    while((!std::cin) || ((std::cin.peek() != ' ') && (std::cin.peek() != '\n'))) {
         cls();
         std::cin >> val;
     }
@@ -25,7 +25,12 @@ T get() {
 namespace get_data{
 
 std::pair<unsigned, std::vector<double>> get_data() {
-    unsigned rank = get<unsigned>();
+    int rank = get<int>();
+    while (rank < 1) {
+        std::cout << "Matrix order should be > 0" << std::endl;
+        cls();
+        rank = get<int>();
+    }
 
     std::vector<double> input(rank * rank);
 

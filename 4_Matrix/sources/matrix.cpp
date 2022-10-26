@@ -8,11 +8,13 @@ namespace matrix {
 matrix_t::matrix_t(std::vector<double>& input, size_t rg) : colons(new int[rg]), data(new double* [rg]), rank(rg), size(rg * rg) {
     auto iter = input.begin();
     for (unsigned idx = 0; idx < rg; ++idx) {
-        colons[idx] = idx + 1;
+        colons[idx] = idx;
 
         data[idx] = new double[rg];
         std::copy(iter, std::next(iter, rg), data[idx]);
-        iter = std::next(iter, rg);
+
+        if (idx != rg) 
+            iter = std::next(iter, rg);
     }
 }
 
@@ -42,13 +44,13 @@ bool matrix_t::con_swap(const unsigned lhs, const unsigned rhs) const {
 }
 
 std::pair<unsigned, unsigned> matrix_t::maximum(const unsigned curr) const {
-    double max = std::abs(data[curr - 1][colons[curr - 1] - 1]);
+    double max = std::abs(data[curr - 1][colons[curr - 1]]);
     std::pair<unsigned, unsigned> pr = std::make_pair(curr, curr);
 
     for (unsigned r_idx = curr - 1; r_idx < rank; ++r_idx) {
         for (unsigned c_idx = curr - 1; c_idx < rank; ++c_idx) {
-            if (std::abs(data[r_idx][colons[c_idx] - 1]) > max) {
-                max = std::abs(data[r_idx][colons[c_idx] - 1]);
+            if (std::abs(data[r_idx][colons[c_idx]]) > max) {
+                max = std::abs(data[r_idx][colons[c_idx]]);
                 pr.first = r_idx + 1;
                 pr.second = c_idx + 1;
             }
@@ -81,7 +83,7 @@ double matrix_t::determinant() const {
 }
 
 matrix_t::proxy_row matrix_t::operator[](const unsigned n_row) const {
-    matrix_t::proxy_row row{this, n_row};
+    matrix_t::proxy_row row{*this, n_row};
     return row;
 }
 
@@ -98,7 +100,7 @@ void matrix_t::eliminate(const unsigned curr) const {
 
 void matrix_t::dump() const { 
     for (unsigned r_cnt = 1; r_cnt <= rank; ++r_cnt) {
-        for (unsigned c_cnt =1; c_cnt <= rank; ++c_cnt) {
+        for (unsigned c_cnt = 1; c_cnt <= rank; ++c_cnt) {
             std::cout.width(5);
             std::cout << (*this)[r_cnt][c_cnt] << ' ';
         }
@@ -114,18 +116,18 @@ matrix_t::~matrix_t() {
 }
 
 matrix_t::proxy_row& matrix_t::proxy_row::operator+=(const matrix_t::proxy_row& rhs) {
-    for (unsigned idx  = 0; idx < (*matrix).rank; ++idx)
+    for (unsigned idx  = 0; idx < matrix.rank; ++idx)
         row[idx] += rhs.row[idx];
     return *this;
 }
 
 matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
-    for (unsigned idx  = 0; idx < (*matrix).rank; ++idx)
+    for (unsigned idx  = 0; idx < matrix.rank; ++idx)
         row[idx] -= rhs.data[idx];
     return *this;
 }
 
-row_t::row_t(matrix_t::proxy_row row) : rank(row.matrix->get_rank()), data(new double[row.matrix->get_rank()]) {
+row_t::row_t(matrix_t::proxy_row row) : rank(row.matrix.get_rank()), data(new double[row.matrix.get_rank()]) {
     std::copy(row.row, row.row + rank, data);
 }
 

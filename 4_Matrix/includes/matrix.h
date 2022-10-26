@@ -20,12 +20,12 @@ class matrix_t {
 
     struct proxy_row {
         double *row;
-        const matrix_t *matrix;
+        const matrix_t& matrix;
 
-        proxy_row(const matrix_t *matrix_, const unsigned n_row) : row((*matrix_).data[n_row - 1]), matrix(matrix_) {};  
+        proxy_row(const matrix_t& matrix_, const unsigned n_row) : row(matrix_.data[n_row - 1]), matrix(matrix_) {};  
 
-        double& operator[](const unsigned n_col) { return row[(*matrix).colons[n_col - 1] - 1]; }
-        const double& operator[](const unsigned n_col) const { return row[(*matrix).colons[n_col - 1] - 1]; }
+        double& operator[](const unsigned n_col) { return row[matrix.colons[n_col - 1]]; }
+        const double& operator[](const unsigned n_col) const { return row[matrix.colons[n_col - 1]]; }
 
         proxy_row& operator+=(const proxy_row& rhs);
         proxy_row& operator-=(const row_t& rhs);
