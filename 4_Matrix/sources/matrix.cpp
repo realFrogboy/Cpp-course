@@ -1,66 +1,50 @@
 #include "matrix.h"
 #include <iostream>
 #include <algorithm>
-#include "cassert"
+#include <cassert>
 #include <cmath>
 #include <exception>
 
 namespace matrix {
 
-matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : colons(new (std::nothrow)int[rg]), data(new (std::nothrow)double* [rg]()), rank(rg), size(rg * rg) {
+matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) try : colons(new int[rg]), data(new double* [rg]()), rank(rg), size(rg * rg) {
     if (input.size() < size) {
         throw std::runtime_error("not enough data to create a matrix");
-    }
-
-    if (!colons || !data) {
-        delete[] colons;
-        delete[] data;
-        throw std::runtime_error("can't alloc memory");
     }
 
     auto iter = input.begin();
     for (unsigned idx = 0; idx < rg; ++idx) {
         colons[idx] = idx;
-
-        data[idx] = new (std::nothrow)double[rg];
-        if (!data[idx]) {
-            delete[] colons;
-            for (unsigned cnt = 0; cnt <= idx; ++cnt) {
-                delete[] data[cnt];
-            }
-            delete[] data;
-            throw std::runtime_error("can't alloc memory");
-        }
+        data[idx] = new double[rg];
 
         std::copy(iter, std::next(iter, rg), data[idx]);
 
         if (idx != rg) 
             iter = std::next(iter, rg);
     }
+} catch (const std::bad_alloc& e) {
+    delete[] colons;
+    for (unsigned idx = 0; idx < rg; ++idx) {
+        delete[] data[idx];
+    }
+    delete[] data;
+    std::cout << "can't alloc memory" << e.what();
 }
 
-matrix_t::matrix_t(const matrix_t& rhs) : colons(new (std::nothrow)int[rhs.rank]), data(new (std::nothrow)double* [rhs.rank]()), rank(rhs.rank), size(rhs.size) {
-    if (!colons || !data) {
-        delete[] colons;
-        delete[] data;
-        throw std::runtime_error("can't alloc memory");
-    }
-    
+matrix_t::matrix_t(const matrix_t& rhs) try : colons(new int[rhs.rank]), data(new double* [rhs.rank]()), rank(rhs.rank), size(rhs.size) {    
     std::copy(rhs.colons, rhs.colons + rhs.rank, colons);
 
     for(unsigned idx = 0; idx < rhs.rank; ++idx) {
-        data[idx] = new (std::nothrow)double[rank];
-        if (!data[idx]) {
-            delete[] colons;
-            for (unsigned cnt = 0; cnt <= idx; ++cnt) {
-                delete[] data[cnt];
-            }
-            delete[] data;
-            throw std::runtime_error("can't alloc memory");
-        }
-
+        data[idx] = new double[rhs.rank];
         std::copy(rhs.data[idx], rhs.data[idx] + rhs.rank, data[idx]);
     }
+} catch (const std::bad_alloc& e) {
+    delete[] colons;
+    for (unsigned idx = 0; idx < rhs.rank; ++idx) {
+        delete[] data[idx];
+    }
+    delete[] data;
+    std::cout << "can't alloc memory" << e.what();
 }
 
 bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
@@ -163,20 +147,16 @@ matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
     return *this;
 }
 
-row_t::row_t(const matrix_t::proxy_row& row) : rank(row.matrix.get_rank()), data(new (std::nothrow)double[row.matrix.get_rank()]) {
-    if (!data) {
-        throw std::runtime_error("can't alloc memory");
-    }
-    
+row_t::row_t(const matrix_t::proxy_row& row) try : rank(row.matrix.get_rank()), data(new double[row.matrix.get_rank()]) {    
     std::copy(row.row, row.row + rank, data);
+} catch (const std::bad_alloc& e) {
+    std::cout << "can't alloc memory" << e.what();
 }
 
-row_t::row_t(const row_t& rhs) : rank(rhs.rank), data(new (std::nothrow)double[rhs.rank]) {
-    if (!data) {
-        throw std::runtime_error("can't alloc memory");
-    }
-    
+row_t::row_t(const row_t& rhs) try : rank(rhs.rank), data(new double[rhs.rank]) {
     std::copy(rhs.data, rhs.data + rank, data);
+} catch (const std::bad_alloc& e) {
+    std::cout << "can't alloc memory" << e.what();
 }
 
 row_t::row_t(row_t&& rhs) : rank(rhs.rank), data(rhs.data) { 
