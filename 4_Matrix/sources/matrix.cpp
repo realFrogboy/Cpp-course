@@ -7,12 +7,14 @@
 
 namespace matrix {
 
-matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : colons(new (std::nothrow)int[rg]), data(new (std::nothrow)double* [rg]), rank(rg), size(rg * rg) {
+matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : colons(new (std::nothrow)int[rg]), data(new (std::nothrow)double* [rg]()), rank(rg), size(rg * rg) {
     if (input.size() < size) {
         throw std::runtime_error("not enough data to create a matrix");
     }
 
     if (!colons || !data) {
+        delete[] colons;
+        delete[] data;
         throw std::runtime_error("can't alloc memory");
     }
 
@@ -21,7 +23,12 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : colons(n
         colons[idx] = idx;
 
         data[idx] = new (std::nothrow)double[rg];
-        if (!data) {
+        if (!data[idx]) {
+            delete[] colons;
+            for (unsigned cnt = 0; cnt <= idx; ++cnt) {
+                delete[] data[cnt];
+            }
+            delete[] data;
             throw std::runtime_error("can't alloc memory");
         }
 
@@ -32,8 +39,10 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : colons(n
     }
 }
 
-matrix_t::matrix_t(const matrix_t& rhs) : colons(new (std::nothrow)int[rhs.rank]), data(new (std::nothrow)double* [rhs.rank]), rank(rhs.rank), size(rhs.size) {
+matrix_t::matrix_t(const matrix_t& rhs) : colons(new (std::nothrow)int[rhs.rank]), data(new (std::nothrow)double* [rhs.rank]()), rank(rhs.rank), size(rhs.size) {
     if (!colons || !data) {
+        delete[] colons;
+        delete[] data;
         throw std::runtime_error("can't alloc memory");
     }
     
@@ -41,7 +50,12 @@ matrix_t::matrix_t(const matrix_t& rhs) : colons(new (std::nothrow)int[rhs.rank]
 
     for(unsigned idx = 0; idx < rhs.rank; ++idx) {
         data[idx] = new (std::nothrow)double[rank];
-        if (!colons || !data) {
+        if (!data[idx]) {
+            delete[] colons;
+            for (unsigned cnt = 0; cnt <= idx; ++cnt) {
+                delete[] data[cnt];
+            }
+            delete[] data;
             throw std::runtime_error("can't alloc memory");
         }
 
