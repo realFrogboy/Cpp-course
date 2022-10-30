@@ -149,7 +149,8 @@ TEST_F(matrix_test, row_sub) {
     EXPECT_EQ(1, isEqual((*matrix)[4][4], 8));
 }
 
-/*TEST_F(matrix_test, eliminate) {
+#ifdef CHECK_ELIMINATE 
+TEST_F(matrix_test, eliminate) {
     (*matrix).eliminate(1);
     EXPECT_EQ(1, isEqual((*matrix)[1][1], 4));
     EXPECT_EQ(1, isEqual((*matrix)[1][2], 6));
@@ -203,7 +204,8 @@ TEST_F(matrix_test, row_sub) {
     EXPECT_EQ(1, isEqual((*matrix)[4][2], 0));
     EXPECT_EQ(1, isEqual((*matrix)[4][3], 0));
     EXPECT_EQ(1, isEqual((*matrix)[4][4], 1.94594595));
-}*/
+}
+#endif
 
 TEST_F(matrix_test, determinant) {
     EXPECT_EQ(1, isEqual((*matrix).determinant(), -144));

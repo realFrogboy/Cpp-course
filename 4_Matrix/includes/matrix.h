@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <algorithm>
 
 namespace matrix {
 
@@ -31,7 +30,7 @@ class matrix_t {
         proxy_row& operator-=(const row_t& rhs);
     };
 
-    matrix_t(std::vector<double>& input, size_t rg);
+    matrix_t(const std::vector<double>& input, const size_t rg);
 
     matrix_t(const matrix_t& rhs);
     matrix_t& operator=(const matrix_t& rhs) = delete;
@@ -64,13 +63,13 @@ class row_t {
 
     double *data;
 
-    row_t(matrix_t::proxy_row row);
+    row_t(const matrix_t::proxy_row& row);
 
     row_t(const row_t& rhs);
     row_t& operator=(const row_t& rhs) = delete;
 
     row_t(row_t&& rhs);
-    row_t& operator=(const row_t&& rhs) = delete;
+    row_t& operator=(row_t&& rhs) = delete;
 
     row_t& operator+=(const row_t& rhs);
 

@@ -1,5 +1,7 @@
 #include "input.h"
+#include <limits>
 #include <iostream>
+#include <exception>
 
 namespace {
 
@@ -13,7 +15,12 @@ template <typename T>
 T get() {
     T val;
     std::cin >> val;
-    while((!std::cin) || ((std::cin.peek() != ' ') && (std::cin.peek() != '\n'))) {
+
+    if (std::cin.eof()) {
+        throw std::runtime_error("not enough data to create a matrix");
+    }
+
+    while((!std::cin) || (!std::isspace(std::cin.peek()))) {
         cls();
         std::cin >> val;
     }
