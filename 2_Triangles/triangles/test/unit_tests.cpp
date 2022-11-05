@@ -1,5 +1,4 @@
-#include "triangles.h"
-#include "bounding_box.h"
+#include "input.h"
 #include <gtest/gtest.h>
 
 namespace Unit_tests {
@@ -670,22 +669,6 @@ TEST(triangleTest, isIntersectionLineLine) {
 
     triangle_t triag5(pt1, pt2, pt3);
     EXPECT_EQ(1, triag5.isIntersectionLineLine(triag1));
-}
-
-TEST(bounding_box, min_max) {
-    point_t pt1(1.5, -4, 8.25);
-    point_t pt2(7, 10, -4.25);
-    point_t pt3(5, 3, -0.15);
-
-    triangle_t triag1(pt1, pt2, pt3);
-
-    point_t min1 = bounding_box::getMin(triag1);
-    point_t max1 = bounding_box::getMax(triag1);
-    point_t trueMin1(1.5, -4, -4.25);
-    point_t trueMax1(7, 10, 8.25);
-    
-    EXPECT_EQ(1, min1.isEqual(trueMin1));
-    EXPECT_EQ(1, max1.isEqual(trueMax1));
 }
 
 } // Unit_tests

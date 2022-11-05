@@ -1,6 +1,5 @@
 #include "lve_device.hpp"
 
-// std headers
 #include <cstring>
 #include <iostream>
 #include <set>
@@ -162,8 +161,6 @@ void LveDevice::createLogicalDevice() {
   createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-  // might not really be necessary anymore because device specific validation layers
-  // have been deprecated
   if (enableValidationLayers) {
     createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();

@@ -1,5 +1,4 @@
 #include "first_app.hpp"
-#include "triangles.h"
 
 #include "keyboard_movement_controller.hpp"
 #include "lve_camera.hpp"
@@ -19,51 +18,50 @@
 
 namespace lve {
 
-    constexpr double accurasy = 0.0001;
+constexpr double accurasy = 0.0001;
 
-    FirstApp::FirstApp(std::vector<Triangles::triangle_info_t> triangles) {
-        loadGameObjects(triangles);
-    }
+FirstApp::FirstApp(std::vector<Triangles::triangle_info_t> triangles) {
+    loadGameObjects(triangles);
+}
 
-    FirstApp::~FirstApp() {}
+FirstApp::~FirstApp() {}
 
-    void FirstApp::run() {
-        SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
-        LveCamera camera{};
-        camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+void FirstApp::run() {
+    SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
+    LveCamera camera{};
+    camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
-        auto viewerObject = LveGameObject::createGameObject();
-        KeyboardMovementController cameraController{};
+    auto viewerObject = LveGameObject::createGameObject();
+    KeyboardMovementController cameraController{};
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
 
-        while (!lveWindow.shouldClose()) {
-            glfwPollEvents();
+    while (!lveWindow.shouldClose()) {
+        glfwPollEvents();
 
-            auto newTime = std::chrono::high_resolution_clock::now();
-            float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-            currentTime = newTime;
+        auto newTime = std::chrono::high_resolution_clock::now();
+        float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+        currentTime = newTime;
 
-            frameTime = glm::min(frameTime, MAX_FRAME_TIME);
+        frameTime = glm::min(frameTime, MAX_FRAME_TIME);
 
-            cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime, viewerObject);
-            camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+        cameraController.moveInPlaneXZ(lveWindow.getGLFWwindow(), frameTime, viewerObject);
+        camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
-            float aspect = lveRenderer.getAspectRatio();
-            camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
+        float aspect = lveRenderer.getAspectRatio();
+        camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
 
-            if (auto commandBuffer = lveRenderer.beginFrame()) {
-                lveRenderer.beginSwapChainRenderPass(commandBuffer);
-                simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
-                lveRenderer.endSwapChainRenderPass(commandBuffer);
-                lveRenderer.endFrame();
-            }
+        if (auto commandBuffer = lveRenderer.beginFrame()) {
+            lveRenderer.beginSwapChainRenderPass(commandBuffer);
+            simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+            lveRenderer.endSwapChainRenderPass(commandBuffer);
+            lveRenderer.endFrame();
         }
-
-        vkDeviceWaitIdle(lveDevice.device());
     }
 
-    // temporary helper function, creates a 1x1x1 cube centered at offset
+    vkDeviceWaitIdle(lveDevice.device());
+}
+
 std::unique_ptr<LveModel> createTriangleModel(LveDevice& device, Triangles::triangle_info_t& triag) {
     glm::vec3 firstPt  = {triag.triangle.trianglePt.first.coord.x, triag.triangle.trianglePt.first.coord.y, triag.triangle.trianglePt.first.coord.z};
     glm::vec3 secondPt = {triag.triangle.trianglePt.second.coord.x, triag.triangle.trianglePt.second.coord.y, triag.triangle.trianglePt.second.coord.z};
@@ -81,14 +79,14 @@ std::unique_ptr<LveModel> createTriangleModel(LveDevice& device, Triangles::tria
     return std::make_unique<LveModel>(device, vertices);
 }
 
-    void FirstApp::loadGameObjects(std::vector<Triangles::triangle_info_t> triangles) {
-        for (auto triag : triangles) {
-            std::shared_ptr<LveModel> LveModel = createTriangleModel(lveDevice, triag);
-            auto tr = LveGameObject::createGameObject();
-            tr.model = LveModel;
-            tr.transform.translation = {0, 0, 0};
-            tr.transform.scale = {1, 1, 1};
-            gameObjects.push_back(std::move(tr));
-        }
+void FirstApp::loadGameObjects(std::vector<Triangles::triangle_info_t> triangles) {
+    for (auto triag : triangles) {
+        std::shared_ptr<LveModel> LveModel = createTriangleModel(lveDevice, triag);
+        auto tr = LveGameObject::createGameObject();
+        tr.model = LveModel;
+        tr.transform.translation = {0, 0, 0};
+        tr.transform.scale = {1, 1, 1};
+        gameObjects.push_back(std::move(tr));
     }
+}
 } // lve

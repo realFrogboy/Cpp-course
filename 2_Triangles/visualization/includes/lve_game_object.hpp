@@ -7,6 +7,7 @@
 #include <memory>
 
 struct TransformComponent {
+
     glm::vec3 translation{}; // position offset
     glm::vec3 scale{1.f, 1.f, 1.f};
     glm::vec3 rotation{};
@@ -41,33 +42,36 @@ struct TransformComponent {
             },
             {translation.x, translation.y, translation.z, 1.0f}};
     }
+
 };
 
 namespace lve {
-    class LveGameObject {
-        public:
-        using id_t = unsigned int;
 
-        static LveGameObject createGameObject() {
-            static id_t currentId = 0;
-            return LveGameObject{currentId++};
-        }
+class LveGameObject {
+    public:
+    using id_t = unsigned int;
 
-        LveGameObject(const LveGameObject&) = delete;
-        LveGameObject& operator=(const LveGameObject&) = delete;
+    static LveGameObject createGameObject() {
+        static id_t currentId = 0;
+        return LveGameObject{currentId++};
+    }
 
-        LveGameObject(LveGameObject&&) = default;
-        LveGameObject& operator=(LveGameObject&&) = default;
+    LveGameObject(const LveGameObject&) = delete;
+    LveGameObject& operator=(const LveGameObject&) = delete;
 
-        id_t getId() const { return id; }
+    LveGameObject(LveGameObject&&) = default;
+    LveGameObject& operator=(LveGameObject&&) = default;
 
-        std::shared_ptr<LveModel> model{};
-        glm::vec3 color{};
-        TransformComponent transform{};
+    id_t getId() const { return id; }
 
-        private:
-        LveGameObject(id_t objId) : id{objId} {};
+    std::shared_ptr<LveModel> model{};
+    glm::vec3 color{};
+    TransformComponent transform{};
 
-        id_t id;
-    };
-}
+    private:
+    LveGameObject(id_t objId) : id{objId} {};
+
+    id_t id;
+};
+
+} // lve

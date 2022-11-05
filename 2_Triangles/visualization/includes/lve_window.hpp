@@ -7,33 +7,34 @@
 
 namespace lve {
 
-    class LveWindow {
+class LveWindow {
 
-        public:
+    public:
 
-        LveWindow(unsigned width_, unsigned height_, std::string name);
-        ~LveWindow();
+    LveWindow(unsigned width_, unsigned height_, std::string name);
+    ~LveWindow();
 
-        LveWindow(const LveWindow&) = delete;
-        LveWindow& operator=(const LveWindow&) = delete;
+    LveWindow(const LveWindow&) = delete;
+    LveWindow& operator=(const LveWindow&) = delete;
 
-        bool shouldClose() { return glfwWindowShouldClose(window); }
-        VkExtent2D getExtent() { return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) }; }
-        bool wasWindowResized() { return frameBufferResized; }
-        void resetWindowResizedFlag() { frameBufferResized = false; }
-        GLFWwindow *getGLFWwindow() const { return window; }
+    bool shouldClose() { return glfwWindowShouldClose(window); }
+    VkExtent2D getExtent() { return { static_cast<uint32_t>(width), static_cast<uint32_t>(height) }; }
+    bool wasWindowResized() { return frameBufferResized; }
+    void resetWindowResizedFlag() { frameBufferResized = false; }
+    GLFWwindow *getGLFWwindow() const { return window; }
 
-        void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+    void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
-        private:
-        static void framebufferResizeCallback(GLFWwindow *window, int width, int hight);
-        void initWindow();
+    private:
+    static void framebufferResizeCallback(GLFWwindow *window, int width, int hight);
+    void initWindow();
 
-        int width;
-        int height;
-        bool frameBufferResized = false;
+    int width;
+    int height;
+    bool frameBufferResized = false;
 
-        std::string windowName;
-        GLFWwindow *window;
-    };
+    std::string windowName;
+    GLFWwindow *window;
+};
+
 } // lve

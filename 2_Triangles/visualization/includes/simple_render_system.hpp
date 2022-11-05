@@ -9,25 +9,27 @@
 #include <vector>
 
 namespace lve {
-    class SimpleRenderSystem {
 
-        public:
+class SimpleRenderSystem {
 
-        SimpleRenderSystem(LveDevice& device, VkRenderPass renderPass);
-        ~SimpleRenderSystem();
+    public:
 
-        SimpleRenderSystem(const SimpleRenderSystem&) = delete;
-        SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
+    SimpleRenderSystem(LveDevice& device, VkRenderPass renderPass);
+    ~SimpleRenderSystem();
 
-        void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<LveGameObject>& gameObjects, const LveCamera& camera);
+    SimpleRenderSystem(const SimpleRenderSystem&) = delete;
+    SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
-        private:
-        void createPipelineLayout();
-        void createPipeline(VkRenderPass renderPass);
+    void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<LveGameObject>& gameObjects, const LveCamera& camera);
 
-        LveDevice& lveDevice;
+    private:
+    void createPipelineLayout();
+    void createPipeline(VkRenderPass renderPass);
 
-        std::unique_ptr<LvePipeline> lvePipeline;
-        VkPipelineLayout pipelineLayout;
-    };
+    LveDevice& lveDevice;
+
+    std::unique_ptr<LvePipeline> lvePipeline;
+    VkPipelineLayout pipelineLayout;
+};
+
 } // lve

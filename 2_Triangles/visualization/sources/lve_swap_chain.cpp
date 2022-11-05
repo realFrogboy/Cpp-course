@@ -1,6 +1,5 @@
 #include "lve_swap_chain.hpp"
 
-// std
 #include <array>
 #include <cstdlib>
 #include <cstring>
@@ -19,8 +18,6 @@ LveSwapChain::LveSwapChain(LveDevice &deviceRef, VkExtent2D extent)
 LveSwapChain::LveSwapChain(LveDevice &deviceRef, VkExtent2D extent, std::shared_ptr<LveSwapChain> previous)
     : device{deviceRef}, windowExtent{extent}, oldSwapChain(previous) {
   init();
-
-  // clean up old swap chain since it's no longer needed
   oldSwapChain = nullptr;
 }
 
@@ -180,10 +177,6 @@ void LveSwapChain::createSwapChain() {
     throw std::runtime_error("failed to create swap chain!");
   }
 
-  // we only specified a minimum number of images in the swap chain, so the implementation is
-  // allowed to create a swap chain with more. That's why we'll first query the final number of
-  // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
-  // retrieve the handles.
   vkGetSwapchainImagesKHR(device.device(), swapChain, &imageCount, nullptr);
   swapChainImages.resize(imageCount);
   vkGetSwapchainImagesKHR(device.device(), swapChain, &imageCount, swapChainImages.data());
@@ -393,13 +386,6 @@ VkPresentModeKHR LveSwapChain::chooseSwapPresentMode(
     }
   }
 
-  // for (const auto &availablePresentMode : availablePresentModes) {
-  //   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-  //     std::cout << "Present mode: Immediate" << std::endl;
-  //     return availablePresentMode;
-  //   }
-  // }
-
   std::cout << "Present mode: V-Sync" << std::endl;
   return VK_PRESENT_MODE_FIFO_KHR;
 }
@@ -427,4 +413,4 @@ VkFormat LveSwapChain::findDepthFormat() {
       VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
-}  // namespace lve
+}  // lve

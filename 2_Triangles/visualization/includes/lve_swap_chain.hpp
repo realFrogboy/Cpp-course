@@ -2,10 +2,8 @@
 
 #include "lve_device.hpp"
 
-// vulkan headers
 #include <vulkan/vulkan.h>
 
-// std lib headers
 #include <memory>
 #include <string>
 #include <vector>
@@ -87,4 +85,4 @@ class LveSwapChain {
   size_t currentFrame = 0;
 };
 
-}  // namespace lve
+}  // lve

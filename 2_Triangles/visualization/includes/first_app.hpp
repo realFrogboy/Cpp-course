@@ -5,34 +5,36 @@
 #include "lve_renderer.hpp"
 #include "lve_game_object.hpp"
 
-#include "triangles.h"
+#include "triangle_info.h"
 
 #include <memory>
 #include <vector>
 
 namespace lve {
-    class FirstApp {
+    
+class FirstApp {
 
-        public:
-        static constexpr unsigned WIDTH = 800;
-        static constexpr unsigned HEIGHT = 600;
-        static constexpr float MAX_FRAME_TIME = 10.f;
+    public:
+    static constexpr unsigned WIDTH = 800;
+    static constexpr unsigned HEIGHT = 600;
+    static constexpr float MAX_FRAME_TIME = 10.f;
 
-        FirstApp(std::vector<Triangles::triangle_info_t> triangles);
-        ~FirstApp();
+    FirstApp(std::vector<Triangles::triangle_info_t> triangles);
+    ~FirstApp();
 
-        FirstApp(const FirstApp&) = delete;
-        FirstApp& operator=(const FirstApp&) = delete;
+    FirstApp(const FirstApp&) = delete;
+    FirstApp& operator=(const FirstApp&) = delete;
 
-        void run();
+    void run();
 
-        private:
-        void loadGameObjects(std::vector<Triangles::triangle_info_t> triangles);
+    private:
+    void loadGameObjects(std::vector<Triangles::triangle_info_t> triangles);
 
-        LveWindow lveWindow{WIDTH, HEIGHT, "Hello_Vulkan"};
-        LveDevice lveDevice{lveWindow};
-        LveRenderer lveRenderer{lveWindow, lveDevice};
+    LveWindow lveWindow{WIDTH, HEIGHT, "Hello_Vulkan"};
+    LveDevice lveDevice{lveWindow};
+    LveRenderer lveRenderer{lveWindow, lveDevice};
 
-        std::vector<LveGameObject> gameObjects;
-    };
+    std::vector<LveGameObject> gameObjects;
+};
+
 } // lve

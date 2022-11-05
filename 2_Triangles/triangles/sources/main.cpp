@@ -1,8 +1,7 @@
-#include "triangles.h"
+#include "input.h"
 #include "bsp.h"
 #include "first_app.hpp"
 
-#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
