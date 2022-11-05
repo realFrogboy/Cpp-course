@@ -14,7 +14,7 @@ struct trianglePt_t {
     point_t third;
 };
 
-struct  triangle_t {
+struct triangle_t {
 
     trianglePt_t trianglePt {};
 
