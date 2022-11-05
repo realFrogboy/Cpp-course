@@ -9,8 +9,8 @@
 namespace {
 
 int all_random(std::ofstream& fp, const int n) {
-    const double xmin = -1000.0;
-    const double xmax = 1000.0;
+    const double xmin = 0.0;
+    const double xmax = 100.0;
     const int pointsInTriangle = 9;
 
     fp << n << std::endl;
