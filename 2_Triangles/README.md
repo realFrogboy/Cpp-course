@@ -8,6 +8,10 @@ Print the numbers of all triangles that intersect with any other once.
 I have implemented the algorithm proposed in the book "Geometric Tools for Computer Graphics" - Eberly, Schneider:
 ![Image text](https://github.com/realFrogboy/Pictures/blob/main/triangles.png)
 
+## Visualization
+I have implemented visualization of triangles on vulkan.
+![Image text](https://github.com/realFrogboy/Pictures/blob/main/10001_visualization.png)
+
 ## Instalation
 Run:
 
