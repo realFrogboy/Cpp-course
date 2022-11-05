@@ -1,7 +1,7 @@
 2_Triangles/build
-2_Triangles/optimizers/bsp_tree/build
-2_Triangles/optimizers/bsp_tree/sources/main.cpp
-2_Triangles/optimizers/bsp_tree/CMakeLists.txt
+2_Triangles/triangles/build
+2_Triangles/triangles/build
+2_Triangles/visualization/build
 2_Triangles/.vscode
 .vscode
 3_Tree/build

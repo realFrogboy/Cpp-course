@@ -14,7 +14,7 @@ Geometric::point_t getPoint() {
 
 } //namespace
 
-void getData(std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>& triangles) {
+void getData(std::vector<triangle_info_t>& triangles) {
     unsigned n = 0;
     std::cin >> n;
     assert(std::cin.good());
@@ -26,7 +26,9 @@ void getData(std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>&
 
         Triangles::Geometric::triangle_t triag(pt1, pt2, pt3);
 
-        triangles.push_back({triag, cnt});
+        triangle_info_t info{{pt1, pt2, pt3}, cnt, 0};
+
+        triangles.push_back(info);
     }
 }
 

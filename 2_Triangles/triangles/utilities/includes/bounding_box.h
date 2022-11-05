@@ -8,9 +8,6 @@ using Triangles::Geometric::point_t;
 using Triangles::Geometric::triangle_t;
 using Triangles::Geometric::coord_t;
 
-point_t getMin(const triangle_t& triag);
-point_t getMax(const triangle_t& triag);
-
 class AABB {
  
     point_t min;
@@ -24,8 +21,8 @@ class AABB {
 };
 
 inline AABB::AABB(const triangle_t& triag) {
-    max = getMax(triag);
-    min = getMin(triag);
+    max = triag.getMax();
+    min = triag.getMin();
 }
 
 inline bool AABB::isIntersect(const AABB& box) const {

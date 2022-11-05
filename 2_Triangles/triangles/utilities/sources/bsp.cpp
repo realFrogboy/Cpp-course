@@ -19,14 +19,14 @@ location classifyTriangle(const plate_t& plt, const triangle_t& triag) {
         return location::INTERSECTION;
 }
 
-std::pair<triangle_t, unsigned> getSplit(const nodeVec& arr) {
+triangle_t getSplit(const nodeVec& arr) {
     for (auto triag : arr) {
-        if ((!triag.first.isPoint()) && (!triag.first.isLine()))
-            return triag;
+        if ((!triag.triangle.isPoint()) && (!triag.triangle.isLine()))
+            return triag.triangle;
     }
 
     triangle_t invalid{};
-    return std::make_pair(invalid, 0u);
+    return invalid;
 }
 
 } // bsp_tree

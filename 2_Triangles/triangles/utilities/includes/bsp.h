@@ -8,6 +8,17 @@
 #include "bounding_box.h"
 #include <algorithm>
 
+namespace Triangles {
+
+class triangle_info_t {
+    public:
+    Geometric::triangle_t triangle;
+    unsigned number;
+    bool is_intersect;
+};
+
+}
+
 namespace bsp_tree {
 
 const double accurasy = 0.0001;
@@ -19,13 +30,13 @@ enum class location {
     INTERSECTION
 };
 
-using nodeVec = typename std::vector<std::pair<Triangles::Geometric::triangle_t, unsigned>>;
+using nodeVec = typename std::vector<Triangles::triangle_info_t>;
 using Triangles::Geometric::triangle_t;
 using Triangles::Geometric::plate_t;
 
 location classifyTriangle(const plate_t& plt, const triangle_t& triag);
 
-std::pair<triangle_t, unsigned> getSplit(const nodeVec& arr);
+triangle_t getSplit(const nodeVec& arr);
 
 class bspTree_t {
 
@@ -36,7 +47,7 @@ class bspTree_t {
 
     bspTree_t(const nodeVec& triangles);
 
-    void print();
+    void print(nodeVec& arr);
 
     void searchIntersectionsTree(const nodeVec& arr);
 
@@ -50,16 +61,18 @@ inline bspTree_t::bspTree_t(const nodeVec& triangles) {
     searchIntersectionsTree(triangles);
 }
 
-inline void bspTree_t::print() {
+inline void bspTree_t::print(nodeVec& arr) {
         std::sort(output.begin(), output.end());
 
-        for (auto elem : output)
+        for (auto elem : output) {
+            arr[elem].is_intersect = true;
             std::cout << elem << std::endl;
+        }
 }
 
 inline void bspTree_t::searchIntersectionsTree(const nodeVec& arr) {
     auto currTriangle = getSplit(arr);
-    Triangles::Geometric::trianglePt_t triangleVertex = currTriangle.first.trianglePt;
+    Triangles::Geometric::trianglePt_t triangleVertex = currTriangle.trianglePt;
 
     if (!triangleVertex.first.isValid()) {
         Intersections(arr);
@@ -81,7 +94,7 @@ inline std::pair<nodeVec, nodeVec> bspTree_t::locateTriangles(const nodeVec& arr
     nodeVec frontLst, backLst, splitTriangles;
 
     for (auto triag : arr) {
-        location res = classifyTriangle(plt, triag.first);
+        location res = classifyTriangle(plt, triag.triangle);
 
         switch(res) {
             case location::COINCIDENT: 
@@ -127,30 +140,31 @@ inline void bspTree_t::Intersections(const nodeVec& splitTriangles) {
     for (auto iter = splitTriangles.begin(); iter != end; ++iter) {
         bool fl = false;
 
-        bounding_box::AABB box(iter->first);
+        bounding_box::AABB box(iter->triangle);
 
         for (auto iter1 = std::next(iter); iter1 != splitTriangles.end(); ++iter1) {
             bool fl1 = true;
-            auto triangleIter1 = crossedTriangles.find(iter1->second);
+            auto triangleIter1 = crossedTriangles.find(iter1->number);
             if (triangleIter1 != crossedTriangles.end())
                 fl1 = false;
 
-            bounding_box::AABB box1(iter1->first);
+            bounding_box::AABB box1(iter1->triangle);
 
-            if ((box.isIntersect(box1)) && (iter->first.isIntersection3D(iter1->first))) {
-                if (fl1)
-                    output.push_back(iter1->second);
+            if ((box.isIntersect(box1)) && (iter->triangle.isIntersection3D(iter1->triangle))) {
+                if (fl1) {
+                    output.push_back(iter1->number);
+                }
                 fl = true;
-                crossedTriangles.insert({iter1->second, iter1->second});
+                crossedTriangles.insert({iter1->number, iter1->number});
             }
         }
-        auto triangleIter = crossedTriangles.find(iter->second);
+        auto triangleIter = crossedTriangles.find(iter->number);
         if (triangleIter != crossedTriangles.end())
             fl = false;
 
         if (fl) {
-            output.push_back(iter->second);
-            crossedTriangles.insert({iter->second, iter->second});
+            output.push_back(iter->number);
+            crossedTriangles.insert({iter->number, iter->number});
         }
     }
 }
