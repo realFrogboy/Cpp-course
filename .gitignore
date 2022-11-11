@@ -2,6 +2,8 @@
 2_Triangles/triangles/build
 2_Triangles/triangles/build
 2_Triangles/visualization/build
+2_Triangles/visualization/shaders/simple_shader.frag.spv
+2_Triangles/visualization/shaders/simple_shader.vert.spv
 2_Triangles/.vscode
 .vscode
 3_Tree/build
