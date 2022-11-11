@@ -10,6 +10,7 @@ I have implemented the algorithm proposed in the book "Geometric Tools for Compu
 
 ## Visualization
 I have implemented visualization of triangles on vulkan.
+You can run program with **-h** flag, to get information about keyboard movement.
 ![Image text](https://github.com/realFrogboy/Pictures/blob/main/10001_visualization.png)
 
 ## Instalation
