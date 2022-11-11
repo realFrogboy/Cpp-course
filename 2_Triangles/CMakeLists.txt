@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.16)
+cmake_minimum_required (VERSION 3.20)
 project(triag)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -8,21 +8,57 @@ find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 
-set (CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+if ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    set (COMPILER_SETTINGS  -g -Wall  -Wextra -Wpedantic)
+    
+else ()
+    set (COMPILER_SETTINGS -Wall  -Wextra -Wpedantic)
+
+endif ()
+
+add_compile_options(${COMPILER_SETTINGS})
+
+
+#shaders compilation
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+  "visualization/shaders/*.frag"
+  "visualization/shaders/*.vert"
+)
+ 
+foreach(GLSL ${GLSL_SOURCE_FILES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(SPIRV "../visualization/shaders/${FILE_NAME}.spv")
+    add_custom_command(
+        OUTPUT ${SPIRV}
+        COMMAND Vulkan::glslc ${GLSL} -o ${SPIRV}
+        DEPENDS ${GLSL})
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(GLSL)
+ 
+add_custom_target(
+    Shaders
+    DEPENDS ${SPIRV_BINARY_FILES}
+)
 
 #main
+
 set (SOURCES
     triangles/sources/line_t.cpp triangles/sources/plate_t.cpp triangles/sources/triangle_t.cpp
     triangles/sources/main.cpp triangles/sources/input.cpp triangles/utilities/sources/bsp.cpp visualization/sources/first_app.cpp 
     visualization/sources/keyboard_movement_controller.cpp visualization/sources/lve_camera.cpp visualization/sources/lve_device.cpp 
-    visualization/sources/lve_model.cpp visualization/sources/lve_pipeline.cpp visualization/sources/lve_renderer.cpp 
+    visualization/sources/lve_model.cpp visualization/sources/lve_pipeline.cpp visualization/sources/lve_renderer.cpp visualization/sources/help.cpp
     visualization/sources/lve_swap_chain.cpp visualization/sources/lve_window.cpp visualization/sources/simple_render_system.cpp)
 
 add_executable (${PROJECT_NAME} ${SOURCES})
+
+add_dependencies(${PROJECT_NAME} Shaders)
+
 target_include_directories (${PROJECT_NAME} PRIVATE triangles/includes visualization/includes triangles/utilities/includes ${Vulkan_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} glm::glm glfw ${Vulkan_LIBRARIES})
-
-add_compile_options (-g -Wall -Werror -Wextra -Wpedantic)
 
 #test generator
 set (GENERATOR generation)
