@@ -15,8 +15,8 @@ namespace lve {
 class FirstApp {
 
     public:
-    static constexpr unsigned WIDTH = 800;
-    static constexpr unsigned HEIGHT = 600;
+    static constexpr unsigned WIDTH = 1900;
+    static constexpr unsigned HEIGHT = 1100;
     static constexpr float MAX_FRAME_TIME = 10.f;
 
     FirstApp(std::vector<Triangles::triangle_info_t> triangles);
@@ -25,12 +25,12 @@ class FirstApp {
     FirstApp(const FirstApp&) = delete;
     FirstApp& operator=(const FirstApp&) = delete;
 
-    void run();
+    void run(int argc, char ** argv);
 
     private:
     void loadGameObjects(std::vector<Triangles::triangle_info_t> triangles);
 
-    LveWindow lveWindow{WIDTH, HEIGHT, "Hello_Vulkan"};
+    LveWindow lveWindow{WIDTH, HEIGHT, "Triangles"};
     LveDevice lveDevice{lveWindow};
     LveRenderer lveRenderer{lveWindow, lveDevice};
 

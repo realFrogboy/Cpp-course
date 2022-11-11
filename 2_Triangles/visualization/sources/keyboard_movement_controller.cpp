@@ -4,13 +4,20 @@
 
 namespace lve {
 
-void KeyboardMovementController::moveInPlaneXZ(GLFWwindow* window, float dt, LveGameObject& gameObject) {
 
-    glm::vec3 rotate{0};
-    if (glfwGetKey(window, keys.lookRight) == GLFW_PRESS) rotate.y += 1.f;
-    if (glfwGetKey(window, keys.lookLeft) == GLFW_PRESS) rotate.y -= 1.f;
-    if (glfwGetKey(window, keys.lookUp) == GLFW_PRESS) rotate.x += 1.f;
-    if (glfwGetKey(window, keys.lookDown) == GLFW_PRESS) rotate.x -= 1.f;
+
+void KeyboardMovementController::moveInPlaneXZ(LveWindow& lveWindow, float dt, LveGameObject& gameObject) {
+
+    GLFWwindow *window = lveWindow.getGLFWwindow();
+    auto extent = lveWindow.getExtent();
+
+    double xpos, ypos, xcenter = extent.width / 2, ycenter = extent.height / 2;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    glfwSetCursorPos(window, xcenter, ycenter);
+
+    glm::vec3 rotate{0.f};
+    rotate.y += -xpos + xcenter;
+    rotate.x += ypos - ycenter;
 
     if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
         gameObject.transform.rotation += lookSpeed * dt * glm::normalize(rotate);

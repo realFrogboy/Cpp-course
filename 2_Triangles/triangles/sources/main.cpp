@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 
-int main() {
+int main(int argc, char ** argv) {
     std::vector<Triangles::triangle_info_t> triangles;
     Triangles::getData(triangles);
 
@@ -16,7 +16,7 @@ int main() {
     lve::FirstApp app{triangles};
 
     try {
-        app.run();
+        app.run(argc, argv);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
