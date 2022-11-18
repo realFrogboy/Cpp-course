@@ -1,12 +1,10 @@
 cmake_minimum_required (VERSION 3.20)
 project(triag)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
+find_program(glslc_executable NAMES glslc HINTS Vulkan::glslc)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
@@ -34,7 +32,7 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
     set(SPIRV "../visualization/shaders/${FILE_NAME}.spv")
     add_custom_command(
         OUTPUT ${SPIRV}
-        COMMAND Vulkan::glslc ${GLSL} -o ${SPIRV}
+        COMMAND ${glslc_executable} ${GLSL} -o ${SPIRV}
         DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach(GLSL)
@@ -88,3 +86,5 @@ add_executable(${UNIT} ${UNIT_SOURCES})
 
 target_include_directories (${UNIT} PRIVATE triangles/includes triangles/utilities/includes)
 target_link_libraries(${UNIT} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
