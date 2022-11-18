@@ -1,5 +1,6 @@
 #include "first_app.hpp"
-#include "keyboard_movement_controller.hpp"
+#include "lve_game_object.hpp"
+#include "lve_window.hpp"
 #include "lve_camera.hpp"
 #include "simple_render_system.hpp"
 
@@ -20,6 +21,72 @@ namespace lve {
 constexpr double accurasy = 0.0001;
 constexpr glm::vec3 lightDirection = {1.0, -3.0, -1.0};
 
+struct KeyMappings {
+    int moveLeft = GLFW_KEY_A;
+    int moveRight = GLFW_KEY_D;
+    int moveForward = GLFW_KEY_W;
+    int moveBackward = GLFW_KEY_S;
+    int moveUp = GLFW_KEY_E;
+    int moveDown = GLFW_KEY_Q;
+    int turn_on_camera = GLFW_KEY_C;
+    int turn_off_camera = GLFW_KEY_B;
+    int minimize_window = GLFW_KEY_V;
+};
+
+KeyMappings keys{};
+VkExtent2D extent{};
+TransformComponent transform{};
+float moveSpeed{0.05f};
+float lookSpeed{0.01f};
+bool cursor_enabled = false;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    float yaw = transform.rotation.y;
+    const glm::vec3 forwardDir{sin(yaw), 0.f, cos(yaw)};
+    const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
+    const glm::vec3 UpDir{0.f, -1.f, 0.f};
+
+    glm::vec3 moveDir{0.f};
+    if (key == keys.moveForward) moveDir += forwardDir;
+    if (key == keys.moveBackward) moveDir -= forwardDir;
+    if (key == keys.moveRight) moveDir += rightDir;
+    if (key == keys.moveLeft) moveDir -= rightDir;
+    if (key == keys.moveUp) moveDir += UpDir;
+    if (key == keys.moveDown) moveDir -= UpDir;
+    if (key == keys.turn_on_camera) {
+        cursor_enabled = 1;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    if (key == keys.turn_off_camera) {
+        cursor_enabled = 0;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    if (key == keys.minimize_window) glfwIconifyWindow(window);
+
+    if (glm::dot(moveDir, moveDir) > std::numeric_limits<float>::epsilon()) {
+        transform.translation += moveSpeed * glm::normalize(moveDir);
+    }
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (cursor_enabled) {
+        double xcenter = extent.width / 2, ycenter = extent.height / 2;
+        glfwSetCursorPos(window, xcenter, ycenter);
+
+        glm::vec3 rotate{0.f};
+        rotate.y -= -xpos + xcenter;
+        rotate.x -= ypos - ycenter;
+
+        if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon()) {
+            transform.rotation += lookSpeed * glm::normalize(rotate);
+        }
+        
+        // limits pitch values between about +/- 85idh degrees
+        transform.rotation.x = glm::clamp(transform.rotation.x, -1.5f, 1.5f);
+        transform.rotation.y = glm::mod(transform.rotation.y, glm::two_pi<float>());
+    }
+}
+
 FirstApp::FirstApp(std::vector<Triangles::triangle_info_t> triangles) {
     loadGameObjects(triangles);
 }
@@ -32,20 +99,15 @@ void FirstApp::run() {
     camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
     auto viewerObject = LveGameObject::createGameObject();
-    KeyboardMovementController cameraController{};
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
 
     while (!lveWindow.shouldClose()) {
         glfwPollEvents();
 
-        auto newTime = std::chrono::high_resolution_clock::now();
-        float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-        currentTime = newTime;
+        extent = lveWindow.getExtent();
+        glfwSetCursorPosCallback(lveWindow.getGLFWwindow(), cursor_position_callback);
+        glfwSetKeyCallback(lveWindow.getGLFWwindow(), key_callback);
+        viewerObject.transform = transform;
 
-        frameTime = glm::min(frameTime, MAX_FRAME_TIME);
-
-        cameraController.moveInPlaneXZ(lveWindow, frameTime, viewerObject);
         camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
         float aspect = lveRenderer.getAspectRatio();
