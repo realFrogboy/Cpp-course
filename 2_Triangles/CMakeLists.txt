@@ -47,7 +47,7 @@ add_custom_target(
 set (SOURCES
     triangles/sources/line_t.cpp triangles/sources/plate_t.cpp triangles/sources/triangle_t.cpp
     triangles/sources/main.cpp triangles/sources/input.cpp triangles/utilities/sources/bsp.cpp visualization/sources/first_app.cpp 
-    visualization/sources/keyboard_movement_controller.cpp visualization/sources/lve_camera.cpp visualization/sources/lve_device.cpp 
+    visualization/sources/lve_camera.cpp visualization/sources/lve_device.cpp 
     visualization/sources/lve_model.cpp visualization/sources/lve_pipeline.cpp visualization/sources/lve_renderer.cpp visualization/sources/help.cpp
     visualization/sources/lve_swap_chain.cpp visualization/sources/lve_window.cpp visualization/sources/simple_render_system.cpp)
 
