@@ -25,7 +25,7 @@ class FirstApp {
     FirstApp(const FirstApp&) = delete;
     FirstApp& operator=(const FirstApp&) = delete;
 
-    void run(int argc, char ** argv);
+    void run();
 
     private:
     void loadGameObjects(std::vector<Triangles::triangle_info_t> triangles);

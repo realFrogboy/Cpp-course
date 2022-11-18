@@ -21,8 +21,6 @@ void LveWindow::initWindow() {
     window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void LveWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {

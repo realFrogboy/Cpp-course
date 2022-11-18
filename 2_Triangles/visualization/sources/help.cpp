@@ -39,7 +39,11 @@ bool help(int argc, char ** argv) {
                 "Key W - moving forward\n"
                 "Key S - moving backward\n"
                 "Key E - moving up\n"
-                "Key Q - moving down" << std::endl;
+                "Key Q - moving down\n"
+                "Key V - minimize window\n\n"
+                "Mouse movement information:\n"
+                "Key C - turn on mouse camera control\n"
+                "Key B - turn off mouse camera control" << std::endl;
 
     return 1;
 }

@@ -2,7 +2,6 @@
 #include "keyboard_movement_controller.hpp"
 #include "lve_camera.hpp"
 #include "simple_render_system.hpp"
-#include "help.hpp"
 
 #define GLM_FORCE_RADIANTS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -27,9 +26,7 @@ FirstApp::FirstApp(std::vector<Triangles::triangle_info_t> triangles) {
 
 FirstApp::~FirstApp() {}
 
-void FirstApp::run(int argc, char ** argv) {
-    help(argc, argv);
-    
+void FirstApp::run() {
     SimpleRenderSystem simpleRenderSystem{lveDevice, lveRenderer.getSwapChainRenderPass()};
     LveCamera camera{};
     camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -81,17 +78,14 @@ std::unique_ptr<LveModel> createTriangleModel(LveDevice& device, std::vector<Tri
             normal = -normal;
         }
 
-        glm::vec3 side1 = firstPt - glm::vec3(0.004f, 0.004f, 0.004f);
-        glm::vec3 side2 = secondPt - glm::vec3(0.004f, 0.004f, 0.004f);
-        glm::vec3 side3 = thirdPt - glm::vec3(0.004f, 0.004f, 0.004f);
+        //glm::vec3 side1 = firstPt - glm::vec3(0.004f, 0.004f, 0.004f);
+        //glm::vec3 side2 = secondPt - glm::vec3(0.004f, 0.004f, 0.004f);
+        //glm::vec3 side3 = thirdPt - glm::vec3(0.004f, 0.004f, 0.004f);
 
 
         vertices.push_back({firstPt, color, normal});
         vertices.push_back({secondPt, color, normal});
         vertices.push_back({thirdPt, color, normal});
-        vertices.push_back({side1, color, -normal});
-        vertices.push_back({side2, color, -normal});
-        vertices.push_back({side3, color, -normal});
     }
 
     return std::make_unique<LveModel>(device, vertices);

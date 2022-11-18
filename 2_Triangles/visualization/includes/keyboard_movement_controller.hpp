@@ -14,6 +14,9 @@ class KeyboardMovementController {
         int moveBackward = GLFW_KEY_S;
         int moveUp = GLFW_KEY_E;
         int moveDown = GLFW_KEY_Q;
+        int turn_on_camera = GLFW_KEY_C;
+        int turn_off_camera = GLFW_KEY_B;
+        int minimize_window = GLFW_KEY_V;
     };
 
     void moveInPlaneXZ(LveWindow& lveWindow, float dt, LveGameObject& gameObject);
@@ -21,6 +24,7 @@ class KeyboardMovementController {
     KeyMappings keys{};
     float moveSpeed{3.f};
     float lookSpeed{1.5f};
+    bool cursor_enabled = false;
 };
 
 } // lve
