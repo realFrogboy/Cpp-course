@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fstream>
 
 namespace test_generator {
