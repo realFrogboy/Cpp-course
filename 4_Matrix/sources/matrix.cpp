@@ -5,53 +5,42 @@
 #include <cmath>
 #include <exception>
 
+
 namespace matrix {
 
-matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) try : colons(new int[rg]), data(new double* [rg]()), rank(rg), size(rg * rg) {
-    if (input.size() < size) {
+matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : matrix_buf(rg) {
+    if (input.size() < rg * rg)
         throw std::runtime_error("not enough data to create a matrix");
-    }
 
     auto iter = input.begin();
-    for (unsigned idx = 0; idx < rg; ++idx) {
-        colons[idx] = idx;
-        data[idx] = new double[rg];
-
-        std::copy(iter, std::next(iter, rg), data[idx]);
-
-        if (idx != rg) 
-            iter = std::next(iter, rg);
+    for (unsigned i = 0; i < rg; ++i) {
+        construct<int>(colons.buffer() + i, i);
+        ++colons.size;
+        for (unsigned j = 0; j < rg; ++j, ++iter) {
+            construct<double>(data[i].buffer() + j, *iter);
+            ++data[i].size;
+        }
     }
-} catch (const std::bad_alloc& e) {
-    delete[] colons;
-    for (unsigned idx = 0; idx < rg; ++idx) {
-        delete[] data[idx];
-    }
-    delete[] data;
-    std::cout << "can't alloc memory" << e.what();
 }
 
-matrix_t::matrix_t(const matrix_t& rhs) try : colons(new int[rhs.rank]), data(new double* [rhs.rank]()), rank(rhs.rank), size(rhs.size) {    
-    std::copy(rhs.colons, rhs.colons + rhs.rank, colons);
+matrix_t::matrix_t(const matrix_t& rhs) : matrix_buf(rhs.rank) {
+    for (unsigned i = 0; i < rank; ++i) {
+        construct<int>(colons.buffer() + i, rhs.colons[i]);
+        ++colons.size;
+    }
 
-    for(unsigned idx = 0; idx < rhs.rank; ++idx) {
-        data[idx] = new double[rhs.rank];
-        std::copy(rhs.data[idx], rhs.data[idx] + rhs.rank, data[idx]);
-    }
-} catch (const std::bad_alloc& e) {
-    delete[] colons;
-    for (unsigned idx = 0; idx < rhs.rank; ++idx) {
-        delete[] data[idx];
-    }
-    delete[] data;
-    std::cout << "can't alloc memory" << e.what();
+    for(unsigned i = 0; i < rank; ++i)
+        for (unsigned j = 0; j < rank; j++) {
+            construct<double>(data[i].buffer() + j, rhs.data[i][j]);
+            ++data[i].size;
+        }
 }
 
 bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
     if (lhs == rhs)
         return 0;
 
-    std::swap(data[lhs - 1], data[rhs - 1]);
+    data[lhs - 1].swap(data[rhs - 1]);
     return 1;
 }
  
@@ -128,13 +117,6 @@ void matrix_t::dump() const {
     }
 }
 
-matrix_t::~matrix_t() {
-    for (unsigned idx = 0; idx < rank; ++idx)
-        delete[] data[idx];
-    delete[] data;
-    delete[] colons;
-}
-
 matrix_t::proxy_row& matrix_t::proxy_row::operator+=(const matrix_t::proxy_row& rhs) {
     for (unsigned idx  = 0; idx < matrix.rank; ++idx)
         row[idx] += rhs.row[idx];
@@ -147,40 +129,48 @@ matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
     return *this;
 }
 
-row_t::row_t(const matrix_t::proxy_row& row) try : rank(row.matrix.get_rank()), data(new double[row.matrix.get_rank()]) {    
-    std::copy(row.row, row.row + rank, data);
-} catch (const std::bad_alloc& e) {
-    std::cout << "can't alloc memory" << e.what();
+row_t::row_t(const matrix_t::proxy_row &rhs) : rank(rhs.matrix.get_rank()) {
+    buffer_t<double> data_tmp(rank);
+    for (unsigned idx = 0; idx < rank; ++idx) {
+        construct(data_tmp.buffer() + idx, rhs.row[idx]);
+        ++data_tmp.size;
+    }
+
+    data.swap(data_tmp);
 }
 
-row_t::row_t(const row_t& rhs) try : rank(rhs.rank), data(new double[rhs.rank]) {
-    std::copy(rhs.data, rhs.data + rank, data);
-} catch (const std::bad_alloc& e) {
-    std::cout << "can't alloc memory" << e.what();
+row_t::row_t(const row_t &rhs) : rank(rhs.rank) {
+    buffer_t<double> data_tmp(rank);
+    for (unsigned idx = 0; idx < rank; ++idx) {
+        construct(data_tmp.buffer() + idx, rhs.data[idx]);
+        ++data_tmp.size;
+    }
+
+    data.swap(data_tmp);
 }
 
-row_t::row_t(row_t&& rhs) : rank(rhs.rank), data(rhs.data) { 
-    rhs.data = nullptr; 
+row_t::row_t(row_t &&rhs) : rank(rhs.rank) { 
+    data.swap(data);
 }
 
-row_t& row_t::operator+=(const row_t& rhs) {
+row_t &row_t::operator+=(const row_t &rhs) {
     for (unsigned idx = 0; idx < rank; ++idx)
         data[idx] += rhs.data[idx];
     return *this;
 }
 
-row_t& row_t::operator*=(const double rhs) {
-    std::for_each(data, data + rank, [rhs](double& curr){ curr *= rhs; });
+row_t &row_t::operator*=(const double rhs) {
+    std::for_each(data.buffer(), data.buffer() + rank, [rhs](double &curr){ curr *= rhs; });
     return *this;
 }
 
-row_t operator+(const row_t& lhs, const row_t& rhs) {
+row_t operator+(const row_t &lhs, const row_t &rhs) {
     row_t tmp{lhs};
     tmp += rhs;
     return tmp;
 }
 
-row_t operator*(const row_t&lhs, const double rhs) {
+row_t operator*(const row_t &lhs, const double rhs) {
     row_t tmp{lhs};
     tmp *= rhs;
     return tmp;
