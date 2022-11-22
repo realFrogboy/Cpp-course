@@ -14,26 +14,19 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : matrix_b
 
     auto iter = input.begin();
     for (unsigned i = 0; i < rg; ++i) {
-        construct<int>(colons.buffer() + i, i);
-        ++colons.size;
-        for (unsigned j = 0; j < rg; ++j, ++iter) {
-            construct<double>(data[i].buffer() + j, *iter);
-            ++data[i].size;
-        }
+        colons.construct(i, i);
+        for (unsigned j = 0; j < rg; ++j, ++iter)
+            data[i].construct(j, *iter);
     }
 }
 
 matrix_t::matrix_t(const matrix_t& rhs) : matrix_buf(rhs.rank) {
-    for (unsigned i = 0; i < rank; ++i) {
-        construct<int>(colons.buffer() + i, rhs.colons[i]);
-        ++colons.size;
-    }
+    for (unsigned i = 0; i < rank; ++i)
+        colons.construct(i, rhs.colons[i]);
 
     for(unsigned i = 0; i < rank; ++i)
-        for (unsigned j = 0; j < rank; j++) {
-            construct<double>(data[i].buffer() + j, rhs.data[i][j]);
-            ++data[i].size;
-        }
+        for (unsigned j = 0; j < rank; j++)
+            data[i].construct(j, rhs.data[i][j]);
 }
 
 bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
@@ -131,20 +124,16 @@ matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
 
 row_t::row_t(const matrix_t::proxy_row &rhs) : rank(rhs.matrix.get_rank()) {
     buffer_t<double> data_tmp(rank);
-    for (unsigned idx = 0; idx < rank; ++idx) {
-        construct(data_tmp.buffer() + idx, rhs.row[idx]);
-        ++data_tmp.size;
-    }
+    for (unsigned idx = 0; idx < rank; ++idx)
+        data_tmp.construct(idx, rhs.row[idx]);
 
     data.swap(data_tmp);
 }
 
 row_t::row_t(const row_t &rhs) : rank(rhs.rank) {
     buffer_t<double> data_tmp(rank);
-    for (unsigned idx = 0; idx < rank; ++idx) {
-        construct(data_tmp.buffer() + idx, rhs.data[idx]);
-        ++data_tmp.size;
-    }
+    for (unsigned idx = 0; idx < rank; ++idx)
+        data_tmp.construct(idx, rhs.data[idx]);
 
     data.swap(data_tmp);
 }

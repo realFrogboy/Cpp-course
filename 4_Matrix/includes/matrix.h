@@ -4,7 +4,6 @@
 
 namespace matrix {
 
-template <typename T> void construct(T *ptr, const T &rhs) { new (ptr) T(rhs); }
 template <typename T> void destroy (T *ptr) noexcept { ptr->~T(); }
 template <typename FwdIter> void destroy(FwdIter begin, FwdIter end) noexcept {
     while (begin != end) 
@@ -16,9 +15,11 @@ class buffer_t{
 
     T *data;
     size_t capacity;
+    size_t size = 0;
 
     public:
-    size_t size = 0;
+
+    void construct(unsigned idx, const T &rhs) { new (data + idx) T(rhs); ++size; }
 
     buffer_t(size_t n = 0) : data((n == 0) ? nullptr : static_cast<T*>(::operator new(sizeof(T) * n))), capacity(n) {}
 
@@ -28,7 +29,7 @@ class buffer_t{
 
         data = static_cast<T*>(::operator new(sizeof(T) * rhs.capacity));
         for (unsigned i = 0; i < capacity; ++i) {
-            construct(data + i, rhs.data[i]);
+            construct(i, rhs.data[i]);
             ++size;
         }
     }
@@ -75,8 +76,7 @@ struct matrix_buf {
         buffer_t<buffer_t<double>> data_tmp(rg);
         for (unsigned idx = 0; idx < rg; ++idx) {
             buffer_t<double> tmp(rg);
-            construct(data_tmp.buffer() + idx, tmp);
-            ++data_tmp.size;
+            data_tmp.construct(idx, tmp);
         }
         buffer_t<int> colons_tmp(rg);
 
