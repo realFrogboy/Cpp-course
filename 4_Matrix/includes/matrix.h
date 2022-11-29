@@ -1,48 +1,59 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 namespace matrix {
 
 template <typename T> void destroy (T *ptr) noexcept { ptr->~T(); }
 template <typename FwdIter> void destroy(FwdIter begin, FwdIter end) noexcept {
-    while (begin != end) 
+    while (begin != end)
         destroy(&*begin++);
 }
 
 template <typename T>
-class buffer_t{
+class buffer_t final {
 
-    T *data;
+    T *data = nullptr;
     size_t capacity;
     size_t size = 0;
 
     public:
 
-    void construct(unsigned idx, const T &rhs) { new (data + idx) T(rhs); ++size; }
-
-    buffer_t(size_t n = 0) : data((n == 0) ? nullptr : static_cast<T*>(::operator new(sizeof(T) * n))), capacity(n) {}
-
-    buffer_t(const buffer_t &rhs) : capacity(rhs.capacity) {
-        if (this == &rhs)
-            return;
-
-        data = static_cast<T*>(::operator new(sizeof(T) * rhs.capacity));
-        for (unsigned i = 0; i < capacity; ++i) {
-            construct(i, rhs.data[i]);
-            ++size;
-        }
+    void swap(buffer_t &rhs) noexcept {
+        std::swap(data, rhs.data);
+        std::swap(capacity, rhs.capacity);
+        std::swap(size, rhs.size);
     }
 
-    buffer_t &operator=(const buffer_t&) = delete;
+    void construct(unsigned idx, const T &rhs) { new (data + idx) T(rhs); ++size; }
 
-    buffer_t(buffer_t &&rhs) noexcept : data(rhs.data), capacity(rhs.capacity) {
+    buffer_t(size_t n = 0) : capacity(n) {
+        (n == 0) ? data = nullptr : data = static_cast<T*>(::operator new(sizeof(T) * n));
+    }
+
+    buffer_t(const buffer_t &rhs) : capacity(rhs.capacity) {
+        if (this == &rhs) return;
+
+        buffer_t tmp(capacity);
+        for (unsigned i = 0; i < capacity; ++i)
+            tmp.construct(i, rhs.data[i]);
+
+        swap(tmp);
+    }
+
+    buffer_t &operator=(const buffer_t &rhs) {
+        buffer_t tmp(rhs);
+        swap(tmp);
+        return *this;
+    }
+
+    buffer_t(buffer_t &&rhs) noexcept : data(rhs.data), capacity(rhs.capacity), size(rhs.size) {
         rhs.data = nullptr;
     }
 
     buffer_t &operator=(buffer_t &&rhs) noexcept {
-        std::swap(data, rhs.data);
-        std::swap(capacity, rhs.capacity);
+        swap(rhs);
         return *this;
     }
 
@@ -50,24 +61,20 @@ class buffer_t{
         return data[idx];
     }
 
-    ~buffer_t() {
-        destroy(data, data + size);
+    ~buffer_t() noexcept {
+        if (data == nullptr) return;
+
+        destroy(data, data + capacity);
         ::operator delete(data);
     }
 
     T *buffer() const { return data; }
-
-    void swap(buffer_t &rhs) {
-        std::swap(data, rhs.data);
-        std::swap(capacity, rhs.capacity);
-        std::swap(size, rhs.size);
-    }
 };
 
 class row_t;
 
-struct matrix_buf {
-    protected:
+struct matrix_buf final {
+
     buffer_t<buffer_t<double>> data;
     buffer_t<int> colons;
     size_t rank;
@@ -103,10 +110,9 @@ struct matrix_buf {
     }
 };
 
-class matrix_t : private matrix_buf {
-    using matrix_buf::data;
-    using matrix_buf::colons;
-    using matrix_buf::rank;
+class matrix_t final {
+
+    matrix_buf buf;
 
     void eliminate(const unsigned curr) const;
 
@@ -116,10 +122,10 @@ class matrix_t : private matrix_buf {
         double* row;
         const matrix_t& matrix;
 
-        proxy_row(const matrix_t& matrix_, const unsigned n_row) : row(matrix_.data[n_row - 1].buffer()), matrix(matrix_) {}
+        proxy_row(const matrix_t& matrix_, const unsigned n_row) : row(matrix_.buf.data[n_row - 1].buffer()), matrix(matrix_) {}
 
-        double& operator[](const unsigned n_col) { return row[matrix.colons[n_col - 1]]; }
-        const double& operator[](const unsigned n_col) const { return row[matrix.colons[n_col - 1]]; }
+        double& operator[](const unsigned n_col) { return row[matrix.buf.colons[n_col - 1]]; }
+        const double& operator[](const unsigned n_col) const { return row[matrix.buf.colons[n_col - 1]]; }
 
         proxy_row& operator+=(const proxy_row& rhs);
         proxy_row& operator-=(const row_t& rhs);
@@ -133,7 +139,7 @@ class matrix_t : private matrix_buf {
     matrix_t(const matrix_t&& rhs) = delete;
     matrix_t& operator=(const matrix_t&& rhs) = delete;
 
-    size_t get_rank() const { return rank; }
+    size_t get_rank() const { return buf.rank; }
 
     void dump() const;
 
@@ -150,7 +156,7 @@ class matrix_t : private matrix_buf {
     ~matrix_t() {};
 };
 
-class row_t {
+class row_t final {
 
     size_t rank;
 
