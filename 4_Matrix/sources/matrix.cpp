@@ -16,7 +16,7 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : buf(rg) 
     for (unsigned i = 0; i < rg; ++i) {
         buf.colons.construct(i, i);
         for (unsigned j = 0; j < rg; ++j, ++iter)
-            buf.data[i].construct(j, *iter);
+            buf.data[i].construct(j, std::move(*iter));
     }
 }
 
@@ -121,7 +121,7 @@ matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
 row_t::row_t(const matrix_t::proxy_row &rhs) : rank(rhs.matrix.get_rank()) {
     buffer_t<double> data_tmp(rank);
     for (unsigned idx = 0; idx < rank; ++idx)
-        data_tmp.construct(idx, rhs.row[idx]);
+        data_tmp.construct(idx, std::move(rhs.row[idx]));
 
     data.swap(data_tmp);
 }

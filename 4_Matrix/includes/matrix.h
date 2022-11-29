@@ -26,7 +26,7 @@ class buffer_t final {
         std::swap(size, rhs.size);
     }
 
-    void construct(unsigned idx, const T &rhs) { new (data + idx) T(rhs); ++size; }
+    void construct(unsigned idx, const T &&rhs) { new (data + idx) T(rhs); ++size; }
 
     buffer_t(size_t n = 0) : capacity(n) {
         (n == 0) ? data = nullptr : data = static_cast<T*>(::operator new(sizeof(T) * n));
@@ -37,7 +37,7 @@ class buffer_t final {
 
         buffer_t tmp(capacity);
         for (unsigned i = 0; i < capacity; ++i)
-            tmp.construct(i, rhs.data[i]);
+            tmp.construct(i, std::move(rhs.data[i]));
 
         swap(tmp);
     }
@@ -83,7 +83,7 @@ struct matrix_buf final {
         buffer_t<buffer_t<double>> data_tmp(rg);
         for (unsigned idx = 0; idx < rg; ++idx) {
             buffer_t<double> tmp(rg);
-            data_tmp.construct(idx, tmp);
+            data_tmp.construct(idx, std::move(tmp));
         }
         buffer_t<int> colons_tmp(rg);
 
