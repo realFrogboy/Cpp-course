@@ -1,12 +1,13 @@
+.vscode
 2_Triangles/build
-2_Triangles/triangles/build
 2_Triangles/triangles/build
 2_Triangles/visualization/build
 2_Triangles/visualization/shaders/simple_shader.frag.spv
 2_Triangles/visualization/shaders/simple_shader.vert.spv
 2_Triangles/.vscode
-.vscode
 3_Tree/build
 3_Tree/.vscode
 4_Matrix/build
 4_Matrix/.vscode
+5_ParaCL/build
+5_ParaCL/.vscode
