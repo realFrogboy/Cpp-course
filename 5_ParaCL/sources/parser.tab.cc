@@ -151,14 +151,19 @@ namespace yy {
   {
     switch (this->type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.move< int > (std::move (that.value));
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.move< name_t* > (std::move (that.value));
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.move< node_t* > (std::move (that.value));
         break;
 
       default:
@@ -175,14 +180,19 @@ namespace yy {
   {
     switch (this->type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.copy< int > (YY_MOVE (that.value));
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.copy< name_t* > (YY_MOVE (that.value));
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.copy< node_t* > (YY_MOVE (that.value));
         break;
 
       default:
@@ -207,14 +217,19 @@ namespace yy {
     super_type::move (s);
     switch (this->type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.move< int > (YY_MOVE (s.value));
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.move< name_t* > (YY_MOVE (s.value));
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.move< node_t* > (YY_MOVE (s.value));
         break;
 
       default:
@@ -307,14 +322,19 @@ namespace yy {
   {
     switch (that.type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.YY_MOVE_OR_COPY< int > (YY_MOVE (that.value));
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.YY_MOVE_OR_COPY< name_t* > (YY_MOVE (that.value));
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.YY_MOVE_OR_COPY< node_t* > (YY_MOVE (that.value));
         break;
 
       default:
@@ -332,14 +352,19 @@ namespace yy {
   {
     switch (that.type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.move< int > (YY_MOVE (that.value));
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.move< name_t* > (YY_MOVE (that.value));
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.move< node_t* > (YY_MOVE (that.value));
         break;
 
       default:
@@ -357,14 +382,19 @@ namespace yy {
     state = that.state;
     switch (that.type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.copy< int > (that.value);
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.copy< name_t* > (that.value);
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.copy< node_t* > (that.value);
         break;
 
       default:
@@ -380,14 +410,19 @@ namespace yy {
     state = that.state;
     switch (that.type_get ())
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.move< int > (that.value);
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.move< name_t* > (that.value);
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.move< node_t* > (that.value);
         break;
 
       default:
@@ -634,14 +669,19 @@ namespace yy {
          when using variants.  */
       switch (yyr1_[yyn])
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         yylhs.value.emplace< int > ();
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         yylhs.value.emplace< name_t* > ();
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        yylhs.value.emplace< node_t* > ();
         break;
 
       default:
@@ -658,137 +698,171 @@ namespace yy {
         {
           switch (yyn)
             {
+  case 2:
+#line 68 "parser.y"
+                                                  { yylhs.value.as < node_t* > () = new flow_t (flow_type::IF, yystack_[4].value.as < node_t* > (), yystack_[1].value.as < node_t* > (), nullptr); }
+#line 705 "parser.tab.cc"
+    break;
+
   case 3:
-#line 66 "parser.y"
-                      { }
-#line 665 "parser.tab.cc"
+#line 69 "parser.y"
+                                                                              { yylhs.value.as < node_t* > () = new flow_t (flow_type::IF, yystack_[8].value.as < node_t* > (), yystack_[5].value.as < node_t* > (), yystack_[1].value.as < node_t* > ()); }
+#line 711 "parser.tab.cc"
+    break;
+
+  case 4:
+#line 70 "parser.y"
+                                                     { yylhs.value.as < node_t* > () = new flow_t (flow_type::WHILE, yystack_[4].value.as < node_t* > (), yystack_[1].value.as < node_t* > (), nullptr); }
+#line 717 "parser.tab.cc"
     break;
 
   case 5:
-#line 70 "parser.y"
-                     { yylhs.value.as < int > () = (yystack_[2].value.as < int > () > yystack_[0].value.as < int > ()); }
-#line 671 "parser.tab.cc"
+#line 73 "parser.y"
+      { yylhs.value.as < node_t* > () = nullptr; }
+#line 723 "parser.tab.cc"
     break;
 
   case 6:
-#line 71 "parser.y"
-                   { yylhs.value.as < int > () = (yystack_[2].value.as < int > () < yystack_[0].value.as < int > ()); }
-#line 677 "parser.tab.cc"
+#line 74 "parser.y"
+                {
+        if (yystack_[0].value.as < node_t* > () == nullptr)
+            yylhs.value.as < node_t* > () = yystack_[1].value.as < node_t* > ();
+        else
+            yylhs.value.as < node_t* > () = new binop_t{binop_type::SCOLON, yystack_[1].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()};
+    }
+#line 734 "parser.tab.cc"
     break;
 
   case 7:
-#line 72 "parser.y"
-                    { yylhs.value.as < int > () = (yystack_[2].value.as < int > () == yystack_[0].value.as < int > ()); }
-#line 683 "parser.tab.cc"
+#line 80 "parser.y"
+                      {
+        if (yystack_[0].value.as < node_t* > () == nullptr)
+            yylhs.value.as < node_t* > () = yystack_[2].value.as < node_t* > ();
+        else
+            yylhs.value.as < node_t* > () = new binop_t{binop_type::SCOLON, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()};
+    }
+#line 745 "parser.tab.cc"
     break;
 
   case 8:
-#line 73 "parser.y"
-                     { yylhs.value.as < int > () = (yystack_[2].value.as < int > () != yystack_[0].value.as < int > ()); }
-#line 689 "parser.tab.cc"
+#line 88 "parser.y"
+                     { yylhs.value.as < node_t* > () = new binop_t{binop_type::G, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 751 "parser.tab.cc"
     break;
 
   case 9:
-#line 74 "parser.y"
-                     { yylhs.value.as < int > () = (yystack_[2].value.as < int > () >= yystack_[0].value.as < int > ()); }
-#line 695 "parser.tab.cc"
+#line 89 "parser.y"
+                   { yylhs.value.as < node_t* > () = new binop_t{binop_type::L, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 757 "parser.tab.cc"
     break;
 
   case 10:
-#line 75 "parser.y"
-                     { yylhs.value.as < int > () = (yystack_[2].value.as < int > () <= yystack_[0].value.as < int > ()); }
-#line 701 "parser.tab.cc"
+#line 90 "parser.y"
+                    { yylhs.value.as < node_t* > () = new binop_t{binop_type::E, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 763 "parser.tab.cc"
     break;
 
   case 11:
-#line 76 "parser.y"
-                   { yylhs.value.as < int > () = yystack_[2].value.as < int > () + yystack_[0].value.as < int > (); }
-#line 707 "parser.tab.cc"
+#line 91 "parser.y"
+                     { yylhs.value.as < node_t* > () = new binop_t{binop_type::NE, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 769 "parser.tab.cc"
     break;
 
   case 12:
-#line 77 "parser.y"
-                    { yylhs.value.as < int > () = yystack_[2].value.as < int > () - yystack_[0].value.as < int > ();}
-#line 713 "parser.tab.cc"
+#line 92 "parser.y"
+                     { yylhs.value.as < node_t* > () = new binop_t{binop_type::GE, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 775 "parser.tab.cc"
     break;
 
   case 13:
-#line 78 "parser.y"
-                   { yylhs.value.as < int > () = yystack_[2].value.as < int > () * yystack_[0].value.as < int > (); }
-#line 719 "parser.tab.cc"
+#line 93 "parser.y"
+                     { yylhs.value.as < node_t* > () = new binop_t{binop_type::LE, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 781 "parser.tab.cc"
     break;
 
   case 14:
-#line 79 "parser.y"
-                    { yylhs.value.as < int > () = yystack_[2].value.as < int > () / yystack_[0].value.as < int > (); }
-#line 725 "parser.tab.cc"
+#line 94 "parser.y"
+                   { yylhs.value.as < node_t* > () = new binop_t{binop_type::ADD, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 787 "parser.tab.cc"
     break;
 
   case 15:
-#line 80 "parser.y"
-                  { 
-        int res = 1;
-        for (int cnt = 0; cnt < yystack_[0].value.as < int > (); ++cnt)
-            res *= yystack_[2].value.as < int > ();
-        yylhs.value.as < int > () = res;
-    }
-#line 736 "parser.tab.cc"
+#line 95 "parser.y"
+                    { yylhs.value.as < node_t* > () = new binop_t{binop_type::SUB, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()};}
+#line 793 "parser.tab.cc"
     break;
 
   case 16:
-#line 86 "parser.y"
-                 { yylhs.value.as < int > () = std::abs(yystack_[0].value.as < int > ()); }
-#line 742 "parser.tab.cc"
+#line 96 "parser.y"
+                   { yylhs.value.as < node_t* > () = new binop_t{binop_type::MUL, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 799 "parser.tab.cc"
     break;
 
   case 17:
-#line 87 "parser.y"
-                        { yylhs.value.as < int > () = yystack_[1].value.as < int > (); }
-#line 748 "parser.tab.cc"
+#line 97 "parser.y"
+                    { yylhs.value.as < node_t* > () = new binop_t{binop_type::DIV, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 805 "parser.tab.cc"
     break;
 
   case 18:
-#line 88 "parser.y"
-                             { yylhs.value.as < int > () = -yystack_[0].value.as < int > (); }
-#line 754 "parser.tab.cc"
+#line 98 "parser.y"
+                  { yylhs.value.as < node_t* > () = new binop_t{binop_type::POW, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 811 "parser.tab.cc"
     break;
 
   case 19:
-#line 89 "parser.y"
-             { yylhs.value.as < int > () = yystack_[0].value.as < int > (); }
-#line 760 "parser.tab.cc"
+#line 99 "parser.y"
+                        { yylhs.value.as < node_t* > () = yystack_[1].value.as < node_t* > (); }
+#line 817 "parser.tab.cc"
     break;
 
   case 20:
-#line 90 "parser.y"
-           { yylhs.value.as < int > () = yystack_[0].value.as < name_t* > ()->value; }
-#line 766 "parser.tab.cc"
+#line 100 "parser.y"
+                             { yylhs.value.as < node_t* > () = new unop_t{unop_type::MINUS, yystack_[0].value.as < node_t* > ()}; }
+#line 823 "parser.tab.cc"
     break;
 
   case 21:
-#line 91 "parser.y"
-                      { yystack_[2].value.as < name_t* > ()->value = yystack_[0].value.as < int > (); }
-#line 772 "parser.tab.cc"
+#line 101 "parser.y"
+             { yylhs.value.as < node_t* > () = new num_t{yystack_[0].value.as < int > ()}; }
+#line 829 "parser.tab.cc"
     break;
 
   case 22:
-#line 92 "parser.y"
-                             { 
-        switch(yystack_[3].value.as < int > ()) {
-            case 1: std::cout << yystack_[1].value.as < int > () << std::endl;
-        }
-    }
-#line 782 "parser.tab.cc"
+#line 102 "parser.y"
+           { yylhs.value.as < node_t* > () = new variable_t(*yystack_[0].value.as < name_t* > ()); }
+#line 835 "parser.tab.cc"
     break;
 
   case 23:
-#line 97 "parser.y"
+#line 103 "parser.y"
+                     { yylhs.value.as < node_t* > () = new binop_t{binop_type::ASSIGN, yystack_[2].value.as < node_t* > (), yystack_[0].value.as < node_t* > ()}; }
+#line 841 "parser.tab.cc"
+    break;
+
+  case 24:
+#line 104 "parser.y"
+                             { yylhs.value.as < node_t* > () = new func_t{yystack_[3].value.as < int > (), yystack_[1].value.as < node_t* > ()}; }
+#line 847 "parser.tab.cc"
+    break;
+
+  case 25:
+#line 105 "parser.y"
           { std::cout << "BAD INPUT" << std::endl; }
-#line 788 "parser.tab.cc"
+#line 853 "parser.tab.cc"
+    break;
+
+  case 26:
+#line 108 "parser.y"
+                  {
+        tree_t ast{yystack_[1].value.as < node_t* > ()};
+        ast.dump();
+    }
+#line 862 "parser.tab.cc"
     break;
 
 
-#line 792 "parser.tab.cc"
+#line 866 "parser.tab.cc"
 
             default:
               break;
@@ -965,94 +1039,112 @@ namespace yy {
   }
 
 
-  const signed char parser::yypact_ninf_ = -6;
+  const signed char parser::yypact_ninf_ = -12;
 
   const signed char parser::yytable_ninf_ = -1;
 
   const signed char
   parser::yypact_[] =
   {
-      -6,     4,    21,    -6,    -6,    21,    21,    21,    -6,    12,
-      15,    32,    -6,    49,    -6,    21,    21,    21,    21,    21,
-      21,    21,    -6,    21,    21,    21,    21,    21,    21,    -6,
-      -1,    66,    -6,    24,    24,     5,     5,    -1,    -1,    -1,
-      -1,    -1,    -1,    -6
+      28,   -12,    36,    36,    -7,     1,   -12,   -12,     2,    59,
+      10,    28,    23,   -12,    76,    36,    36,    36,    36,    36,
+      36,    36,    36,    36,    28,    36,    36,    36,    36,    36,
+      36,   -12,   -12,   -12,   -12,    93,   110,   127,   -12,     0,
+      32,    32,    26,    26,   -12,     0,     0,     0,     0,     0,
+       0,    20,    21,   -12,    28,    28,    22,    24,    25,   -12,
+      33,    28,    35,   -12
   };
 
   const signed char
   parser::yydefact_[] =
   {
-       4,     0,     2,     1,    23,     0,     0,     0,    19,    20,
-       0,     0,    18,     0,    16,     0,     0,     0,     0,     0,
-       0,     0,     3,     0,     0,     0,     0,     0,     0,    17,
-      21,     0,    15,    12,    11,    13,    14,     5,     6,     7,
-       8,     9,    10,    22
+       5,    25,     0,     0,     0,     0,    21,    22,     0,     0,
+       0,     5,     0,    20,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     5,     0,     0,     0,     0,     0,
+       0,    26,     6,     1,    19,     0,     0,     0,    18,    23,
+      15,    14,    16,    17,     7,     8,     9,    10,    11,    12,
+      13,     0,     0,    24,     5,     5,     0,     0,     2,     4,
+       0,     5,     0,     3
   };
 
   const signed char
   parser::yypgoto_[] =
   {
-      -6,    -5,    -6,    -6
+     -12,    -1,   -11,   -12,   -12
   };
 
   const signed char
   parser::yydefgoto_[] =
   {
-      -1,    11,     1,     2
+      -1,     9,    10,    11,    12
   };
 
   const signed char
   parser::yytable_[] =
   {
-      12,    13,    14,    17,     3,    18,    19,    20,    21,    17,
-      30,    31,    32,    33,    34,    35,    36,    15,    37,    38,
-      39,    40,    41,    42,     4,    16,     0,     5,    17,     0,
-       0,     6,    20,    21,     0,     0,    17,     0,    18,    19,
-      20,    21,     7,     8,     9,    10,    22,    23,    24,    25,
-      26,    27,    28,    17,     0,    18,    19,    20,    21,     0,
-      29,     0,     0,     0,    23,    24,    25,    26,    27,    28,
-      17,     0,    18,    19,    20,    21,     0,    43,     0,     0,
-       0,    23,    24,    25,    26,    27,    28
+      32,    13,    14,    15,    18,    19,    20,    21,    22,    23,
+      31,    16,    17,    44,    35,    36,    37,    38,    39,    40,
+      41,    42,    43,    33,    45,    46,    47,    48,    49,    50,
+      18,     1,    54,    55,     2,    58,    18,    59,     3,     1,
+      22,    23,     2,    56,    57,    61,     3,    60,    63,     4,
+      62,     5,     6,     7,     8,     0,     0,     0,     0,     0,
+       6,     7,     8,    18,    19,    20,    21,    22,    23,     0,
+       0,     0,     0,    24,    25,    26,    27,    28,    29,    30,
+      18,    19,    20,    21,    22,    23,     0,    34,     0,     0,
+       0,    25,    26,    27,    28,    29,    30,    18,    19,    20,
+      21,    22,    23,     0,    51,     0,     0,     0,    25,    26,
+      27,    28,    29,    30,    18,    19,    20,    21,    22,    23,
+       0,    52,     0,     0,     0,    25,    26,    27,    28,    29,
+      30,    18,    19,    20,    21,    22,    23,     0,    53,     0,
+       0,     0,    25,    26,    27,    28,    29,    30
   };
 
   const signed char
   parser::yycheck_[] =
   {
-       5,     6,     7,     4,     0,     6,     7,     8,     9,     4,
-      15,    16,    17,    18,    19,    20,    21,     5,    23,    24,
-      25,    26,    27,    28,     3,    10,    -1,     6,     4,    -1,
-      -1,    10,     8,     9,    -1,    -1,     4,    -1,     6,     7,
-       8,     9,    21,    22,    23,    24,    14,    15,    16,    17,
-      18,    19,    20,     4,    -1,     6,     7,     8,     9,    -1,
-      11,    -1,    -1,    -1,    15,    16,    17,    18,    19,    20,
-       4,    -1,     6,     7,     8,     9,    -1,    11,    -1,    -1,
-      -1,    15,    16,    17,    18,    19,    20
+      11,     2,     3,    10,     4,     5,     6,     7,     8,     9,
+       0,    10,    10,    24,    15,    16,    17,    18,    19,    20,
+      21,    22,    23,     0,    25,    26,    27,    28,    29,    30,
+       4,     3,    12,    12,     6,    13,     4,    13,    10,     3,
+       8,     9,     6,    54,    55,    12,    10,    22,    13,    21,
+      61,    23,    24,    25,    26,    -1,    -1,    -1,    -1,    -1,
+      24,    25,    26,     4,     5,     6,     7,     8,     9,    -1,
+      -1,    -1,    -1,    14,    15,    16,    17,    18,    19,    20,
+       4,     5,     6,     7,     8,     9,    -1,    11,    -1,    -1,
+      -1,    15,    16,    17,    18,    19,    20,     4,     5,     6,
+       7,     8,     9,    -1,    11,    -1,    -1,    -1,    15,    16,
+      17,    18,    19,    20,     4,     5,     6,     7,     8,     9,
+      -1,    11,    -1,    -1,    -1,    15,    16,    17,    18,    19,
+      20,     4,     5,     6,     7,     8,     9,    -1,    11,    -1,
+      -1,    -1,    15,    16,    17,    18,    19,    20
   };
 
   const signed char
   parser::yystos_[] =
   {
-       0,    28,    29,     0,     3,     6,    10,    21,    22,    23,
-      24,    27,    27,    27,    27,     5,    10,     4,     6,     7,
-       8,     9,    14,    15,    16,    17,    18,    19,    20,    11,
-      27,    27,    27,    27,    27,    27,    27,    27,    27,    27,
-      27,    27,    27,    11
+       0,     3,     6,    10,    21,    23,    24,    25,    26,    29,
+      30,    31,    32,    29,    29,    10,    10,    10,     4,     5,
+       6,     7,     8,     9,    14,    15,    16,    17,    18,    19,
+      20,     0,    30,     0,    11,    29,    29,    29,    29,    29,
+      29,    29,    29,    29,    30,    29,    29,    29,    29,    29,
+      29,    11,    11,    11,    12,    12,    30,    30,    13,    13,
+      22,    12,    30,    13
   };
 
   const signed char
   parser::yyr1_[] =
   {
-       0,    26,    28,    29,    29,    27,    27,    27,    27,    27,
-      27,    27,    27,    27,    27,    27,    27,    27,    27,    27,
-      27,    27,    27,    27
+       0,    28,    31,    31,    31,    30,    30,    30,    29,    29,
+      29,    29,    29,    29,    29,    29,    29,    29,    29,    29,
+      29,    29,    29,    29,    29,    29,    32
   };
 
   const signed char
   parser::yyr2_[] =
   {
-       0,     2,     1,     3,     0,     3,     3,     3,     3,     3,
-       3,     3,     3,     3,     3,     3,     2,     3,     2,     1,
-       1,     3,     4,     1
+       0,     2,     7,    11,     7,     0,     2,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       2,     1,     1,     3,     4,     1,     2
   };
 
 
@@ -1062,19 +1154,20 @@ namespace yy {
   const char*
   const parser::yytname_[] =
   {
-  "$end", "error", "$undefined", "ERR", "\"**\"", "\"=\"", "\"-\"",
-  "\"+\"", "\"*\"", "\"/\"", "\"(\"", "\")\"", "\"{\"", "\"}\"", "\";\"",
-  "\">\"", "\"<\"", "\"==\"", "\"!=\"", "\">=\"", "\"<=\"", "\"|\"",
-  "NUMBER", "NAME", "FUNC", "UMINUS", "$accept", "exp", "program", "list", YY_NULLPTR
+  "\"end of file\"", "error", "$undefined", "ERR", "\"**\"", "\"=\"",
+  "\"-\"", "\"+\"", "\"*\"", "\"/\"", "\"(\"", "\")\"", "\"{\"", "\"}\"",
+  "\";\"", "\">\"", "\"<\"", "\"==\"", "\"!=\"", "\">=\"", "\"<=\"",
+  "\"if\"", "\"else\"", "\"while\"", "NUMBER", "NAME", "FUNC", "UMINUS",
+  "$accept", "exp", "list", "stmt", "program", YY_NULLPTR
   };
 
 
   const signed char
   parser::yyrline_[] =
   {
-       0,    63,    63,    66,    67,    70,    71,    72,    73,    74,
-      75,    76,    77,    78,    79,    80,    86,    87,    88,    89,
-      90,    91,    92,    97
+       0,    68,    68,    69,    70,    73,    74,    80,    88,    89,
+      90,    91,    92,    93,    94,    95,    96,    97,    98,    99,
+     100,   101,   102,   103,   104,   105,   108
   };
 
   // Print the state stack on the debug stream.
@@ -1143,9 +1236,9 @@ namespace yy {
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25
+      25,    26,    27
     };
-    const int user_token_number_max_ = 280;
+    const int user_token_number_max_ = 282;
 
     if (t <= 0)
       return yyeof_;
@@ -1156,9 +1249,9 @@ namespace yy {
   }
 
 } // yy
-#line 1160 "parser.tab.cc"
+#line 1253 "parser.tab.cc"
 
-#line 100 "parser.y"
+#line 114 "parser.y"
 
 
 namespace yy {

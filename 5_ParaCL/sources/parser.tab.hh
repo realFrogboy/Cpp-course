@@ -372,11 +372,15 @@ namespace yy {
     {
       // NUMBER
       // FUNC
-      // exp
       char dummy1[sizeof (int)];
 
       // NAME
       char dummy2[sizeof (name_t*)];
+
+      // exp
+      // list
+      // stmt
+      char dummy3[sizeof (node_t*)];
     };
 
     /// The size of the largest semantic type.
@@ -415,6 +419,7 @@ namespace yy {
     {
       enum yytokentype
       {
+        END = 0,
         ERR = 258,
         POW = 259,
         ASSIGN = 260,
@@ -433,11 +438,13 @@ namespace yy {
         NEQUAL = 273,
         GEQUAL = 274,
         LEQUAL = 275,
-        MODULE = 276,
-        NUMBER = 277,
-        NAME = 278,
-        FUNC = 279,
-        UMINUS = 280
+        IF = 276,
+        ELSE = 277,
+        WHILE = 278,
+        NUMBER = 279,
+        NAME = 280,
+        FUNC = 281,
+        UMINUS = 282
       };
     };
 
@@ -510,6 +517,17 @@ namespace yy {
         , value (v)
       {}
 #endif
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, node_t*&& v)
+        : Base (t)
+        , value (std::move (v))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const node_t*& v)
+        : Base (t)
+        , value (v)
+      {}
+#endif
 
       /// Destroy the symbol.
       ~basic_symbol ()
@@ -533,14 +551,19 @@ namespace yy {
         // Type destructor.
 switch (yytype)
     {
-      case 22: // NUMBER
-      case 24: // FUNC
-      case 27: // exp
+      case 24: // NUMBER
+      case 26: // FUNC
         value.template destroy< int > ();
         break;
 
-      case 23: // NAME
+      case 25: // NAME
         value.template destroy< name_t* > ();
+        break;
+
+      case 29: // exp
+      case 30: // list
+      case 31: // stmt
+        value.template destroy< node_t* > ();
         break;
 
       default:
@@ -616,13 +639,13 @@ switch (yytype)
       symbol_type (int tok)
         : super_type(token_type (tok))
       {
-        YY_ASSERT (tok == 0 || tok == token::ERR || tok == token::POW || tok == token::ASSIGN || tok == token::MINUS || tok == token::PLUS || tok == token::STAR || tok == token::SLASH || tok == token::LPAREN || tok == token::RPAREN || tok == token::LUNICORN || tok == token::RUNICORN || tok == token::SCOLON || tok == token::GRATER || tok == token::LESS || tok == token::EQUAL || tok == token::NEQUAL || tok == token::GEQUAL || tok == token::LEQUAL || tok == token::MODULE || tok == token::UMINUS);
+        YY_ASSERT (tok == token::END || tok == token::ERR || tok == token::POW || tok == token::ASSIGN || tok == token::MINUS || tok == token::PLUS || tok == token::STAR || tok == token::SLASH || tok == token::LPAREN || tok == token::RPAREN || tok == token::LUNICORN || tok == token::RUNICORN || tok == token::SCOLON || tok == token::GRATER || tok == token::LESS || tok == token::EQUAL || tok == token::NEQUAL || tok == token::GEQUAL || tok == token::LEQUAL || tok == token::IF || tok == token::ELSE || tok == token::WHILE || tok == token::UMINUS);
       }
 #else
       symbol_type (int tok)
         : super_type(token_type (tok))
       {
-        YY_ASSERT (tok == 0 || tok == token::ERR || tok == token::POW || tok == token::ASSIGN || tok == token::MINUS || tok == token::PLUS || tok == token::STAR || tok == token::SLASH || tok == token::LPAREN || tok == token::RPAREN || tok == token::LUNICORN || tok == token::RUNICORN || tok == token::SCOLON || tok == token::GRATER || tok == token::LESS || tok == token::EQUAL || tok == token::NEQUAL || tok == token::GEQUAL || tok == token::LEQUAL || tok == token::MODULE || tok == token::UMINUS);
+        YY_ASSERT (tok == token::END || tok == token::ERR || tok == token::POW || tok == token::ASSIGN || tok == token::MINUS || tok == token::PLUS || tok == token::STAR || tok == token::SLASH || tok == token::LPAREN || tok == token::RPAREN || tok == token::LUNICORN || tok == token::RUNICORN || tok == token::SCOLON || tok == token::GRATER || tok == token::LESS || tok == token::EQUAL || tok == token::NEQUAL || tok == token::GEQUAL || tok == token::LEQUAL || tok == token::IF || tok == token::ELSE || tok == token::WHILE || tok == token::UMINUS);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -690,6 +713,21 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_END ()
+      {
+        return symbol_type (token::END);
+      }
+#else
+      static
+      symbol_type
+      make_END ()
+      {
+        return symbol_type (token::END);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_ERR ()
       {
         return symbol_type (token::ERR);
@@ -960,16 +998,46 @@ switch (yytype)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_MODULE ()
+      make_IF ()
       {
-        return symbol_type (token::MODULE);
+        return symbol_type (token::IF);
       }
 #else
       static
       symbol_type
-      make_MODULE ()
+      make_IF ()
       {
-        return symbol_type (token::MODULE);
+        return symbol_type (token::IF);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ELSE ()
+      {
+        return symbol_type (token::ELSE);
+      }
+#else
+      static
+      symbol_type
+      make_ELSE ()
+      {
+        return symbol_type (token::ELSE);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_WHILE ()
+      {
+        return symbol_type (token::WHILE);
+      }
+#else
+      static
+      symbol_type
+      make_WHILE ()
+      {
+        return symbol_type (token::WHILE);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1335,10 +1403,10 @@ switch (yytype)
     enum
     {
       yyeof_ = 0,
-      yylast_ = 86,     ///< Last index in yytable_.
-      yynnts_ = 4,  ///< Number of nonterminal symbols.
-      yyfinal_ = 3, ///< Termination state number.
-      yyntokens_ = 26  ///< Number of tokens.
+      yylast_ = 147,     ///< Last index in yytable_.
+      yynnts_ = 5,  ///< Number of nonterminal symbols.
+      yyfinal_ = 33, ///< Termination state number.
+      yyntokens_ = 28  ///< Number of tokens.
     };
 
 
@@ -1348,7 +1416,7 @@ switch (yytype)
 
 
 } // yy
-#line 1352 "parser.tab.hh"
+#line 1420 "parser.tab.hh"
 
 
 

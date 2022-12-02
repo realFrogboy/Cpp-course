@@ -30,6 +30,9 @@ class driver_t {
             if (!strcmp(lexer->YYText(), "print")) {
                 yylval->as<int>() = 1;
                 return yy::parser::token_type::FUNC;
+            } else if (!strcmp(lexer->YYText(), "abs")) {
+                yylval->as<int>() = 2;
+                return yy::parser::token_type::FUNC;
             }
 
             if (auto search = variables.find(lexer->YYText()); search != variables.end())
