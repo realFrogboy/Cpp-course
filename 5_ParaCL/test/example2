@@ -1,0 +1,16 @@
+a = 5;
+b = 10;
+c = 0;
+
+if (a > 7) { 
+    c = a + b;
+} else {
+    c = a - b;
+}
+
+while (c > 0) {
+    print(a);
+    a = a + 1;
+    c = c - 1;
+}
+print(c);
