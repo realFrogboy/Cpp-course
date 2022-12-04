@@ -7,20 +7,23 @@
 #include <FlexLexer.h>
 #endif
 
-#include "parser.tab.hh"
+#include "lexer.hpp"
 #include "ast.hpp"
 
 namespace yy {
 
+const std::string red   = "\033[1;31m";
+const std::string norm   = "\033[0m";
+
 class driver_t {
-    FlexLexer *lexer;
+    lexer_t *lexer;
     std::unordered_map<std::string, ast::name_t> variables{};
 
     public:
 
-    driver_t(FlexLexer *lexer_) : lexer(lexer_) {}
+    driver_t(lexer_t *lexer_) : lexer(lexer_) {}
 
-    parser::token_type yylex(parser::semantic_type *yylval) {
+    parser::token_type yylex(parser::semantic_type *yylval, parser::location_type *location) {
         parser::token_type tt = static_cast<parser::token_type>(lexer->yylex());
 
         if (tt == yy::parser::token_type::NUMBER)
@@ -42,6 +45,8 @@ class driver_t {
                 yylval->as<ast::name_t*>() = &(new_var.first->second);
             }
         }
+
+        *location = lexer->location;
 
         return tt;
     }

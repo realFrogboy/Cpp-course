@@ -1,11 +1,18 @@
 %option c++
 %option noyywrap nodefault yylineno
+%option yyclass="yy::lexer_t"
 
 %{
 #include "driver.hpp"
+#include "lexer.hpp"
+
+#define YY_USER_ACTION location.step(); location.columns(yyleng);
 %}
 
 %%
+%{
+location.step();
+%}
 
 "+"  return yy::parser::token_type::PLUS;
 "-"  return yy::parser::token_type::MINUS;
@@ -33,7 +40,8 @@
 [a-zA-Z][a-zA-Z0-9]* return yy::parser::token_type::NAME;
 [0-9]+ return yy::parser::token_type::NUMBER;
 "//".*
-[ \t\v\n\r]
+[ \t\v\r] { location.step(); }
+\n+  { location.lines(yyleng); location.step(); }
 .  return yy::parser::token_type::ERR;
 <<EOF>> return yy::parser::token_type::END;
 

@@ -6,6 +6,8 @@
 
 %param { yy::driver_t &drv }
 
+%locations
+
 %code requires {
 #include <iostream>
 #include <string>
@@ -18,7 +20,7 @@ namespace yy { class driver_t; }
 
 %code {
 #include "driver.hpp"
-namespace yy { parser::token_type yylex(parser::semantic_type* yylval, driver_t &driver); }
+namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); }
 }
 
 %token
@@ -100,7 +102,11 @@ exp:  exp GRATER exp { $$ = new ast::binop_t{ast::binop_type::G, $1, $3}; }
     | MINUS exp %prec UMINUS { $$ = new ast::unop_t{ast::unop_type::MINUS, $2}; }
     | NUMBER { $$ = new ast::num_t{$1}; }
     | NAME { $$ = new ast::variable_t(*$1); }
-    | exp ASSIGN exp { $$ = new ast::binop_t{ast::binop_type::ASSIGN, $1, $3}; }
+    | exp ASSIGN exp {
+        if ($1->get_type() != ast::node_type::VARIABLE)
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": assign to nonvariable type" << std::endl;
+        $$ = new ast::binop_t{ast::binop_type::ASSIGN, $1, $3}; 
+    }
     | FUNC LPAREN exp RPAREN { $$ = new ast::func_t{$1, $3}; }
     | ERR { std::cout << "BAD INPUT" << std::endl; }
     ;
@@ -115,10 +121,10 @@ program: list END {
 
 namespace yy {
 
-parser::token_type yylex(parser::semantic_type *yylval, driver_t &drv) {
-    return drv.yylex(yylval);
+parser::token_type yylex(parser::semantic_type *yylval, parser::location_type* location, driver_t &drv) {
+    return drv.yylex(yylval, location);
 }
 
-void parser::error(const std::string&){}
+void parser::error(const parser::location_type& location, const std::string& what) {}
 
 }
