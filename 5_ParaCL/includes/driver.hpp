@@ -12,14 +12,15 @@
 
 namespace yy {
 
-const std::string red   = "\033[1;31m";
-const std::string norm   = "\033[0m";
+const std::string red  = "\033[1;31m";
+const std::string norm = "\033[0m";
 
-class driver_t {
+class driver_t final {
     lexer_t *lexer;
-    std::unordered_map<std::string, ast::name_t> variables{};
 
     public:
+
+    ast::tree_t tree{};
 
     driver_t(lexer_t *lexer_) : lexer(lexer_) {}
 
@@ -38,10 +39,10 @@ class driver_t {
                 return yy::parser::token_type::FUNC;
             }
 
-            if (auto search = variables.find(lexer->YYText()); search != variables.end())
+            if (auto search = tree.find_variable(lexer->YYText()); search != tree.variables_end())
                 yylval->as<ast::name_t*>() = &(search->second);
             else {
-                auto new_var = variables.insert({lexer->YYText(), ast::name_t{lexer->YYText(), 0}});
+                auto new_var = tree.add_variable(lexer->YYText());
                 yylval->as<ast::name_t*>() = &(new_var.first->second);
             }
         }

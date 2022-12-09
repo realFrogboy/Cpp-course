@@ -2,11 +2,15 @@
 
 #include <string>
 #include <fstream>
+#include <vector>
+#include <unordered_map>
+
+#include "pow.hpp"
 
 namespace ast {
 
 enum node_type {
-    BINOP,
+    BINOP = 0,
     UNOP,
     NUMBER,
     VARIABLE,
@@ -49,7 +53,7 @@ enum flow_type {
 
 struct name_t {
     std::string name;
-    int value = 0;
+    double value = 0;
 };
 
 class node_t {
@@ -65,7 +69,7 @@ class node_t {
 };
 
 
-class binop_t : public node_t {
+class binop_t final : public node_t {
     binop_type operation;
 
     public:
@@ -75,10 +79,16 @@ class binop_t : public node_t {
 
     binop_t(binop_type op, node_t *lhs_, node_t *rhs_) : node_t{node_type::BINOP}, operation{op}, lhs{lhs_}, rhs{rhs_} {}
 
+    binop_t(binop_t &&node) : node_t{node_type::BINOP} {
+        std::swap(lhs, node.lhs);
+        std::swap(rhs, node.rhs);
+        operation = node.operation;
+    }
+
     binop_type get_operation() const { return operation; }
 };
 
-class unop_t : public node_t {
+class unop_t final : public node_t {
     unop_type operation;
 
     public:
@@ -87,30 +97,45 @@ class unop_t : public node_t {
 
     unop_t(unop_type op, node_t *lhs_) : node_t{node_type::UNOP}, operation{op}, lhs{lhs_} {}
 
+    unop_t(unop_t &&node) : node_t{node_type::UNOP} {
+        std::swap(lhs, node.lhs);
+        operation = node.operation;
+    }
+
     unop_type get_operation() const { return operation; }
 };
 
-class num_t : public node_t {
+class num_t final : public node_t {
     int value = 0;
 
     public:
 
     num_t(int v) : node_t{node_type::NUMBER}, value(v) {}
 
+    num_t(num_t &&node) : node_t{node_type::NUMBER} {
+        value = node.value;
+    }
+
     int get_value() const { return value; }
 };
 
-class variable_t : public node_t {
+class variable_t final : public node_t {
     name_t name;
 
     public:
 
     variable_t(name_t name_) : node_t{node_type::VARIABLE}, name(name_) {}
 
+    variable_t(variable_t &&node) : node_t{node_type::VARIABLE} {
+        name = node.name;
+    }
+
     name_t get_name() const { return name; }
+
+    void set_value(int value) { name.value = value; }
 };
 
-class func_t : public node_t {
+class func_t final : public node_t {
     func_type func_id;
 
     public :
@@ -119,10 +144,15 @@ class func_t : public node_t {
 
     func_t(int func_id_, node_t *lhs_) : node_t{node_type::FUNCTION}, func_id{static_cast<func_type>(func_id_)}, lhs{lhs_} {}
 
+    func_t(func_t &&node) : node_t{node_type::FUNCTION} {
+        std::swap(lhs, node.lhs);
+        func_id = node.func_id;
+    }
+
     func_type get_func() const { return func_id; }
 };
 
-class flow_t : public node_t {
+class flow_t final : public node_t {
     flow_type flow_id;
 
     public:
@@ -133,10 +163,17 @@ class flow_t : public node_t {
 
     flow_t(flow_type flow_id_, node_t *cond_, node_t *lhs_, node_t *rhs_) : node_t{node_type::FLOW}, flow_id{flow_id_}, cond{cond_}, lhs{lhs_}, rhs{rhs_}  {}
 
+    flow_t(flow_t &&node) : node_t{node_type::FLOW} {
+        std::swap(cond, node.cond);
+        std::swap(lhs, node.lhs);
+        std::swap(rhs, node.rhs);
+        flow_id = node.flow_id;
+    }
+
     flow_type get_flow() const { return flow_id; }
 };
 
-class tree_dump {
+class tree_dump final {
 
     int num = 0;
 
@@ -344,13 +381,139 @@ class tree_dump {
     }
 };
 
-class tree_t {
+class tree_t final {
 
     node_t *root;
+    std::vector<node_t*> nodes;
+    std::unordered_map<std::string, ast::name_t> variables{};
+
+    int eval(const node_t *node) {
+        switch (node->get_type()) {
+            case node_type::BINOP   : return evaluate_binop(static_cast<const binop_t*>(node));
+            case node_type::UNOP    : return evaluate_unop (static_cast<const unop_t*>(node));
+            case node_type::NUMBER  : return evaluate_num  (static_cast<const num_t*>(node));
+            case node_type::VARIABLE: return evaluate_var  (static_cast<const variable_t*>(node));
+            case node_type::FUNCTION: return evaluate_func (static_cast<const func_t*>(node));
+            case node_type::FLOW    : return evaluate_flow (static_cast<const flow_t*>(node));
+            default: std::cout << "No such function" << std::endl;
+        }
+        return 0;
+    }
+
+    int evaluate_binop(const binop_t *node) {
+        switch (node->get_operation()) {
+            case binop_type::G: return (eval(node->lhs) > eval(node->rhs));
+            case binop_type::L: return (eval(node->lhs) < eval(node->rhs));
+            case binop_type::E: return (eval(node->lhs) == eval(node->rhs));
+            case binop_type::NE: return (eval(node->lhs) != eval(node->rhs));
+            case binop_type::GE: return (eval(node->lhs) >= eval(node->rhs));
+            case binop_type::LE: return (eval(node->lhs) <= eval(node->rhs));
+            case binop_type::ADD: return (eval(node->lhs) + eval(node->rhs));
+            case binop_type::SUB: return (eval(node->lhs) - eval(node->rhs));
+            case binop_type::MUL: return (eval(node->lhs) * eval(node->rhs));
+            case binop_type::DIV: return (eval(node->lhs) / eval(node->rhs));
+            case binop_type::ASSIGN: {
+                std::string var = static_cast<variable_t*>(node->lhs)->get_name().name;
+                auto search = variables.find(var);
+                search->second.value = eval(node->rhs);
+                break;
+            }
+            case binop_type::POW: {
+                int degree = eval(node->rhs);
+                if (degree < 0) {
+                    int res = pow(eval(node->lhs), -degree);
+                    return 1/res;
+                } else {
+                    int res = pow(eval(node->lhs), degree);
+                    return res;
+                }
+            }
+            case binop_type::SCOLON: {
+                if (node->lhs != nullptr) eval(node->lhs);
+                if (node->rhs != nullptr) eval(node->rhs);
+                break;
+            }
+            default: std::cout << "No such function" << std::endl;
+        }
+        return 0;
+    }
+
+    int evaluate_unop(const unop_t *node) {
+        switch (node->get_operation()) {
+            case unop_type::MINUS: return -eval(node->lhs); break;
+            default: std::cout << "No such function" << std::endl;
+        }
+        return 0;
+    }
+
+    int evaluate_num(const num_t *node) { return node->get_value(); }
+
+    int evaluate_var(const variable_t *node) {
+        auto search = variables.find(node->get_name().name);
+        return search->second.value;
+    }
+
+    int evaluate_func(const func_t *node) {
+        switch (node->get_func()) {
+            case func_type::ABS  : return std::abs(eval(node->lhs));
+            case func_type::PRINT: std::cout << eval(node->lhs) << std::endl; break;
+            default: std::cout << "No such function" << std::endl;
+        }
+        return 0;
+    }
+
+    int evaluate_flow(const flow_t *node) {
+        switch (node->get_flow()) {
+            case flow_type::IF: {
+                if (eval(node->cond)) {
+                    eval(node->lhs);
+                } else if (node->rhs != nullptr) {
+                    eval(node->rhs);
+                }
+                break;
+            }
+            case flow_type::WHILE: {
+                while (eval(node->cond)) {
+                    eval(node->lhs);
+                }
+                break;
+            }
+            default: std::cout << "No such function" << std::endl;
+        }
+        return 0;
+    }
 
     public:
 
-    tree_t(node_t *root_) : root(root_) {}
+    tree_t(node_t *root_ = nullptr) : root(root_) {}
+
+    tree_t(const tree_t&) = delete;
+    tree_t &operator=(const tree_t&) = delete;
+
+    tree_t(tree_t&&) = delete;
+    tree_t &operator=(tree_t&&) = delete;
+
+    std::unordered_map<std::string, name_t>::iterator find_variable(const std::string &str) { return variables.find(str); }
+    std::unordered_map<std::string, name_t>::iterator variables_end() { return variables.end(); }
+    std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0}});;}
+
+    template<typename nodeT>
+    node_t* ast_insert(nodeT &&node) {
+        nodeT *n_node = new nodeT(std::move(node));
+        nodes.push_back(n_node);
+        root = n_node;
+        return n_node;
+    }
+
+    int evaluate() {
+        return eval(root);
+    }
+
+    ~tree_t() {
+        for(auto node : nodes) {
+            delete node;
+        }
+    }
 
     void dump() const {
         std::ofstream file("tree_dump.dot");

@@ -67,53 +67,112 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
 
 %% 
 
-stmt: IF LPAREN exp RPAREN LUNICORN list RUNICORN { $$ = new ast::flow_t (ast::flow_type::IF, $3, $6, nullptr); }
-    | IF LPAREN exp RPAREN LUNICORN list RUNICORN ELSE LUNICORN list RUNICORN { $$ = new ast::flow_t (ast::flow_type::IF, $3, $6, $10); }
-    | WHILE LPAREN exp RPAREN LUNICORN list RUNICORN { $$ = new ast::flow_t (ast::flow_type::WHILE, $3, $6, nullptr); }
+stmt: IF LPAREN exp RPAREN LUNICORN list RUNICORN { 
+        ast::flow_t node(ast::flow_type::IF, $3, $6, nullptr);
+        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node)); 
+    }
+    | IF LPAREN exp RPAREN LUNICORN list RUNICORN ELSE LUNICORN list RUNICORN { 
+        ast::flow_t node(ast::flow_type::IF, $3, $6, $10);
+        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node));
+    }
+    | WHILE LPAREN exp RPAREN LUNICORN list RUNICORN { 
+        ast::flow_t node(ast::flow_type::WHILE, $3, $6, nullptr);
+        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node));
+    }
     ;
 
 list: { $$ = nullptr; }
     | stmt list {
         if ($2 == nullptr)
             $$ = $1;
-        else
-            $$ = new ast::binop_t{ast::binop_type::SCOLON, $1, $2};
+        else {
+            ast::binop_t node{ast::binop_type::SCOLON, $1, $2};
+            $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        }
     }
     | exp SCOLON list {
         if ($3 == nullptr)
             $$ = $1;
-        else
-            $$ = new ast::binop_t{ast::binop_type::SCOLON, $1, $3};
+        else {
+            ast::binop_t node{ast::binop_type::SCOLON, $1, $3};
+            $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        }
     }
     ;
 
-exp:  exp GRATER exp { $$ = new ast::binop_t{ast::binop_type::G, $1, $3}; }
-    | exp LESS exp { $$ = new ast::binop_t{ast::binop_type::L, $1, $3}; }
-    | exp EQUAL exp { $$ = new ast::binop_t{ast::binop_type::E, $1, $3}; }
-    | exp NEQUAL exp { $$ = new ast::binop_t{ast::binop_type::NE, $1, $3}; }
-    | exp GEQUAL exp { $$ = new ast::binop_t{ast::binop_type::GE, $1, $3}; }
-    | exp LEQUAL exp { $$ = new ast::binop_t{ast::binop_type::LE, $1, $3}; }
-    | exp PLUS exp { $$ = new ast::binop_t{ast::binop_type::ADD, $1, $3}; }
-    | exp MINUS exp { $$ = new ast::binop_t{ast::binop_type::SUB, $1, $3};}
-    | exp STAR exp { $$ = new ast::binop_t{ast::binop_type::MUL, $1, $3}; }
-    | exp SLASH exp { $$ = new ast::binop_t{ast::binop_type::DIV, $1, $3}; }
-    | exp POW exp { $$ = new ast::binop_t{ast::binop_type::POW, $1, $3}; }
+exp:  exp GRATER exp { 
+        ast::binop_t node{ast::binop_type::G, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp LESS exp { 
+        ast::binop_t node{ast::binop_type::L, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp EQUAL exp { 
+        ast::binop_t node{ast::binop_type::E, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp NEQUAL exp { 
+        ast::binop_t node{ast::binop_type::NE, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp GEQUAL exp { 
+        ast::binop_t node{ast::binop_type::GE, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp LEQUAL exp { 
+        ast::binop_t node{ast::binop_type::LE, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp PLUS exp { 
+        ast::binop_t node{ast::binop_type::ADD, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp MINUS exp { 
+        ast::binop_t node{ast::binop_type::SUB, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp STAR exp { 
+        ast::binop_t node{ast::binop_type::MUL, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp SLASH exp { 
+        ast::binop_t node{ast::binop_type::DIV, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
+    | exp POW exp { 
+        ast::binop_t node{ast::binop_type::POW, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+    }
     | LPAREN exp RPAREN { $$ = $2; }
-    | MINUS exp %prec UMINUS { $$ = new ast::unop_t{ast::unop_type::MINUS, $2}; }
-    | NUMBER { $$ = new ast::num_t{$1}; }
-    | NAME { $$ = new ast::variable_t(*$1); }
+    | MINUS exp %prec UMINUS { 
+        ast::unop_t node{ast::unop_type::MINUS, $2};
+        $$ = drv.tree.ast_insert<ast::unop_t>(std::move(node));
+    }
+    | NUMBER { 
+        ast::num_t node{$1};
+        $$ = drv.tree.ast_insert<ast::num_t>(std::move(node));
+    }
+    | NAME { 
+        ast::variable_t node(*$1);
+        $$ = drv.tree.ast_insert<ast::variable_t>(std::move(node));
+    }
     | exp ASSIGN exp {
         if ($1->get_type() != ast::node_type::VARIABLE)
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": assign to nonvariable type" << std::endl;
-        $$ = new ast::binop_t{ast::binop_type::ASSIGN, $1, $3}; 
+        ast::binop_t node{ast::binop_type::ASSIGN, $1, $3};
+        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
     }
-    | FUNC LPAREN exp RPAREN { $$ = new ast::func_t{$1, $3}; }
+    | FUNC LPAREN exp RPAREN { 
+        ast::func_t node{$1, $3};
+        $$ = drv.tree.ast_insert<ast::func_t>(std::move(node));
+    }
     | ERR { std::cout << "BAD INPUT" << std::endl; }
     ;
 
 program: list END {
-        ast::tree_t ast{$1};
-        ast.dump();
+        drv.tree.dump();
+        drv.tree.evaluate();
     }
     ;
 
