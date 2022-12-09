@@ -33,7 +33,7 @@ add_flex_bison_dependency(scanner parser)
 add_executable(${PROJECT_NAME}   
   ${BISON_parser_OUTPUTS}
   ${FLEX_scanner_OUTPUTS}
-  sources/main.cpp
+  sources/main.cpp sources/pow.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
