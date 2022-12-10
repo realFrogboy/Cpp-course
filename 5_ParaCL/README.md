@@ -4,6 +4,7 @@ Frontend and simulator of the ParaCL language.
 ## Examples
 ### n-th Fibonacci number
 fib:
+
         scan(n);
         f1 = 0;
         f2 = 1;
@@ -24,5 +25,7 @@ fib:
             print(f2);
         } }
 
+
 AST:
+
 ![Image text](https://github.com/realFrogboy/Pictures/blob/main/fib.png)
