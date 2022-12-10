@@ -3,10 +3,6 @@
 #include <unordered_map>
 #include <cstring>
 
-#if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
-#endif
-
 #include "lexer.hpp"
 #include "ast.hpp"
 
@@ -16,13 +12,15 @@ const std::string red  = "\033[1;31m";
 const std::string norm = "\033[0m";
 
 class driver_t final {
-    lexer_t *lexer;
+    lexer_t *lexer = nullptr;
 
     public:
 
     ast::tree_t tree{};
 
-    driver_t(lexer_t *lexer_) : lexer(lexer_) {}
+    driver_t(std::ifstream *in) {
+        lexer = new lexer_t{in};
+    }
 
     parser::token_type yylex(parser::semantic_type *yylval, parser::location_type *location) {
         parser::token_type tt = static_cast<parser::token_type>(lexer->yylex());
@@ -34,8 +32,11 @@ class driver_t final {
             if (!strcmp(lexer->YYText(), "print")) {
                 yylval->as<int>() = 1;
                 return yy::parser::token_type::FUNC;
-            } else if (!strcmp(lexer->YYText(), "abs")) {
+            } else if (!strcmp(lexer->YYText(), "scan")) {
                 yylval->as<int>() = 2;
+                return yy::parser::token_type::FUNC;
+            } else if (!strcmp(lexer->YYText(), "abs")) {
+                yylval->as<int>() = 3;
                 return yy::parser::token_type::FUNC;
             }
 
@@ -56,6 +57,10 @@ class driver_t final {
         parser parser(*this);
         bool res = parser.parse();
         return res;
+    }
+
+    ~driver_t() {
+        delete lexer;
     }
 
 };

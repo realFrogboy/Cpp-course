@@ -4,6 +4,8 @@
 #include <FlexLexer.h>
 #endif
 
+#include <fstream>
+
 #include "parser.tab.hh"
 #include "location.hh"
 
@@ -13,15 +15,9 @@ class lexer_t : public yyFlexLexer{
 public:
     yy::location location{};
    
-   lexer_t() : yyFlexLexer() {}
+    lexer_t(std::ifstream *in) : yyFlexLexer(in) {}
   
-   //get rid of override virtual function warning
-   using FlexLexer::yylex;
-
-   int yylex() override;
-   // YY_DECL defined in mc_lexer.l
-   // Method body created by flex in mc_lexer.yy.cc
-
+    int yylex() override;
 };
 
 } // yy

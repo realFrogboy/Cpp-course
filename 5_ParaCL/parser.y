@@ -100,7 +100,7 @@ list: { $$ = nullptr; }
     }
     ;
 
-exp:  exp GRATER exp { 
+exp:  exp GRATER exp {
         ast::binop_t node{ast::binop_type::G, $1, $3};
         $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
     }
@@ -159,11 +159,13 @@ exp:  exp GRATER exp {
     }
     | exp ASSIGN exp {
         if ($1->get_type() != ast::node_type::VARIABLE)
-            std::cout << yy::red << "Error:" << yy::norm << @1 << ": assign to nonvariable type" << std::endl;
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
         ast::binop_t node{ast::binop_type::ASSIGN, $1, $3};
         $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
     }
-    | FUNC LPAREN exp RPAREN { 
+    | FUNC LPAREN exp RPAREN {
+        if ($1 == ast::func_type::SCAN && $3->get_type() != ast::node_type::VARIABLE)
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
         ast::func_t node{$1, $3};
         $$ = drv.tree.ast_insert<ast::func_t>(std::move(node));
     }
