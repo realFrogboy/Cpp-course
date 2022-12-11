@@ -3,6 +3,8 @@
 %language "c++"
 
 %define api.value.type variant
+%define parse.error verbose
+%define parse.lac full
 
 %param { yy::driver_t &drv }
 
@@ -98,6 +100,7 @@ list: { $$ = nullptr; }
             $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
         }
     }
+    | error SCOLON list { yyerrok; }
     ;
 
 exp:  exp GRATER exp {
@@ -186,6 +189,8 @@ parser::token_type yylex(parser::semantic_type *yylval, parser::location_type* l
     return drv.yylex(yylval, location);
 }
 
-void parser::error(const parser::location_type& location, const std::string& what) {}
+void parser::error(const parser::location_type& location, const std::string& what) {
+    std::cout << yy::red << "Error:" << yy::norm << location << ' ' << what << std::endl;
+}
 
 }
