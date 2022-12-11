@@ -1,6 +1,12 @@
 # ParaCL
 Frontend and simulator of the ParaCL language.
 
+## AST
+If you want to seen on generated AST, you should build with DUMP flag:
+
+        cmake --build ./ -DDUMP=true
+    
+
 ## Examples
 ### n-th Fibonacci number
 fib:
