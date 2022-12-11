@@ -176,7 +176,10 @@ exp:  exp GRATER exp {
     ;
 
 program: list END {
-        drv.tree.dump();
+        #ifdef DUMP
+            drv.tree.dump();
+            system("dot -Tpng tree_dump.dot -o image.png");
+        #endif
         drv.tree.evaluate();
     }
     ;

@@ -7,12 +7,13 @@ int main(int argc, char **argv) {
     }
 
     try {
-        std::ifstream file(argv[1]);
+        std::ifstream file;
+        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        file.open(argv[1]);
         yy::driver_t driver(&file);
         driver.parse();
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
         return 0;
     }
-    system("dot -Tpng tree_dump.dot -o image.png");
 }
