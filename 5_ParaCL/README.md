@@ -2,9 +2,9 @@
 Frontend and simulator of the ParaCL language.
 
 ## AST
-If you want to seen on generated AST, you should build with DUMP flag:
+If you want to see on generated AST, you should build with DUMP flag:
 
-        cmake --build ./ -DDUMP=true
+        cmake --configure . -DDUMP=true
     
 
 ## Examples
