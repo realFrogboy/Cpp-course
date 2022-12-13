@@ -60,10 +60,10 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
 
 %token <int> NUMBER
 %token <ast::name_t*> NAME
-%token <int> FUNC
 %nterm <ast::node_t*> exp
 %nterm <ast::node_t*> list
 %nterm <ast::node_t*> stmt
+%nterm <ast::node_t*> io_func
 
 %left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
 %right ASSIGN
@@ -100,6 +100,14 @@ list: { $$ = nullptr; }
         }
     }
     | exp SCOLON list {
+        if ($3 == nullptr)
+            $$ = $1;
+        else {
+            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $3};
+            $$ = drv.tree.ast_insert(std::move(node));
+        }
+    }
+    | io_func SCOLON list {
         if ($3 == nullptr)
             $$ = $1;
         else {
@@ -154,6 +162,16 @@ exp:  exp GRATER exp {
         ast::pow_t node{std::make_unique<ast::binop_dump>("**"), $1, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
+    | exp ASSIGN exp {
+        if ($1->get_type() != ast::node_type::VARIABLE)
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+        ast::assign_t node{std::make_unique<ast::binop_dump>("="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | ABS LPAREN exp RPAREN {
+        ast::abs_t node{std::make_unique<ast::func_dump>("abs"), $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
     | LPAREN exp RPAREN { $$ = $2; }
     | MINUS exp %prec UMINUS { 
         ast::minus_t node{std::make_unique<ast::unop_dump>("-"), $2};
@@ -167,28 +185,20 @@ exp:  exp GRATER exp {
         ast::variable_t node(*$1, std::make_unique<ast::variable_dump>());
         $$ = drv.tree.ast_insert<ast::variable_t>(std::move(node));
     }
-    | exp ASSIGN exp {
-        if ($1->get_type() != ast::node_type::VARIABLE)
-            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
-        ast::assign_t node{std::make_unique<ast::binop_dump>("="), $1, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | PRINT LPAREN exp RPAREN {
-        ast::print_t node{std::make_unique<ast::func_dump>("print"), $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | SCAN LPAREN exp RPAREN {
-        if ($3->get_type() != ast::node_type::VARIABLE)
-            std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
-        ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | ABS LPAREN exp RPAREN {
-        ast::abs_t node{std::make_unique<ast::func_dump>("abs"), $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | ERR { std::cout << yy::red << "Error:" << yy::norm << @1 << ": incorrect input" << std::endl; }
     ;
+
+
+
+io_func: PRINT exp {
+        ast::print_t node{std::make_unique<ast::func_dump>("print"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | SCAN exp {
+        if ($2->get_type() != ast::node_type::VARIABLE)
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
+        ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
 
 program: list END {
         #ifdef DUMP

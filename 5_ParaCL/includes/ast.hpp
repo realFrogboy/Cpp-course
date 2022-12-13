@@ -31,7 +31,7 @@ struct name_t {
 class binop_dump final {
     std::string operation;
     public:
-    binop_dump(std::string op) : operation{op} {}
+    binop_dump(const std::string op) : operation{op} {}
     void dump(const binop_t *node, std::ofstream &file, int &num) const;
     void connect(const binop_t *node, std::ofstream &file, int &num) const;
 };
@@ -39,7 +39,7 @@ class binop_dump final {
 class unop_dump final {
     std::string operation;
     public:
-    unop_dump(std::string op) : operation{op} {}
+    unop_dump(const std::string op) : operation{op} {}
     void dump(const unop_t *node, std::ofstream &file, int &num) const;
     void connect(const unop_t *node, std::ofstream &file, int &num) const;
 };
@@ -59,7 +59,7 @@ class variable_dump final {
 class func_dump final {
     std::string func;
     public:
-    func_dump(std::string func_) : func{func_} {}
+    func_dump(const std::string func_) : func{func_} {}
     void dump(const func_t *node, std::ofstream &file, int &num) const;
     void connect(const func_t *node, std::ofstream &file, int &num) const;
 };
@@ -67,7 +67,7 @@ class func_dump final {
 class flow_dump final {
     std::string flow;
     public:
-    flow_dump(std::string flow_) : flow{flow_} {}
+    flow_dump(const std::string flow_) : flow{flow_} {}
     void dump(const flow_t *node, std::ofstream &file, int &num) const;
     void connect(const flow_t *node, std::ofstream &file, int &num) const;
 };
