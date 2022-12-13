@@ -25,21 +25,9 @@ class driver_t final {
     parser::token_type yylex(parser::semantic_type *yylval, parser::location_type *location) {
         parser::token_type tt = static_cast<parser::token_type>(lexer->yylex());
 
-        if (tt == yy::parser::token_type::NUMBER)
+        if (tt == yy::parser::token_type::NUMBER) {
             yylval->as<int>() = std::stoi(lexer->YYText());
-        
-        else if (tt == yy::parser::token_type::NAME) {
-            if (!strcmp(lexer->YYText(), "print")) {
-                yylval->as<int>() = 1;
-                return yy::parser::token_type::FUNC;
-            } else if (!strcmp(lexer->YYText(), "scan")) {
-                yylval->as<int>() = 2;
-                return yy::parser::token_type::FUNC;
-            } else if (!strcmp(lexer->YYText(), "abs")) {
-                yylval->as<int>() = 3;
-                return yy::parser::token_type::FUNC;
-            }
-
+        } else if (tt == yy::parser::token_type::NAME) {
             if (auto search = tree.find_variable(lexer->YYText()); search != tree.variables_end())
                 yylval->as<ast::name_t*>() = &(search->second);
             else {

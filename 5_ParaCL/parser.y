@@ -12,7 +12,7 @@
 
 %code requires {
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <memory>
 #include <cmath>
 
@@ -45,9 +45,15 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
     NEQUAL  "!="
     GEQUAL  ">="
     LEQUAL  "<="
+
     IF      "if"
     ELSE    "else"
     WHILE   "while"
+
+    PRINT   "print"
+    SCAN    "scan"
+    ABS     "abs"
+
     END 0   "end of file"
 ;
 
@@ -71,16 +77,16 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
 %% 
 
 stmt: IF LPAREN exp RPAREN LUNICORN list RUNICORN {
-        ast::flow_t node(ast::flow_type::IF, std::make_unique<ast::flow_dump>(), $3, $6, nullptr);
-        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node)); 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $6, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node)); 
     }
     | IF LPAREN exp RPAREN LUNICORN list RUNICORN ELSE LUNICORN list RUNICORN { 
-        ast::flow_t node(ast::flow_type::IF, std::make_unique<ast::flow_dump>(), $3, $6, $10);
-        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node));
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $6, $10);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | WHILE LPAREN exp RPAREN LUNICORN list RUNICORN { 
-        ast::flow_t node(ast::flow_type::WHILE, std::make_unique<ast::flow_dump>(), $3, $6, nullptr);
-        $$ = drv.tree.ast_insert<ast::flow_t>(std::move(node));
+        ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $6, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     ;
 
@@ -89,69 +95,69 @@ list: { $$ = nullptr; }
         if ($2 == nullptr)
             $$ = $1;
         else {
-            ast::binop_t node{ast::binop_type::SCOLON, std::make_unique<ast::binop_dump>(), $1, $2};
-            $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $2};
+            $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | exp SCOLON list {
         if ($3 == nullptr)
             $$ = $1;
         else {
-            ast::binop_t node{ast::binop_type::SCOLON, std::make_unique<ast::binop_dump>(), $1, $3};
-            $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $3};
+            $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | error SCOLON list { yyerrok; }
     ;
 
 exp:  exp GRATER exp {
-        ast::binop_t node{ast::binop_type::G, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::g_t node{std::make_unique<ast::binop_dump>(">"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp LESS exp { 
-        ast::binop_t node{ast::binop_type::L, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::l_t node{std::make_unique<ast::binop_dump>("<"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp EQUAL exp { 
-        ast::binop_t node{ast::binop_type::E, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::e_t node{std::make_unique<ast::binop_dump>("=="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp NEQUAL exp { 
-        ast::binop_t node{ast::binop_type::NE, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::ne_t node{std::make_unique<ast::binop_dump>("!="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp GEQUAL exp { 
-        ast::binop_t node{ast::binop_type::GE, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::ge_t node{std::make_unique<ast::binop_dump>(">="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp LEQUAL exp { 
-        ast::binop_t node{ast::binop_type::LE, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::le_t node{std::make_unique<ast::binop_dump>("<="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp PLUS exp { 
-        ast::binop_t node{ast::binop_type::ADD, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::add_t node{std::make_unique<ast::binop_dump>("+"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp MINUS exp { 
-        ast::binop_t node{ast::binop_type::SUB, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::sub_t node{std::make_unique<ast::binop_dump>("-"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp STAR exp { 
-        ast::binop_t node{ast::binop_type::MUL, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::mul_t node{std::make_unique<ast::binop_dump>("*"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp SLASH exp { 
-        ast::binop_t node{ast::binop_type::DIV, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::div_t node{std::make_unique<ast::binop_dump>("/"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp POW exp { 
-        ast::binop_t node{ast::binop_type::POW, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::pow_t node{std::make_unique<ast::binop_dump>("**"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | LPAREN exp RPAREN { $$ = $2; }
     | MINUS exp %prec UMINUS { 
-        ast::unop_t node{ast::unop_type::MINUS, std::make_unique<ast::unop_dump>(), $2};
-        $$ = drv.tree.ast_insert<ast::unop_t>(std::move(node));
+        ast::minus_t node{std::make_unique<ast::unop_dump>("-"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | NUMBER { 
         ast::num_t node{$1, std::make_unique<ast::num_dump>(),};
@@ -164,14 +170,22 @@ exp:  exp GRATER exp {
     | exp ASSIGN exp {
         if ($1->get_type() != ast::node_type::VARIABLE)
             std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
-        ast::binop_t node{ast::binop_type::ASSIGN, std::make_unique<ast::binop_dump>(), $1, $3};
-        $$ = drv.tree.ast_insert<ast::binop_t>(std::move(node));
+        ast::assign_t node{std::make_unique<ast::binop_dump>("="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
-    | FUNC LPAREN exp RPAREN {
-        if ($1 == ast::func_type::SCAN && $3->get_type() != ast::node_type::VARIABLE)
+    | PRINT LPAREN exp RPAREN {
+        ast::print_t node{std::make_unique<ast::func_dump>("print"), $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | SCAN LPAREN exp RPAREN {
+        if ($3->get_type() != ast::node_type::VARIABLE)
             std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
-        ast::func_t node{$1, std::make_unique<ast::func_dump>(), $3};
-        $$ = drv.tree.ast_insert<ast::func_t>(std::move(node));
+        ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | ABS LPAREN exp RPAREN {
+        ast::abs_t node{std::make_unique<ast::func_dump>("abs"), $3};
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | ERR { std::cout << yy::red << "Error:" << yy::norm << @1 << ": incorrect input" << std::endl; }
     ;

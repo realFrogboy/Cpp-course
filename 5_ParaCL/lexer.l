@@ -37,6 +37,10 @@ location.step();
 "else"  return yy::parser::token_type::ELSE;
 "while" return yy::parser::token_type::WHILE;
 
+"print" return yy::parser::token_type::PRINT;
+"scan"  return yy::parser::token_type::SCAN;
+"abs"   return yy::parser::token_type::ABS;
+
 [a-zA-Z][a-zA-Z0-9]* return yy::parser::token_type::NAME;
 [0-9]+ return yy::parser::token_type::NUMBER;
 "//".*
