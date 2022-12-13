@@ -7,7 +7,7 @@
 
 namespace ast {
 
-std::string tree_dump::get_binop_operation(const binop_t *node) {
+std::string binop_dump::get_binop_operation(const binop_t *node) const {
     switch(node->get_operation()) {
         case 1: return ">";
         case 2: return "<";
@@ -26,14 +26,14 @@ std::string tree_dump::get_binop_operation(const binop_t *node) {
     }
 }
 
-std::string tree_dump::get_unop_operation(const unop_t *node) {
+std::string unop_dump::get_unop_operation(const unop_t *node) const {
     switch(node->get_operation()) {
         case 1: return "-";
         default: throw std::runtime_error("no such unary operation");
     }
 }
 
-std::string tree_dump::get_func(const func_t *node) {
+std::string func_dump::get_func_d(const func_t *node) const {
     switch(node->get_func()) {
         case 1: return "print";
         case 2: return "scan";
@@ -42,7 +42,7 @@ std::string tree_dump::get_func(const func_t *node) {
     }
 }
 
-std::string tree_dump::get_flow(const flow_t *node) {
+std::string flow_dump::get_flow_d(const flow_t *node) const {
     switch(node->get_flow()) {
         case 1: return "if";
         case 2: return "while";
@@ -50,234 +50,209 @@ std::string tree_dump::get_flow(const flow_t *node) {
     }
 }
 
-void tree_dump::graph_node(const node_t *node, std::ofstream& file) {
-    //if (node == nullptr) return;
-
-    switch(node->get_type()) {
-        case node_type::BINOP:    graph_binop_node(node, file); break;
-        case node_type::UNOP:     graph_unop_node(node, file); break;
-        case node_type::NUMBER:   graph_num_node(node, file); break;
-        case node_type::VARIABLE: graph_var_node(node, file); break;
-        case node_type::FUNCTION: graph_func_node(node, file); break;
-        case node_type::FLOW:     graph_flow_node(node, file); break;
-        default: throw std::runtime_error("no such node type");
-    }
-}
-
-void tree_dump::graph_binop_node(const node_t *node, std::ofstream &file) {
-    const binop_t *b_node = static_cast<const binop_t*>(node);
+void binop_dump::dump(const binop_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    std::string op = get_binop_operation(b_node);
+    std::string op = get_binop_operation(node);
     file << "\tnode" << num << " [shape = \"invtriangle\", style = \"filled\", fillcolor = \"pink\", label = \"" << op << "\"];\n";
     num++;
 
-    graph_node(b_node->lhs, file);
-    graph_node(b_node->rhs, file);
+    node->lhs->graph_node(file, num);
+    node->rhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
 
-void tree_dump::graph_unop_node(const node_t *node, std::ofstream &file) {
-    const unop_t *u_node = static_cast<const unop_t*>(node);
+void unop_dump::dump(const unop_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    std::string op = get_unop_operation(u_node);
+    std::string op = get_unop_operation(node);
     file << "\tnode" << num << " [shape = \"record\", fontcolor = \"white\", style = \"filled\", fillcolor = \"grey28\", label = \"" << op << "\"];\n";
     num++;
 
-    graph_node(u_node->lhs, file);
+    node->lhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
 
-void tree_dump::graph_num_node(const node_t *node, std::ofstream &file) {
+void num_dump::dump(const num_t *node, std::ofstream &file, int &num) const {
     int curr = num;
     
-    file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"greenyellow\", label = \"" << static_cast<const num_t*>(node)->get_value() << "\"];\n";
+    file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"greenyellow\", label = \"" << node->get_value() << "\"];\n";
     num++;
 
     if (!curr) num = 0;
 }
 
-void tree_dump::graph_var_node(const node_t *node, std::ofstream &file) {
+void variable_dump::dump(const variable_t *node, std::ofstream &file, int &num) const {
     int curr = num;
     
-    file << "\tnode" << num << " [shape = \"circle\", style = \"filled\", fillcolor = \"lightskyblue1\", label = \"" << static_cast<const variable_t*>(node)->get_name().name << "\"];\n";
+    file << "\tnode" << num << " [shape = \"circle\", style = \"filled\", fillcolor = \"lightskyblue1\", label = \"" << node->get_name().name << "\"];\n";
     num++;
 
     if (!curr) num = 0;
 }
 
-void tree_dump::graph_func_node(const node_t *node, std::ofstream &file) {
-    const func_t *f_node = static_cast<const func_t*>(node);
+void func_dump::dump(const func_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    std::string func = get_func(f_node);
+    std::string func = get_func_d(node);
     file << "\tnode" << num << " [shape = \"diamond\", style = \"filled\", fillcolor = \"red\", label = \"" << func << "\"];\n";
     num++;
 
-    graph_node(f_node->lhs, file);
+    node->lhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
 
-void tree_dump::graph_flow_node(const node_t *node, std::ofstream &file) {
-    const flow_t *f_node = static_cast<const flow_t*>(node);
+void flow_dump::dump(const flow_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    std::string flow = get_flow(f_node);
+    std::string flow = get_flow_d(node);
     file << "\tnode" << num << " [shape = \"invhouse\", style = \"filled\", fillcolor = \"antiquewhite\", label = \"" << flow << "\"];\n";
     num++;
 
-    graph_node(f_node->cond, file);
-    graph_node(f_node->lhs, file);
+    node->cond->graph_node(file, num);
+    node->lhs->graph_node(file, num);
 
-    if (f_node->rhs) graph_node(f_node->rhs, file);
+    if (node->rhs) node->rhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
 
-void tree_dump::connect_node(const node_t *node, std::ofstream& file) {
-    switch(node->get_type()) {
-        case node_type::BINOP:    connect_bin_node(node, file); break;
-        case node_type::FUNCTION:
-        case node_type::UNOP:     connect_un_node(node, file); break;
-        case node_type::NUMBER:   
-        case node_type::VARIABLE: break;
-        case node_type::FLOW:     connect_flow_node(node, file); break;
-        default: throw std::runtime_error("no such node type");
-    }
-}
-
-void tree_dump::connect_bin_node(const node_t *node, std::ofstream& file) {
-    const binop_t *b_node = static_cast<const binop_t*>(node);
+void binop_dump::connect(const binop_t *node, std::ofstream& file, int &num) const {
     int curr = num;
 
-    if (b_node->lhs != nullptr) {
+    if (node->lhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(b_node->lhs, file);
+        node->lhs->connect_node(file, num);
     }
 
-    if (b_node->rhs != nullptr) {
+    if (node->rhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(b_node->rhs, file);
+        node->rhs->connect_node(file, num);
     }
 
     if (!curr) num = 0;
 }
 
-void tree_dump::connect_un_node(const node_t *node, std::ofstream& file) {
-    const unop_t *u_node = static_cast<const unop_t*>(node);
+void unop_dump::connect(const unop_t *node, std::ofstream& file, int &num) const {
     int curr = num;
 
-    if (u_node->lhs != nullptr) {
+    if (node->lhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(u_node->lhs, file);
+        node->lhs->connect_node(file, num);
     }
 
     if (!curr) num = 0;
 }
 
-void tree_dump::connect_flow_node(const node_t *node, std::ofstream& file) {
-    const flow_t *f_node = static_cast<const flow_t*>(node);
+void num_dump::connect(const num_t *node, std::ofstream& file, int &num) const { return; }
+void variable_dump::connect(const variable_t *node, std::ofstream& file, int &num) const { return; }
+
+void func_dump::connect(const func_t *node, std::ofstream& file, int &num) const {
+    int curr = num;
+
+    if (node->lhs != nullptr) {
+        num++;
+        file << "node" << curr << " -> node" << num << ";\n";
+
+        node->lhs->connect_node(file, num);
+    }
+
+    if (!curr) num = 0;
+}
+
+void flow_dump::connect(const flow_t *node, std::ofstream& file, int &num) const {
     int curr = num;
 
     num++;
     file << "node" << curr << " -> node" << num << ";\n";
 
-    connect_node(f_node->cond, file);
+    node->cond->connect_node(file, num);
 
-    if (f_node->lhs != nullptr) {
+    if (node->lhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(f_node->lhs, file);
+        node->lhs->connect_node(file, num);
     }
 
-    if (f_node->rhs != nullptr) {
+    if (node->rhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
 
-        connect_node(f_node->rhs, file);
+        node->rhs->connect_node(file, num);
     }
 
     if (!curr) num = 0;
 }
 
-int tree_t::eval(const node_t *node) {
-    switch (node->get_type()) {
-        case node_type::BINOP   : return evaluate_binop(static_cast<const binop_t*>(node));
-        case node_type::UNOP    : return evaluate_unop (static_cast<const unop_t*>(node));
-        case node_type::NUMBER  : return evaluate_num  (static_cast<const num_t*>(node));
-        case node_type::VARIABLE: return evaluate_var  (static_cast<const variable_t*>(node));
-        case node_type::FUNCTION: return evaluate_func (static_cast<const func_t*>(node));
-        case node_type::FLOW    : return evaluate_flow (static_cast<const flow_t*>(node));
-        default: throw std::runtime_error("no such function");
-    }
-}
-
-int tree_t::evaluate_binop(const binop_t *node) {
-    switch (node->get_operation()) {
-        case binop_type::G: return (eval(node->lhs) > eval(node->rhs));
-        case binop_type::L: return (eval(node->lhs) < eval(node->rhs));
-        case binop_type::E: return (eval(node->lhs) == eval(node->rhs));
-        case binop_type::NE: return (eval(node->lhs) != eval(node->rhs));
-        case binop_type::GE: return (eval(node->lhs) >= eval(node->rhs));
-        case binop_type::LE: return (eval(node->lhs) <= eval(node->rhs));
-        case binop_type::ADD: return (eval(node->lhs) + eval(node->rhs));
-        case binop_type::SUB: return (eval(node->lhs) - eval(node->rhs));
-        case binop_type::MUL: return (eval(node->lhs) * eval(node->rhs));
-        case binop_type::DIV: return (eval(node->lhs) / eval(node->rhs));
+int binop_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    switch (operation) {
+        case binop_type::G: return (lhs->eval(variables) > rhs->eval(variables));
+        case binop_type::L: return (lhs->eval(variables) < rhs->eval(variables));
+        case binop_type::E: return (lhs->eval(variables) == rhs->eval(variables));
+        case binop_type::NE: return (lhs->eval(variables) != rhs->eval(variables));
+        case binop_type::GE: return (lhs->eval(variables) >= rhs->eval(variables));
+        case binop_type::LE: return (lhs->eval(variables) <= rhs->eval(variables));
+        case binop_type::ADD: return (lhs->eval(variables) + rhs->eval(variables));
+        case binop_type::SUB: return (lhs->eval(variables) - rhs->eval(variables));
+        case binop_type::MUL: return (lhs->eval(variables) * rhs->eval(variables));
+        case binop_type::DIV: return (lhs->eval(variables) / rhs->eval(variables));
         case binop_type::ASSIGN: {
-            std::string var = static_cast<variable_t*>(node->lhs)->get_name().name;
+            std::string var = static_cast<variable_t*>(lhs)->get_name().name;
             auto search = variables.find(var);
-            search->second.value = eval(node->rhs);
+            search->second.value = rhs->eval(variables);
             return search->second.value;
         }
         case binop_type::POW: {
-            int degree = eval(node->rhs);
+            int degree = rhs->eval(variables);
             if (degree < 0) {
-                int res = pow(eval(node->lhs), -degree);
+                int res = pow(lhs->eval(variables), -degree);
                 return 1/res;
             } else {
-                int res = pow(eval(node->lhs), degree);
+                int res = pow(lhs->eval(variables), degree);
                 return res;
             }
         }
         case binop_type::SCOLON: {
-            if (node->lhs != nullptr) eval(node->lhs);
-            if (node->rhs != nullptr) eval(node->rhs);
+            if (lhs != nullptr) lhs->eval(variables);
+            if (rhs != nullptr) rhs->eval(variables);
             return 0;
         }
         default: throw std::runtime_error("no such binary opertion");
     }
 }
 
-int tree_t::evaluate_unop(const unop_t *node) {
-    switch (node->get_operation()) {
-        case unop_type::MINUS: return -eval(node->lhs); break;
+int unop_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    switch (operation) {
+        case unop_type::MINUS: return -lhs->eval(variables); break;
         default: throw std::runtime_error("no such unary opertion");
     }
 }
 
-int tree_t::evaluate_var(const variable_t *node) {
-    auto search = variables.find(node->get_name().name);
+int num_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    return value;
+}
+
+int variable_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    auto search = variables.find(name.name);
     return search->second.value;
 }
 
-int tree_t::evaluate_func(const func_t *node) {
-    switch (node->get_func()) {
-        case func_type::ABS  : return std::abs(eval(node->lhs));
-        case func_type::PRINT: std::cout << eval(node->lhs) << std::endl; return 0;
+int func_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    switch (func_id) {
+        case func_type::ABS  : return std::abs(lhs->eval(variables));
+        case func_type::PRINT: std::cout << lhs->eval(variables) << std::endl; return 0;
         case func_type::SCAN : {
-            std::string var = static_cast<variable_t*>(node->lhs)->get_name().name;
+            std::string var = static_cast<variable_t*>(lhs)->get_name().name;
             auto search = variables.find(var);
             std::cin >> search->second.value;
             return search->second.value;
@@ -286,19 +261,19 @@ int tree_t::evaluate_func(const func_t *node) {
     }
 }
 
-int tree_t::evaluate_flow(const flow_t *node) {
-    switch (node->get_flow()) {
+int flow_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    switch (flow_id) {
         case flow_type::IF: {
-            if (eval(node->cond)) {
-                eval(node->lhs);
-            } else if (node->rhs != nullptr) {
-                eval(node->rhs);
+            if (cond->eval(variables)) {
+                lhs->eval(variables);
+            } else if (rhs != nullptr) {
+                rhs->eval(variables);
             }
             return 0;
         }
         case flow_type::WHILE: {
-            while (eval(node->cond)) {
-                eval(node->lhs);
+            while (cond->eval(variables)) {
+                lhs->eval(variables);
             }
             return 0;
         }
@@ -310,9 +285,10 @@ void tree_t::dump() const {
     std::ofstream file("tree_dump.dot");
     file << "digraph tree {\n";
 
-    tree_dump dump{};
-    dump.graph_node(root, file);
-    dump.connect_node(root, file);
+    int num = 0;
+
+    root->graph_node(file, num);
+    root->connect_node(file, num);
 
     file << "}";
     return;
