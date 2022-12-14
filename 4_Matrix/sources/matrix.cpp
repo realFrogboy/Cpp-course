@@ -14,15 +14,10 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : buf(rg) 
 
     auto iter = input.begin();
     for (unsigned i = 0; i < rg; ++i) {
-        buf.colons.construct(i, i);
+        buf.colons.push(i);
         for (unsigned j = 0; j < rg; ++j, ++iter)
-            buf.data[i].construct(j, std::move(*iter));
+            buf.data[i].push(*iter);
     }
-}
-
-matrix_t::matrix_t(const matrix_t& rhs) : buf(rhs.buf.rank) {
-    buf.colons = rhs.buf.colons;
-    buf.data = rhs.buf.data;
 }
 
 bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
@@ -107,43 +102,30 @@ void matrix_t::dump() const {
 }
 
 matrix_t::proxy_row& matrix_t::proxy_row::operator+=(const matrix_t::proxy_row& rhs) {
-    unsigned idx = 0;
-    std::for_each(row, row + matrix.buf.rank, [&idx, &rhs](double &curr){ curr += rhs.row[idx++]; });
+    std::transform(begin(), end(), rhs.begin(), begin(), [](double &dest, double &src){ return dest += src; });
     return *this;
 }
 
 matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
-    unsigned idx = 0;
-    std::for_each(row, row + matrix.buf.rank, [&idx, &rhs](double &curr){ curr -= rhs.data[idx++]; });
+    std::transform(begin(), end(), rhs.begin(), begin(), [](double &dest, double &src){ return dest -= src; });
     return *this;
 }
 
 row_t::row_t(const matrix_t::proxy_row &rhs) : rank(rhs.matrix.get_rank()) {
-    buffer_t<double> data_tmp(rank);
+    buffer_t<double> data_tmp{};
     for (unsigned idx = 0; idx < rank; ++idx)
-        data_tmp.construct(idx, std::move(rhs.row[idx]));
+        data_tmp.push(rhs.row[idx]);
 
     data.swap(data_tmp);
-}
-
-row_t::row_t(const row_t &rhs) : rank(rhs.rank) {
-    buffer_t<double> data_tmp(rank);
-    data_tmp = rhs.data;
-    data.swap(data_tmp);
-}
-
-row_t::row_t(row_t &&rhs) : rank(rhs.rank) { 
-    data.swap(data);
 }
 
 row_t &row_t::operator+=(const row_t &rhs) {
-    unsigned idx = 0;
-    std::for_each(data.buffer(), data.buffer() + rank, [&idx, &rhs](double &curr){ curr = rhs.data[idx++]; });
+    std::transform(begin(), end(), rhs.begin(), begin(), [](double &dest, double &src){ return dest += src; });
     return *this;
 }
 
 row_t &row_t::operator*=(const double rhs) {
-    std::for_each(data.buffer(), data.buffer() + rank, [rhs](double &curr){ curr *= rhs; });
+    std::for_each(begin(), end(), [rhs](double &curr){ curr *= rhs; });
     return *this;
 }
 

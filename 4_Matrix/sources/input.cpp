@@ -28,6 +28,10 @@ T get() {
 namespace get_data {
 
 std::pair<unsigned, std::vector<double>> get_data() {
+    if ((std::cin >> std::ws).eof()) {
+        throw std::runtime_error("empty file");
+    }
+
     int rank = get<int>();
     while (rank < 1) {
         std::cout << "Matrix order should be > 0" << std::endl;

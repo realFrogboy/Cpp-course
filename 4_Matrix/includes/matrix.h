@@ -26,18 +26,32 @@ class buffer_t final {
         std::swap(size, rhs.size);
     }
 
-    void construct(unsigned idx, const T &&rhs) { new (data + idx) T(rhs); ++size; }
+    void realloc() {
+        capacity *= 2;
+        buffer_t tmp(*this);
+        swap(tmp);
+    }
 
-    buffer_t(size_t n = 0) : capacity(n) {
-        (n == 0) ? data = nullptr : data = static_cast<T*>(::operator new(sizeof(T) * n));
+    void push(T &&rhs) { 
+        if (size == capacity) realloc();
+        new (data + size) T(rhs); ++size; 
+    }
+    void push(const T &rhs) { 
+        if (size == capacity) realloc();
+        new (data + size) T(rhs); ++size; 
+    }
+
+    buffer_t(size_t n = 4) : capacity(n) {
+        if (n != 0) 
+            data = static_cast<T*>(::operator new(sizeof(T) * n));
     }
 
     buffer_t(const buffer_t &rhs) : capacity(rhs.capacity) {
         if (this == &rhs) return;
 
         buffer_t tmp(capacity);
-        for (unsigned i = 0; i < capacity; ++i)
-            tmp.construct(i, std::move(rhs.data[i]));
+        for (unsigned i = 0; i < rhs.size; ++i)
+            tmp.push(rhs.data[i]);
 
         swap(tmp);
     }
@@ -57,6 +71,9 @@ class buffer_t final {
         return *this;
     }
 
+    T *begin() const { return data; }
+    T *end()   const { return data + size; }
+
     T &operator[](unsigned idx) const {
         return data[idx];
     }
@@ -64,7 +81,7 @@ class buffer_t final {
     ~buffer_t() noexcept {
         if (data == nullptr) return;
 
-        destroy(data, data + capacity);
+        destroy(data, data + size);
         ::operator delete(data);
     }
 
@@ -80,33 +97,15 @@ struct matrix_buf final {
     size_t rank;
 
     matrix_buf(size_t rg = 0) : rank(rg) {
-        buffer_t<buffer_t<double>> data_tmp(rg);
+        buffer_t<buffer_t<double>> data_tmp{};
         for (unsigned idx = 0; idx < rg; ++idx) {
-            buffer_t<double> tmp(rg);
-            data_tmp.construct(idx, std::move(tmp));
+            buffer_t<double> tmp{};
+            data_tmp.push(std::move(tmp));
         }
-        buffer_t<int> colons_tmp(rg);
+        buffer_t<int> colons_tmp{};
 
         data.swap(data_tmp);
         colons.swap(colons_tmp);
-    }
-
-    matrix_buf(const matrix_buf &rhs) = delete;
-    matrix_buf &operator=(const matrix_buf &rhs) = delete;
-
-    matrix_buf(matrix_buf &&rhs) noexcept : rank(rhs.rank) {
-        data.swap(rhs.data);
-        for (unsigned idx = 0; idx < rank; ++idx)
-            data[idx].swap(rhs.data[idx]);
-        colons.swap(rhs.colons);
-    }
-
-    matrix_buf &operator=(matrix_buf &&rhs) noexcept {
-        data.swap(rhs.data);
-        for (unsigned idx = 0; idx < rank; ++idx)
-            data[idx].swap(rhs.data[idx]);
-        colons.swap(rhs.colons);
-        return *this;
     }
 };
 
@@ -127,17 +126,14 @@ class matrix_t final {
         double& operator[](const unsigned n_col) { return row[matrix.buf.colons[n_col - 1]]; }
         const double& operator[](const unsigned n_col) const { return row[matrix.buf.colons[n_col - 1]]; }
 
-        proxy_row& operator+=(const proxy_row& rhs);
-        proxy_row& operator-=(const row_t& rhs);
+        double *begin() const { return row; }
+        double *end()   const { return row + matrix.buf.rank; }
+
+        proxy_row& operator+=(const proxy_row &rhs);
+        proxy_row& operator-=(const row_t &rhs);
     };
 
     matrix_t(const std::vector<double>& input, const size_t rg);
-
-    matrix_t(const matrix_t& rhs);
-    matrix_t& operator=(const matrix_t& rhs) = delete;
-
-    matrix_t(const matrix_t&& rhs) = delete;
-    matrix_t& operator=(const matrix_t&& rhs) = delete;
 
     size_t get_rank() const { return buf.rank; }
 
@@ -146,7 +142,6 @@ class matrix_t final {
     proxy_row operator[](const unsigned n_row) const;
 
     bool row_swap(const unsigned lhs, const unsigned rhs) const;
-
     bool con_swap(const unsigned lhs, const unsigned rhs) const;
 
     double determinant() const;
@@ -164,21 +159,16 @@ class row_t final {
 
     buffer_t<double> data;
 
-    row_t(const matrix_t::proxy_row& row);
+    row_t(const matrix_t::proxy_row &row);
 
-    row_t(const row_t& rhs);
-    row_t& operator=(const row_t& rhs) = delete;
+    double *begin() const { return data.begin(); }
+    double *end()   const { return data.end(); }
 
-    row_t(row_t&& rhs);
-    row_t& operator=(row_t&& rhs) = delete;
-
-    row_t& operator+=(const row_t& rhs);
-
+    row_t& operator+=(const row_t &rhs);
     row_t& operator*=(const double rhs);
-
 };
 
-row_t operator+(const row_t& lhs, const row_t& rhs);
-row_t operator*(const row_t&lhs, const double rhs);
+row_t operator+(const row_t &lhs, const row_t &rhs);
+row_t operator*(const row_t &lhs, const double rhs);
 
 } // matrix
