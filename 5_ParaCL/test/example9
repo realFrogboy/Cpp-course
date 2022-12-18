@@ -1,0 +1,16 @@
+a = ?;
+if (a >= 5)
+    while (a) 
+        a = a - 1;
+else if (a == 4) 
+    while (a != 2)
+        a = a - 1;
+else if (a == 3) 
+    print a;
+else if (a == 2)
+    print 10;
+else
+    while (a)
+        a = a-1;
+
+print(a);

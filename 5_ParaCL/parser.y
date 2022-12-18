@@ -70,7 +70,8 @@ namespace yy {
 %nterm <ast::node_t*> io_func
 %nterm <ast::node_t*> line
 %nterm <ast::node_t*> if_stmt
-%nterm <ast::node_t*> if_body
+%nterm <ast::node_t*> while_stmt
+%nterm <ast::node_t*> body
 
 %left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
 %right ASSIGN
@@ -84,27 +85,48 @@ namespace yy {
 %% 
 
 stmt: if_stmt
-    | WHILE LPAREN exp RPAREN if_body { 
+    | while_stmt
+    | IF LPAREN exp RPAREN body ELSE stmt { 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | IF LPAREN exp RPAREN while_stmt ELSE stmt { 
+           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+           $$ = drv.tree.ast_insert(std::move(node));
+       }
+    | WHILE LPAREN exp RPAREN stmt { 
         ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
         $$ = drv.tree.ast_insert(std::move(node));
     }
     ;
 
-if_stmt: IF LPAREN exp RPAREN if_body {
+if_stmt: IF LPAREN exp RPAREN body {
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
            $$ = drv.tree.ast_insert(std::move(node)); 
        }
-       | IF LPAREN exp RPAREN if_body ELSE if_body { 
+       | IF LPAREN exp RPAREN body ELSE body { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
        }
-       | IF LPAREN exp RPAREN if_body ELSE if_stmt { 
+       | IF LPAREN exp RPAREN while_stmt { 
+           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
+           $$ = drv.tree.ast_insert(std::move(node));
+       }
+       | IF LPAREN exp RPAREN while_stmt ELSE body { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
        }
+       ;
 
-if_body: line { $$ = $1; }
-       | LUNICORN list RUNICORN { $$ = $2; }
+while_stmt: WHILE LPAREN exp RPAREN body { 
+               ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
+               $$ = drv.tree.ast_insert(std::move(node));
+           }
+           ;
+
+body: line { $$ = $1; }
+    | LUNICORN list RUNICORN { $$ = $2; }
+    ;
 
 list: { $$ = nullptr; }
     | stmt list {
@@ -128,6 +150,7 @@ list: { $$ = nullptr; }
 
 line: exp SCOLON     { $$ = $1; }
     | io_func SCOLON { $$ = $1; }
+    ;
 
 exp:  exp GRATER exp {
         ast::g_t node{std::make_unique<ast::binop_dump>(">"), $1, $3};
