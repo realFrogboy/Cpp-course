@@ -84,15 +84,7 @@ namespace yy {
 %% 
 
 stmt: if_stmt
-    | IF LPAREN exp RPAREN if_body ELSE if_stmt { 
-        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | WHILE LPAREN exp RPAREN LUNICORN list RUNICORN { 
-        ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $6, nullptr);
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | WHILE LPAREN exp RPAREN line { 
+    | WHILE LPAREN exp RPAREN if_body { 
         ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
         $$ = drv.tree.ast_insert(std::move(node));
     }
@@ -103,6 +95,10 @@ if_stmt: IF LPAREN exp RPAREN if_body {
            $$ = drv.tree.ast_insert(std::move(node)); 
        }
        | IF LPAREN exp RPAREN if_body ELSE if_body { 
+           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+           $$ = drv.tree.ast_insert(std::move(node));
+       }
+       | IF LPAREN exp RPAREN if_body ELSE if_stmt { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
        }
