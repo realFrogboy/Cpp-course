@@ -304,6 +304,12 @@ class abs_t final : public func_t {
     int eval(std::unordered_map<std::string, ast::name_t> &variables) override { return std::abs(lhs->eval(variables)); }
 };
 
+class get_t final : public func_t {
+    public:
+    get_t(std::unique_ptr<func_dump>dump_) : func_t{std::move(dump_), nullptr} {}
+    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
+};
+
 class flow_t : public node_t {
     std::unique_ptr<flow_dump> dump;
 

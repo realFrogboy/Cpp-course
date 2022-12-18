@@ -5,6 +5,28 @@
 #include "ast.hpp"
 #include "pow.hpp"
 
+namespace {
+
+void cls() {
+    std::cout << "Incorrect input" << std::endl;
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+template <typename T>
+T get() {
+    T val;
+    std::cin >> val;
+
+    while (!(std::cin && (std::isspace(std::cin.peek()) || std::cin.eof()))) {
+        cls();
+        std::cin >> val;
+    }
+    return val;
+}
+
+}
+
 namespace ast {
 
 void binop_dump::dump(const binop_t *node, std::ofstream &file, int &num) const {
@@ -54,7 +76,7 @@ void func_dump::dump(const func_t *node, std::ofstream &file, int &num) const {
     file << "\tnode" << num << " [shape = \"diamond\", style = \"filled\", fillcolor = \"red\", label = \"" << func << "\"];\n";
     num++;
 
-    node->lhs->graph_node(file, num);
+    if (node->lhs) node->lhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
@@ -181,15 +203,21 @@ int variable_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
 }
 
 int print_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
-    std::cout << lhs->eval(variables) << std::endl; 
-    return 0;
+    int res = lhs->eval(variables);
+    std::cout << res << std::endl; 
+    return res;
 }
 
 int scan_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     std::string var = static_cast<variable_t*>(lhs)->get_name().name;
     auto search = variables.find(var);
-    std::cin >> search->second.value;
+    search->second.value = get<int>();
     return search->second.value;
+}
+
+int get_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    int res = get<int>();
+    return res;
 }
 
 int if_t::eval(std::unordered_map<std::string, ast::name_t> &variables) { 

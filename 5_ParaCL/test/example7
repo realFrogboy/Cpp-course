@@ -1,0 +1,4 @@
+c = ?;
+while (c)
+    c = c - 1;
+print c;

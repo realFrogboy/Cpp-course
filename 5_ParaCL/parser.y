@@ -53,6 +53,7 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
     PRINT   "print"
     SCAN    "scan"
     ABS     "abs"
+    GET     "?"
 
     END 0   "end of file"
 ;
@@ -64,6 +65,9 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
 %nterm <ast::node_t*> list
 %nterm <ast::node_t*> stmt
 %nterm <ast::node_t*> io_func
+%nterm <ast::node_t*> line
+%nterm <ast::node_t*> if_stmt
+%nterm <ast::node_t*> if_body
 
 %left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
 %right ASSIGN
@@ -76,19 +80,32 @@ namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::l
 
 %% 
 
-stmt: IF LPAREN exp RPAREN LUNICORN list RUNICORN {
-        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $6, nullptr);
-        $$ = drv.tree.ast_insert(std::move(node)); 
-    }
-    | IF LPAREN exp RPAREN LUNICORN list RUNICORN ELSE LUNICORN list RUNICORN { 
-        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $6, $10);
+stmt: if_stmt
+    | IF LPAREN exp RPAREN if_body ELSE if_stmt { 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | WHILE LPAREN exp RPAREN LUNICORN list RUNICORN { 
         ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $6, nullptr);
         $$ = drv.tree.ast_insert(std::move(node));
     }
+    | WHILE LPAREN exp RPAREN line { 
+        ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
     ;
+
+if_stmt: IF LPAREN exp RPAREN if_body {
+           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
+           $$ = drv.tree.ast_insert(std::move(node)); 
+       }
+       | IF LPAREN exp RPAREN if_body ELSE if_body { 
+           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+           $$ = drv.tree.ast_insert(std::move(node));
+       }
+
+if_body: line { $$ = $1; }
+       | LUNICORN list RUNICORN { $$ = $2; }
 
 list: { $$ = nullptr; }
     | stmt list {
@@ -99,24 +116,19 @@ list: { $$ = nullptr; }
             $$ = drv.tree.ast_insert(std::move(node));
         }
     }
-    | exp SCOLON list {
-        if ($3 == nullptr)
+    | line list {
+        if ($2 == nullptr)
             $$ = $1;
         else {
-            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $3};
-            $$ = drv.tree.ast_insert(std::move(node));
-        }
-    }
-    | io_func SCOLON list {
-        if ($3 == nullptr)
-            $$ = $1;
-        else {
-            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $3};
+            ast::scolon_t node{std::make_unique<ast::binop_dump>(";"), $1, $2};
             $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | error SCOLON list { yyerrok; }
     ;
+
+line: exp SCOLON     { $$ = $1; }
+    | io_func SCOLON { $$ = $1; }
 
 exp:  exp GRATER exp {
         ast::g_t node{std::make_unique<ast::binop_dump>(">"), $1, $3};
@@ -172,6 +184,10 @@ exp:  exp GRATER exp {
         ast::abs_t node{std::make_unique<ast::func_dump>("abs"), $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
+    | GET {
+        ast::get_t node{std::make_unique<ast::func_dump>("?")};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
     | LPAREN exp RPAREN { $$ = $2; }
     | MINUS exp %prec UMINUS { 
         ast::minus_t node{std::make_unique<ast::unop_dump>("-"), $2};
@@ -186,8 +202,6 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::variable_t>(std::move(node));
     }
     ;
-
-
 
 io_func: PRINT exp {
         ast::print_t node{std::make_unique<ast::func_dump>("print"), $2};
