@@ -23,7 +23,10 @@ namespace yy { class driver_t; }
 
 %code {
 #include "driver.hpp"
-namespace yy { parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); }
+namespace yy { 
+    parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); 
+    bool is_error = 0;
+}
 }
 
 %token
@@ -175,8 +178,10 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp ASSIGN exp {
-        if ($1->get_type() != ast::node_type::VARIABLE)
+        if ($1->get_type() != ast::node_type::VARIABLE) {
             std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
         ast::assign_t node{std::make_unique<ast::binop_dump>("="), $1, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
@@ -208,13 +213,16 @@ io_func: PRINT exp {
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | SCAN exp {
-        if ($2->get_type() != ast::node_type::VARIABLE)
+        if ($2->get_type() != ast::node_type::VARIABLE) {
             std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
+            is_error = 1;
+        }
         ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $2};
         $$ = drv.tree.ast_insert(std::move(node));
     }
 
 program: list END {
+        if (is_error) return 0;
         #ifdef DUMP
             drv.tree.dump();
             system("dot -Tpng tree_dump.dot -o image.png");
@@ -233,6 +241,7 @@ parser::token_type yylex(parser::semantic_type *yylval, parser::location_type* l
 
 void parser::error(const parser::location_type& location, const std::string& what) {
     std::cout << yy::red << "Error:" << yy::norm << location << ' ' << what << std::endl;
+    is_error = 1;
 }
 
 }
