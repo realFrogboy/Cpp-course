@@ -1,0 +1,11 @@
+a = +3;
+c = a ** +4;
+d = a & ~a;
+k = a | ~a;
+l = a ^ a;
+g = a ^ 0;
+print g;
+print l;
+print k;
+print d;
+print c;

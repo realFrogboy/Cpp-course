@@ -3,4 +3,4 @@ a = 0;
 d = c ** a;
 print(d);
 print(c ** (-2));
-print(c ** 2);
+print(c ** +2);

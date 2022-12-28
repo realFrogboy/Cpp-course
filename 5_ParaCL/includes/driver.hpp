@@ -27,7 +27,6 @@ class driver_t final {
 
         if (tt == yy::parser::token_type::NUMBER)
             yylval->as<int>() = std::stoi(lexer->YYText());
-        
         else if (tt == yy::parser::token_type::NAME) {
             if (auto search = tree.find_variable(lexer->YYText()); search != tree.variables_end())
                 yylval->as<ast::name_t*>() = &(search->second);

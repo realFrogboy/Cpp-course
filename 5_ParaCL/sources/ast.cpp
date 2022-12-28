@@ -1,4 +1,5 @@
 #include <string>
+#include <limits>
 #include <fstream>
 #include <iostream>
 
@@ -173,6 +174,90 @@ int assign_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     std::string var = static_cast<variable_t*>(lhs)->get_name().name;
     auto search = variables.find(var);
     search->second.value = rhs->eval(variables);
+    return search->second.value;
+} 
+
+int add_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value += rhs->eval(variables);
+    return search->second.value;
+} 
+
+int sub_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value -= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int mult_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value *= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int div_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value /= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int remainder_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value %= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int l_shift_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value <<= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int r_shift_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value >>= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int b_and_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value &= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int b_or_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value |= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int xor_a_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value ^= rhs->eval(variables);
+    return search->second.value;
+} 
+
+int pr_increment_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value = lhs->eval(variables) + 1;
+    return search->second.value;
+} 
+
+int pr_decrement_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
+    auto search = variables.find(var);
+    search->second.value = lhs->eval(variables) - 1;
     return search->second.value;
 } 
 

@@ -30,24 +30,53 @@ namespace yy {
 }
 
 %token
-    ERR
+    ERR     "UNKNOWN SYMBOL"
+
     POW     "**"
-    ASSIGN  "="
     MINUS   "-"
     PLUS    "+"
     STAR    "*"
     SLASH   "/"
+    PERSENT "%"
+
     LPAREN  "("
     RPAREN  ")"
     LUNICORN "{"
     RUNICORN "}"
     SCOLON  ";"
+
     GRATER  ">"
     LESS    "<"
     EQUAL   "=="
     NEQUAL  "!="
     GEQUAL  ">="
     LEQUAL  "<="
+
+    AMPERSAND "&"
+    STICK     "|"
+    TILDA     "~"
+    CAP       "^"
+    L_SHIFT   "<<"
+    R_SHIFT   ">>"
+
+    D_AMPERSAND "&&"
+    D_STICK     "||"
+    NOT     "!"
+
+    D_PLUS  "++"
+    D_MINUS "--"
+
+    ASSIGN      "="
+    PLUS_A      "+="
+    MINUS_A     "-="
+    STAR_A      "*="
+    SLASH_A     "/="
+    PERSENT_A   "%="
+    L_SHIFT_A   "<<="
+    R_SHIFT_A   ">>="
+    AMPERSAND_A "&="
+    STICK_A     "|="
+    CAP_A       "^="
 
     IF      "if"
     ELSE    "else"
@@ -61,7 +90,6 @@ namespace yy {
     END 0   "end of file"
 ;
 
-
 %token <int> NUMBER
 %token <ast::name_t*> NAME
 %nterm <ast::node_t*> exp
@@ -74,9 +102,15 @@ namespace yy {
 %nterm <ast::node_t*> body
 
 %left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
-%right ASSIGN
+%right ASSIGN PLUS_A MINUS_A STAR_A SLASH_A PERSENT_A L_SHIFT_A R_SHIFT_A AMPERSAND_A STICK_A CAP_A
+%left D_STICK
+%left D_AMPERSAND
+%left STICK
+%left CAP
+%left AMPERSAND
+%left L_SHIFT R_SHIFT
 %left PLUS MINUS
-%left STAR SLASH
+%left STAR SLASH PERSENT
 %left POW
 %nonassoc UMINUS
 
@@ -192,6 +226,10 @@ exp:  exp GRATER exp {
         ast::div_t node{std::make_unique<ast::binop_dump>("/"), $1, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
+    | exp PERSENT exp { 
+        ast::remainder_t node{std::make_unique<ast::binop_dump>("%"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
     | exp POW exp { 
         ast::pow_t node{std::make_unique<ast::binop_dump>("**"), $1, $3};
         $$ = drv.tree.ast_insert(std::move(node));
@@ -202,6 +240,114 @@ exp:  exp GRATER exp {
             is_error = 1;
         }
         ast::assign_t node{std::make_unique<ast::binop_dump>("="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp PLUS_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::add_a_t node{std::make_unique<ast::binop_dump>("+="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp MINUS_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::sub_a_t node{std::make_unique<ast::binop_dump>("-="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp STAR_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::mult_a_t node{std::make_unique<ast::binop_dump>("*="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp SLASH_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::div_a_t node{std::make_unique<ast::binop_dump>("/="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp PERSENT_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::remainder_a_t node{std::make_unique<ast::binop_dump>("%="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp L_SHIFT_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::l_shift_a_t node{std::make_unique<ast::binop_dump>("<<="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp R_SHIFT_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::r_shift_a_t node{std::make_unique<ast::binop_dump>(">>="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp AMPERSAND_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::b_and_a_t node{std::make_unique<ast::binop_dump>("<<="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp STICK_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::b_or_a_t node{std::make_unique<ast::binop_dump>("<<="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp CAP_A exp {
+        if ($1->get_type() != ast::node_type::VARIABLE) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": assign to nonvariable type" << std::endl;
+            is_error = 1;
+        }
+        ast::xor_a_t node{std::make_unique<ast::binop_dump>("<<="), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp AMPERSAND exp {
+        ast::b_and_t node{std::make_unique<ast::binop_dump>("&"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp STICK exp {
+        ast::b_or_t node{std::make_unique<ast::binop_dump>("|"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp CAP exp {
+        ast::xor_t node{std::make_unique<ast::binop_dump>("^"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp L_SHIFT exp {
+        ast::l_shift_t node{std::make_unique<ast::binop_dump>("<<"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp R_SHIFT exp {
+        ast::r_shift_t node{std::make_unique<ast::binop_dump>(">>"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp D_AMPERSAND exp {
+        ast::l_and_t node{std::make_unique<ast::binop_dump>("&&"), $1, $3};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | exp D_STICK exp {
+        ast::l_or_t node{std::make_unique<ast::binop_dump>("||"), $1, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | ABS LPAREN exp RPAREN {
@@ -217,6 +363,26 @@ exp:  exp GRATER exp {
         ast::minus_t node{std::make_unique<ast::unop_dump>("-"), $2};
         $$ = drv.tree.ast_insert(std::move(node));
     }
+    | PLUS exp %prec UMINUS {
+        ast::plus_t node{std::make_unique<ast::unop_dump>("+"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | NOT exp %prec UMINUS {
+        ast::not_t node{std::make_unique<ast::unop_dump>("!"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | TILDA exp %prec UMINUS {
+        ast::b_not_t node{std::make_unique<ast::unop_dump>("~"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | D_PLUS exp %prec UMINUS {
+        ast::pr_increment_t node{std::make_unique<ast::unop_dump>("++"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
+    | D_MINUS exp %prec UMINUS {
+        ast::pr_decrement_t node{std::make_unique<ast::unop_dump>("--"), $2};
+        $$ = drv.tree.ast_insert(std::move(node));
+    }
     | NUMBER { 
         ast::num_t node{$1, std::make_unique<ast::num_dump>(),};
         $$ = drv.tree.ast_insert<ast::num_t>(std::move(node));
@@ -224,6 +390,10 @@ exp:  exp GRATER exp {
     | NAME { 
         ast::variable_t node(*$1, std::make_unique<ast::variable_dump>());
         $$ = drv.tree.ast_insert<ast::variable_t>(std::move(node));
+    }
+    | ERR {
+        std::cout << yy::red << "Error:" << yy::norm << @1 << ": unknown operation" << std::endl;
+        is_error = 1;
     }
     ;
 

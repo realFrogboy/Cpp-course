@@ -1,0 +1,11 @@
+a = ?;
+
+while (a < 10)
+    ++a;
+
+print a;
+
+while (a > 5)
+    --a;
+
+print a;
