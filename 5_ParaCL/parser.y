@@ -30,7 +30,7 @@ namespace yy {
 }
 
 %token
-    ERR     "UNKNOWN SYMBOL"
+    ERR     "UNKNOWN OPERATION"
 
     POW     "**"
     MINUS   "-"
