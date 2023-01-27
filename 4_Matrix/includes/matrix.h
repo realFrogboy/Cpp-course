@@ -38,7 +38,7 @@ class buffer_t final {
     }
     void push(const T &rhs) { 
         if (size == capacity) realloc();
-        new (data + size) T(rhs); ++size; 
+        new (data + size) T(rhs); ++size;
     }
 
     buffer_t(size_t n = 4) : capacity(n) {
@@ -47,8 +47,6 @@ class buffer_t final {
     }
 
     buffer_t(const buffer_t &rhs) : capacity(rhs.capacity) {
-        if (this == &rhs) return;
-
         buffer_t tmp(capacity);
         for (unsigned i = 0; i < rhs.size; ++i)
             tmp.push(rhs.data[i]);
@@ -57,6 +55,8 @@ class buffer_t final {
     }
 
     buffer_t &operator=(const buffer_t &rhs) {
+        if (this == &rhs) return *this;
+
         buffer_t tmp(rhs);
         swap(tmp);
         return *this;
@@ -74,7 +74,11 @@ class buffer_t final {
     T *begin() const { return data; }
     T *end()   const { return data + size; }
 
-    T &operator[](unsigned idx) const {
+    const T &operator[](unsigned idx) const {
+        return data[idx];
+    }
+
+    T &operator[](unsigned idx) {
         return data[idx];
     }
 
@@ -97,9 +101,9 @@ struct matrix_buf final {
     size_t rank;
 
     matrix_buf(size_t rg = 0) : rank(rg) {
-        buffer_t<buffer_t<double>> data_tmp{};
+        buffer_t<buffer_t<double>> data_tmp(rg);
         for (unsigned idx = 0; idx < rg; ++idx) {
-            buffer_t<double> tmp{};
+            buffer_t<double> tmp(rg);
             data_tmp.push(std::move(tmp));
         }
         buffer_t<int> colons_tmp{};
@@ -141,8 +145,8 @@ class matrix_t final {
 
     proxy_row operator[](const unsigned n_row) const;
 
-    bool row_swap(const unsigned lhs, const unsigned rhs) const;
-    bool con_swap(const unsigned lhs, const unsigned rhs) const;
+    bool row_swap(const unsigned lhs, const unsigned rhs);
+    bool con_swap(const unsigned lhs, const unsigned rhs);
 
     double determinant() const;
 

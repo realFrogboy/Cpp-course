@@ -20,7 +20,7 @@ matrix_t::matrix_t(const std::vector<double>& input, const size_t rg) : buf(rg) 
     }
 }
 
-bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
+bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) {
     if (lhs == rhs)
         return 0;
 
@@ -28,7 +28,7 @@ bool matrix_t::row_swap(const unsigned lhs, const unsigned rhs) const {
     return 1;
 }
  
-bool matrix_t::con_swap(const unsigned lhs, const unsigned rhs) const {
+bool matrix_t::con_swap(const unsigned lhs, const unsigned rhs) {
     if (lhs == rhs)
         return 0;
 
@@ -113,9 +113,7 @@ matrix_t::proxy_row& matrix_t::proxy_row::operator-=(const row_t& rhs) {
 
 row_t::row_t(const matrix_t::proxy_row &rhs) : rank(rhs.matrix.get_rank()) {
     buffer_t<double> data_tmp{};
-    for (unsigned idx = 0; idx < rank; ++idx)
-        data_tmp.push(rhs.row[idx]);
-
+    std::for_each(rhs.begin(), rhs.end(), [&data_tmp](double &src){ data_tmp.push(src); });
     data.swap(data_tmp);
 }
 
