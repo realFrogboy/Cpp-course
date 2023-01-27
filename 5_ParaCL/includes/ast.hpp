@@ -502,6 +502,11 @@ class tree_t final {
     tree_t(tree_t&&) = delete;
     tree_t &operator=(tree_t&&) = delete;
 
+    bool is_valid() {
+        if (root) return 1;
+        else return 0;
+    }
+
     std::unordered_map<std::string, name_t>::iterator find_variable(const std::string &str) { return variables.find(str); }
     std::unordered_map<std::string, name_t>::iterator variables_end() { return variables.end(); }
     std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0}});;}

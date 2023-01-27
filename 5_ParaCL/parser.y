@@ -160,6 +160,7 @@ while_stmt: WHILE LPAREN exp RPAREN body {
 
 body: line { $$ = $1; }
     | LUNICORN list RUNICORN { $$ = $2; }
+    | END  { $$ = nullptr; }
     ;
 
 list: { $$ = nullptr; }
@@ -184,6 +185,7 @@ list: { $$ = nullptr; }
 
 line: exp SCOLON     { $$ = $1; }
     | io_func SCOLON { $$ = $1; }
+    | SCOLON         { $$ = nullptr; }
     ;
 
 exp:  exp GRATER exp {
@@ -411,6 +413,10 @@ io_func: PRINT exp {
     }
 
 program: list END {
+        if (!drv.tree.is_valid()) {
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": empty AST (it looks like your program doesn't do anything)" << std::endl;
+            return 0;
+        }
         if (is_error) return 0;
         #ifdef DUMP
             drv.tree.dump();

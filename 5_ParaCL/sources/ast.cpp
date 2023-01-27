@@ -36,8 +36,8 @@ void binop_dump::dump(const binop_t *node, std::ofstream &file, int &num) const 
     file << "\tnode" << num << " [shape = \"invtriangle\", style = \"filled\", fillcolor = \"pink\", label = \"" << operation << "\"];\n";
     num++;
 
-    node->lhs->graph_node(file, num);
-    node->rhs->graph_node(file, num);
+    if (node->lhs) node->lhs->graph_node(file, num);
+    if (node->rhs) node->rhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
@@ -89,7 +89,7 @@ void flow_dump::dump(const flow_t *node, std::ofstream &file, int &num) const {
     num++;
 
     node->cond->graph_node(file, num);
-    node->lhs->graph_node(file, num);
+    if (node->lhs) node->lhs->graph_node(file, num);
 
     if (node->rhs) node->rhs->graph_node(file, num);
 
@@ -296,27 +296,31 @@ int print_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
 int scan_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     std::string var = static_cast<variable_t*>(lhs)->get_name().name;
     auto search = variables.find(var);
+    if ((std::cin >> std::ws).eof()) 
+            throw std::runtime_error("reached EOF");
     search->second.value = get<int>();
     return search->second.value;
 }
 
 int get_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+    if ((std::cin >> std::ws).eof()) 
+            throw std::runtime_error("reached EOF");
     int res = get<int>();
     return res;
 }
 
 int if_t::eval(std::unordered_map<std::string, ast::name_t> &variables) { 
     if (cond->eval(variables)) {
-        lhs->eval(variables);
+        if (lhs) lhs->eval(variables);
     } else if (rhs != nullptr) {
-        rhs->eval(variables);
+        if (rhs) rhs->eval(variables);
     }
     return 0;
 }
 
 int while_t::eval(std::unordered_map<std::string, ast::name_t> &variables) { 
     while (cond->eval(variables)) {
-        lhs->eval(variables);
+        if (lhs) lhs->eval(variables);
     }
     return 0;
 }
