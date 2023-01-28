@@ -26,6 +26,7 @@ class flow_t;
 struct name_t {
     std::string name;
     int value = 0;
+    bool is_init = 0;
 };
 
 class binop_dump final {
@@ -384,7 +385,7 @@ class variable_t final : public node_t {
 
     public:
 
-    variable_t(const name_t name_, std::unique_ptr<variable_dump>dump_) : node_t{node_type::VARIABLE}, name(name_), dump{std::move(dump_)} {}
+    variable_t(const name_t name_, std::unique_ptr<variable_dump>dump_) : node_t{node_type::VARIABLE}, name{name_}, dump{std::move(dump_)} {}
 
     variable_t(variable_t &&node) : node_t{node_type::VARIABLE}, name{node.name}, dump{std::move(node.dump)} {}
 
@@ -509,7 +510,7 @@ class tree_t final {
 
     std::unordered_map<std::string, name_t>::iterator find_variable(const std::string &str) { return variables.find(str); }
     std::unordered_map<std::string, name_t>::iterator variables_end() { return variables.end(); }
-    std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0}});;}
+    std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0, 0}});;}
 
     template<typename nodeT>
     node_t* ast_insert(nodeT &&node) {
