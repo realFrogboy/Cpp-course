@@ -7,15 +7,6 @@
 
 namespace ast {
 
-enum node_type {
-    BINOP = 0,
-    UNOP,
-    NUMBER,
-    VARIABLE,
-    FUNCTION,
-    FLOW
-};
-
 class binop_t;
 class unop_t;
 class num_t;
@@ -74,14 +65,7 @@ class flow_dump final {
 };
 
 class node_t {
-    node_type type;
-
     public:
-
-    node_t(const node_type t) : type{t} {}
-
-    node_type get_type() const { return type; }
-
     virtual int eval(std::unordered_map<std::string, ast::name_t> &variables) = 0;
     virtual void graph_node(std::ofstream& file, int &num) = 0;
     virtual void connect_node(std::ofstream& file, int &num) = 0; 
@@ -97,10 +81,9 @@ class binop_t : public node_t {
     node_t *lhs = nullptr;
     node_t *rhs = nullptr;
 
-    binop_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : 
-        node_t{node_type::BINOP}, dump{std::move(dump_)}, lhs{lhs_}, rhs{rhs_} {}
+    binop_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : dump{std::move(dump_)}, lhs{lhs_}, rhs{rhs_} {}
 
-    binop_t(binop_t &&node) : node_t{node_type::BINOP}, dump{std::move(node.dump)} {
+    binop_t(binop_t &&node) : dump{std::move(node.dump)} {
         std::swap(lhs, node.lhs);
         std::swap(rhs, node.rhs);
     }
@@ -306,10 +289,9 @@ class unop_t : public node_t {
 
     node_t *lhs = nullptr;
 
-    unop_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : 
-        node_t{node_type::UNOP}, dump{std::move(dump_)}, lhs{lhs_} {}
+    unop_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : dump{std::move(dump_)}, lhs{lhs_} {}
 
-    unop_t(unop_t &&node) : node_t{node_type::UNOP}, dump{std::move(node.dump)} {
+    unop_t(unop_t &&node) : dump{std::move(node.dump)} {
         std::swap(lhs, node.lhs);
     }
 
@@ -363,9 +345,9 @@ class num_t final : public node_t {
 
     public:
 
-    num_t(const int v, std::unique_ptr<num_dump>dump_) : node_t{node_type::NUMBER}, value(v), dump{std::move(dump_)} {}
+    num_t(const int v, std::unique_ptr<num_dump>dump_) : value(v), dump{std::move(dump_)} {}
 
-    num_t(num_t &&node) : node_t{node_type::NUMBER}, value{node.value}, dump{std::move(node.dump)} {}
+    num_t(num_t &&node) : value{node.value}, dump{std::move(node.dump)} {}
 
     int get_value() const { return value; }
 
@@ -385,9 +367,9 @@ class variable_t final : public node_t {
 
     public:
 
-    variable_t(const name_t name_, std::unique_ptr<variable_dump>dump_) : node_t{node_type::VARIABLE}, name{name_}, dump{std::move(dump_)} {}
+    variable_t(const name_t name_, std::unique_ptr<variable_dump>dump_) : name{name_}, dump{std::move(dump_)} {}
 
-    variable_t(variable_t &&node) : node_t{node_type::VARIABLE}, name{node.name}, dump{std::move(node.dump)} {}
+    variable_t(variable_t &&node) : name{node.name}, dump{std::move(node.dump)} {}
 
     name_t get_name() const { return name; }
 
@@ -410,10 +392,9 @@ class func_t : public node_t {
 
     node_t *lhs = nullptr;
 
-    func_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : 
-        node_t{node_type::FUNCTION}, dump{std::move(dump_)}, lhs{lhs_} {}
+    func_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : dump{std::move(dump_)}, lhs{lhs_} {}
 
-    func_t(func_t &&node) : node_t{node_type::FUNCTION}, dump{std::move(node.dump)} {
+    func_t(func_t &&node) : dump{std::move(node.dump)} {
         std::swap(lhs, node.lhs);
     }
 
@@ -458,10 +439,9 @@ class flow_t : public node_t {
     node_t *lhs = nullptr;
     node_t *rhs = nullptr;
 
-    flow_t(std::unique_ptr<flow_dump>dump_,  node_t *cond_, node_t *lhs_, node_t *rhs_) : 
-        node_t{node_type::FLOW}, dump{std::move(dump_)}, cond{cond_}, lhs{lhs_}, rhs{rhs_} {}
+    flow_t(std::unique_ptr<flow_dump>dump_,  node_t *cond_, node_t *lhs_, node_t *rhs_) : dump{std::move(dump_)}, cond{cond_}, lhs{lhs_}, rhs{rhs_} {}
 
-    flow_t(flow_t &&node) : node_t{node_type::FLOW}, dump{std::move(node.dump)} {
+    flow_t(flow_t &&node) : dump{std::move(node.dump)} {
         std::swap(cond, node.cond);
         std::swap(lhs, node.lhs);
         std::swap(rhs, node.rhs);

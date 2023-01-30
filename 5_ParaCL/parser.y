@@ -245,60 +245,80 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME PLUS_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::add_a_t node{std::make_unique<ast::binop_dump>("+="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME MINUS_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::sub_a_t node{std::make_unique<ast::binop_dump>("-="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME STAR_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::mult_a_t node{std::make_unique<ast::binop_dump>("*="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME SLASH_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::div_a_t node{std::make_unique<ast::binop_dump>("/="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME PERSENT_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::remainder_a_t node{std::make_unique<ast::binop_dump>("%="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME L_SHIFT_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::l_shift_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME R_SHIFT_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::r_shift_a_t node{std::make_unique<ast::binop_dump>(">>="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME AMPERSAND_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::b_and_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME STICK_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::b_or_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME CAP_A exp {
+        auto search = drv.tree.find_variable($1->name);
+        search->second.is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::xor_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
@@ -390,17 +410,13 @@ io_func: PRINT exp {
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | SCAN exp {
-        if ($2->get_type() != ast::node_type::VARIABLE) {
-            std::cout << yy::red << "Error:" << yy::norm << @2 << ": scan with nonvariable type" << std::endl;
-            is_error = 1;
-        }
         ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $2};
         $$ = drv.tree.ast_insert(std::move(node));
     }
 
 program: list END {
         if (!drv.tree.is_valid()) {
-            std::cout << yy::red << "Error:" << yy::norm << @2 << ": empty AST (it looks like your program doesn't do anything)" << std::endl;
+            std::cout << yy::red << "Error:" << yy::norm << @2 << ": empty AST" << std::endl;
             return 0;
         }
         if (is_error) return 0;

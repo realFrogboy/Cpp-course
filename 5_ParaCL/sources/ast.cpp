@@ -297,14 +297,14 @@ int scan_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     std::string var = static_cast<variable_t*>(lhs)->get_name().name;
     auto search = variables.find(var);
     if ((std::cin >> std::ws).eof()) 
-            throw std::runtime_error("reached EOF");
+            throw std::runtime_error("reached input file EOF");
     search->second.value = get<int>();
     return search->second.value;
 }
 
 int get_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     if ((std::cin >> std::ws).eof()) 
-            throw std::runtime_error("reached EOF");
+            throw std::runtime_error("reached input file EOF");
     int res = get<int>();
     return res;
 }
