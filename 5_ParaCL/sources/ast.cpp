@@ -65,7 +65,7 @@ void num_dump::dump(const num_t *node, std::ofstream &file, int &num) const {
 void variable_dump::dump(const variable_t *node, std::ofstream &file, int &num) const {
     int curr = num;
     
-    file << "\tnode" << num << " [shape = \"circle\", style = \"filled\", fillcolor = \"lightskyblue1\", label = \"" << node->get_name().name << "\"];\n";
+    file << "\tnode" << num << " [shape = \"circle\", style = \"filled\", fillcolor = \"lightskyblue1\", label = \"" << node->get_name() << "\"];\n";
     num++;
 
     if (!curr) num = 0;
@@ -170,28 +170,41 @@ void flow_dump::connect(const flow_t *node, std::ofstream& file, int &num) const
     if (!curr) num = 0;
 }
 
-int assign_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
-    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
-    auto search = variables.find(var);
+int assign_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    size_t n = variables.size();
+    std::unordered_map<std::string, name_t>::iterator search;
+    for (int idx = n - 1; idx >= 0; --idx)
+        search = variables[idx].find(var);
+    if (search == variables[0].end()) {
+        auto new_var = variables[n-1].insert({var, name_t{var, 0, 0}});
+        search = new_var.first;
+    }
     search->second.value = rhs->eval(variables);
     return search->second.value;
 }
 
-int pr_increment_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
-    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
-    auto search = variables.find(var);
+int pr_increment_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    size_t n = variables.size();
+    std::unordered_map<std::string, name_t>::iterator search;
+    for (int idx = n - 1; idx >= 0; --idx)
+        search = variables[idx].find(var);
     search->second.value = lhs->eval(variables) + 1;
     return search->second.value;
 } 
 
-int pr_decrement_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
-    std::string var = static_cast<variable_t*>(lhs)->get_name().name;
-    auto search = variables.find(var);
+int pr_decrement_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    size_t n = variables.size();
+    std::unordered_map<std::string, name_t>::iterator search;
+    for (int idx = n - 1; idx >= 0; --idx)
+        search = variables[idx].find(var);
     search->second.value = lhs->eval(variables) - 1;
     return search->second.value;
 } 
 
-int pow_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+int pow_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
     int degree = rhs->eval(variables);
     if (degree < 0) {
         int res = pow(lhs->eval(variables), -degree);
@@ -202,35 +215,43 @@ int pow_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     }
 }
 
-int scolon_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+int scolon_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
     if (lhs != nullptr) lhs->eval(variables);
     if (rhs != nullptr) rhs->eval(variables);
     return 0;
 }
 
-int num_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+int num_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
     return value;
 }
 
-int variable_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
-    auto search = variables.find(name.name);
+int variable_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+    std::string name = get_name();
+    size_t n = variables.size();
+    std::unordered_map<std::string, name_t>::iterator search;
+    for (int idx = n - 1; idx >= 0; --idx)
+        search = variables[idx].find(name);
+    if (search == variables[0].end()) {
+        auto new_var = variables[n-1].insert({name, name_t{name, 0, 0}});
+        search = new_var.first;
+    }
     return search->second.value;
 }
 
-int print_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+int print_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
     int res = lhs->eval(variables);
     std::cout << res << std::endl; 
     return res;
 }
 
-int get_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
+int get_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
     if ((std::cin >> std::ws).eof()) 
-            throw std::runtime_error("reached input file EOF");
+        throw std::runtime_error("reached input file EOF");
     int res = get<int>();
     return res;
 }
 
-int if_t::eval(std::unordered_map<std::string, ast::name_t> &variables) { 
+int if_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) { 
     if (cond->eval(variables)) {
         if (lhs) lhs->eval(variables);
     } else if (rhs != nullptr) {
@@ -239,7 +260,7 @@ int if_t::eval(std::unordered_map<std::string, ast::name_t> &variables) {
     return 0;
 }
 
-int while_t::eval(std::unordered_map<std::string, ast::name_t> &variables) { 
+int while_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) { 
     while (cond->eval(variables)) {
         if (lhs) lhs->eval(variables);
     }

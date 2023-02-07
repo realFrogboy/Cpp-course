@@ -28,34 +28,28 @@ class driver_t final {
     parser::token_type yylex(parser::semantic_type *yylval, parser::location_type *location) {
         parser::token_type tt = static_cast<parser::token_type>(lexer->yylex());
 
-        if (tt == yy::parser::token_type::NUMBER)
-            yylval->as<int>() = std::stoi(lexer->YYText());
-        else if (tt == yy::parser::token_type::NAME) {
-            if (auto search = find_variable(lexer->YYText()); search != nullptr) 
-                yylval->as<ast::name_t*>() = search;
-            else {
-                auto new_var = add_variable(lexer->YYText());
-                yylval->as<ast::name_t*>() = new_var;
+        switch(tt) {
+            case yy::parser::token_type::NUMBER:
+                yylval->as<int>() = std::stoi(lexer->YYText());
+                break;
+            case yy::parser::token_type::NAME: {
+                if (auto search = find_variable(lexer->YYText()); search != nullptr) 
+                    yylval->as<ast::name_t*>() = search;
+                else {
+                    auto new_var = add_variable(lexer->YYText());
+                    yylval->as<ast::name_t*>() = new_var;
+                }
+                break;
             }
-            //--------------------------
-            if (auto search = tree.find_variable(lexer->YYText()); search != tree.variables_end()) {}
-                //yylval->as<ast::name_t*>() = &(search->second);
-            else {
-                auto new_var = tree.add_variable(lexer->YYText());
-                //yylval->as<ast::name_t*>() = &(new_var.first->second);
-            }
-        }
-        else if (tt == yy::parser::token_type::LUNICORN) {
-            add_scope();
-        }
-        else if (tt == yy::parser::token_type::RUNICORN) {
-            remove_scope();
-        }
-        else if (tt == yy::parser::token_type::IF) {
-            add_scope();
-        }
-        else if (tt == yy::parser::token_type::WHILE) {
-            add_scope();
+            case yy::parser::token_type::RUNICORN:
+                remove_scope();
+                break;
+            case yy::parser::token_type::LUNICORN:
+            case yy::parser::token_type::IF:
+            case yy::parser::token_type::WHILE:
+                add_scope();
+                break;
+            default: {}
         }
 
         *location = lexer->location;
