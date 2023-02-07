@@ -252,18 +252,33 @@ int get_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &varia
 }
 
 int if_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) { 
+    std::unordered_map<std::string, name_t> if_scope;
+    variables.push_back(if_scope);
     if (cond->eval(variables)) {
+        std::unordered_map<std::string, name_t> scope;
+        variables.push_back(scope);
         if (lhs) lhs->eval(variables);
+        variables.pop_back();
     } else if (rhs != nullptr) {
+        std::unordered_map<std::string, name_t> scope;
+        variables.push_back(scope);
         if (rhs) rhs->eval(variables);
+        variables.pop_back();
     }
+    variables.pop_back();
     return 0;
 }
 
-int while_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) { 
+int while_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+    std::unordered_map<std::string, name_t> while_scope;
+    variables.push_back(while_scope);
     while (cond->eval(variables)) {
+        std::unordered_map<std::string, name_t> scope;
+        variables.push_back(scope);
         if (lhs) lhs->eval(variables);
+        variables.pop_back();
     }
+    variables.pop_back();
     return 0;
 }
 
