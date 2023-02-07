@@ -216,66 +216,6 @@ class assign_t final : public binop_t {
     int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
 };
 
-class add_a_t final : public binop_t {
-    public:
-    add_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class sub_a_t final : public binop_t {
-    public:
-    sub_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class mult_a_t final : public binop_t {
-    public:
-    mult_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class div_a_t final : public binop_t {
-    public:
-    div_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class remainder_a_t final : public binop_t {
-    public:
-    remainder_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class l_shift_a_t final : public binop_t {
-    public:
-    l_shift_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class r_shift_a_t final : public binop_t {
-    public:
-    r_shift_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class b_and_a_t final : public binop_t {
-    public:
-    b_and_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class b_or_a_t final : public binop_t {
-    public:
-    b_or_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
-class xor_a_t final : public binop_t {
-    public:
-    xor_a_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
 class scolon_t final : public binop_t {
     public:
     scolon_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
@@ -412,12 +352,6 @@ class print_t final : public func_t {
     int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
 };
 
-class scan_t final : public func_t {
-    public:
-    scan_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : func_t{std::move(dump_), lhs_} {}
-    int eval(std::unordered_map<std::string, ast::name_t> &variables) override;
-};
-
 class abs_t final : public func_t {
     public:
     abs_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : func_t{std::move(dump_), lhs_} {}
@@ -490,7 +424,7 @@ class tree_t final {
 
     std::unordered_map<std::string, name_t>::iterator find_variable(const std::string &str) { return variables.find(str); }
     std::unordered_map<std::string, name_t>::iterator variables_end() { return variables.end(); }
-    std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0, 0}});;}
+    std::pair<std::unordered_map<std::string, name_t>::iterator, bool> add_variable(const std::string &str) { return variables.insert({str, name_t{str, 0, 0}}); }
 
     template<typename nodeT>
     node_t* ast_insert(nodeT &&node) {

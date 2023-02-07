@@ -66,24 +66,13 @@ namespace yy {
     D_PLUS  "++"
     D_MINUS "--"
 
-    ASSIGN      "="
-    PLUS_A      "+="
-    MINUS_A     "-="
-    STAR_A      "*="
-    SLASH_A     "/="
-    PERSENT_A   "%="
-    L_SHIFT_A   "<<="
-    R_SHIFT_A   ">>="
-    AMPERSAND_A "&="
-    STICK_A     "|="
-    CAP_A       "^="
+    ASSIGN  "="
 
     IF      "if"
     ELSE    "else"
     WHILE   "while"
 
     PRINT   "print"
-    SCAN    "scan"
     ABS     "abs"
     GET     "?"
 
@@ -123,38 +112,46 @@ stmt: if_stmt
     | IF LPAREN exp RPAREN body ELSE stmt { 
         ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
         $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN while_stmt ELSE stmt { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
+           drv.remove_scope();
        }
     | WHILE LPAREN exp RPAREN stmt { 
         ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
         $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
     }
     ;
 
 if_stmt: IF LPAREN exp RPAREN body {
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
            $$ = drv.tree.ast_insert(std::move(node)); 
+           drv.remove_scope();
        }
        | IF LPAREN exp RPAREN body ELSE body { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
+           drv.remove_scope();
        }
        | IF LPAREN exp RPAREN while_stmt { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
            $$ = drv.tree.ast_insert(std::move(node));
+           drv.remove_scope();
        }
        | IF LPAREN exp RPAREN while_stmt ELSE body { 
            ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
            $$ = drv.tree.ast_insert(std::move(node));
+           drv.remove_scope();
        }
        ;
 
 while_stmt: WHILE LPAREN exp RPAREN body { 
                ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
                $$ = drv.tree.ast_insert(std::move(node));
+               drv.remove_scope();
            }
            ;
 
@@ -237,91 +234,12 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME ASSIGN exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
+        auto search = drv.find_variable($1->name);
+        if (search == nullptr) std::cout << "bred" << std::endl;
+        search->is_init = 1;
         ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
         ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::assign_t node{std::make_unique<ast::binop_dump>("="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME PLUS_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::add_a_t node{std::make_unique<ast::binop_dump>("+="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME MINUS_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::sub_a_t node{std::make_unique<ast::binop_dump>("-="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME STAR_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::mult_a_t node{std::make_unique<ast::binop_dump>("*="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME SLASH_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::div_a_t node{std::make_unique<ast::binop_dump>("/="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME PERSENT_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::remainder_a_t node{std::make_unique<ast::binop_dump>("%="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME L_SHIFT_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::l_shift_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME R_SHIFT_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::r_shift_a_t node{std::make_unique<ast::binop_dump>(">>="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME AMPERSAND_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::b_and_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME STICK_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::b_or_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | NAME CAP_A exp {
-        auto search = drv.tree.find_variable($1->name);
-        search->second.is_init = 1;
-        ast::variable_t v_node(*$1, std::make_unique<ast::variable_dump>());
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
-        ast::xor_a_t node{std::make_unique<ast::binop_dump>("<<="), p_node, $3};
         $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp AMPERSAND exp {
@@ -407,10 +325,6 @@ exp:  exp GRATER exp {
 
 io_func: PRINT exp {
         ast::print_t node{std::make_unique<ast::func_dump>("print"), $2};
-        $$ = drv.tree.ast_insert(std::move(node));
-    }
-    | SCAN exp {
-        ast::scan_t node{std::make_unique<ast::func_dump>("scan"), $2};
         $$ = drv.tree.ast_insert(std::move(node));
     }
 

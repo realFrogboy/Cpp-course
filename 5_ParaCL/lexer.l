@@ -41,16 +41,6 @@ location.step();
 "--" return yy::parser::token_type::D_MINUS;
 
 "="  return yy::parser::token_type::ASSIGN;
-"+=" return yy::parser::token_type::PLUS_A;
-"-=" return yy::parser::token_type::MINUS_A;
-"*=" return yy::parser::token_type::STAR_A;
-"/=" return yy::parser::token_type::SLASH_A;
-"%=" return yy::parser::token_type::PERSENT_A;
-"<<=" return yy::parser::token_type::L_SHIFT_A;
-">>=" return yy::parser::token_type::R_SHIFT_A;
-"&=" return yy::parser::token_type::AMPERSAND_A;
-"|=" return yy::parser::token_type::STICK_A;
-"^=" return yy::parser::token_type::CAP_A;
 
 ">"  return yy::parser::token_type::GRATER;
 "<"  return yy::parser::token_type::LESS;
@@ -66,7 +56,6 @@ location.step();
 "while" return yy::parser::token_type::WHILE;
 
 "print" return yy::parser::token_type::PRINT;
-"scan"  return yy::parser::token_type::SCAN;
 "abs"   return yy::parser::token_type::ABS;
 "?"     return yy::parser::token_type::GET;
 
