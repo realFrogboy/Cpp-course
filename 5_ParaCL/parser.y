@@ -86,9 +86,10 @@ namespace yy {
 %nterm <ast::node_t*> stmt
 %nterm <ast::node_t*> io_func
 %nterm <ast::node_t*> line
-%nterm <ast::node_t*> if_stmt
-%nterm <ast::node_t*> while_stmt
 %nterm <ast::node_t*> body
+
+%nonassoc RPAREN
+%nonassoc ELSE
 
 %left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
 %right ASSIGN PLUS_A MINUS_A STAR_A SLASH_A PERSENT_A L_SHIFT_A R_SHIFT_A AMPERSAND_A STICK_A CAP_A
@@ -107,53 +108,47 @@ namespace yy {
 
 %% 
 
-stmt: if_stmt
-    | while_stmt
+stmt: IF LPAREN exp RPAREN body {
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
+    | IF LPAREN exp RPAREN body ELSE body { 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
+    | IF LPAREN exp RPAREN stmt ELSE body { 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
     | IF LPAREN exp RPAREN body ELSE stmt { 
         ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
         $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
-    | IF LPAREN exp RPAREN while_stmt ELSE stmt { 
-           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
-           $$ = drv.tree.ast_insert(std::move(node));
-           drv.remove_scope();
-       }
+    | WHILE LPAREN exp RPAREN body { 
+        ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
+    | IF LPAREN exp RPAREN stmt {
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
+    | IF LPAREN exp RPAREN stmt ELSE stmt { 
+        ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
+        $$ = drv.tree.ast_insert(std::move(node));
+        drv.remove_scope();
+    }
     | WHILE LPAREN exp RPAREN stmt { 
         ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
         $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     ;
-
-if_stmt: IF LPAREN exp RPAREN body {
-           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
-           $$ = drv.tree.ast_insert(std::move(node)); 
-           drv.remove_scope();
-       }
-       | IF LPAREN exp RPAREN body ELSE body { 
-           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
-           $$ = drv.tree.ast_insert(std::move(node));
-           drv.remove_scope();
-       }
-       | IF LPAREN exp RPAREN while_stmt { 
-           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, nullptr);
-           $$ = drv.tree.ast_insert(std::move(node));
-           drv.remove_scope();
-       }
-       | IF LPAREN exp RPAREN while_stmt ELSE body { 
-           ast::if_t node(std::make_unique<ast::flow_dump>("if"), $3, $5, $7);
-           $$ = drv.tree.ast_insert(std::move(node));
-           drv.remove_scope();
-       }
-       ;
-
-while_stmt: WHILE LPAREN exp RPAREN body { 
-               ast::while_t node(std::make_unique<ast::flow_dump>("while"), $3, $5, nullptr);
-               $$ = drv.tree.ast_insert(std::move(node));
-               drv.remove_scope();
-           }
-           ;
 
 body: line { $$ = $1; }
     | LUNICORN list RUNICORN { $$ = $2; }
