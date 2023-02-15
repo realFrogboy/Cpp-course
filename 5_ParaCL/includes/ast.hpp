@@ -364,25 +364,25 @@ struct while_t final : flow_t {
     int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class node_mgr final {
-    std::vector<node_t*> nodes;
-
-    public:
-
-    template<typename nodeT>
-    node_t* create(nodeT &node) {
-        nodeT *n_node = new nodeT(std::move(node));
-        nodes.push_back(n_node);
-        return n_node;
-    }
-
-    ~node_mgr() {
-        for (auto node : nodes)
-            delete node;
-    }
-};
-
 class tree_t final {
+
+    class node_mgr final {
+        std::vector<node_t*> nodes;
+
+        public:
+
+        template<typename nodeT>
+        node_t* create(nodeT &node) {
+            nodeT *n_node = new nodeT(std::move(node));
+            nodes.push_back(n_node);
+            return n_node;
+        }
+
+        ~node_mgr() {
+            for (auto node : nodes)
+                delete node;
+        }
+    };
 
     node_t *root;
     node_mgr mgr;
