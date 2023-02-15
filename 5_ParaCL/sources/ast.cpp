@@ -1,10 +1,10 @@
+#include <cmath>
 #include <string>
 #include <limits>
 #include <fstream>
 #include <iostream>
 
 #include "ast.hpp"
-#include "pow.hpp"
 
 namespace {
 
@@ -96,7 +96,7 @@ void flow_dump::dump(const flow_t *node, std::ofstream &file, int &num) const {
     if (!curr) num = 0;
 }
 
-void binop_dump::connect(const binop_t *node, std::ofstream& file, int &num) const {
+void binop_dump::connect(const binop_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
     if (node->lhs != nullptr) {
@@ -116,7 +116,7 @@ void binop_dump::connect(const binop_t *node, std::ofstream& file, int &num) con
     if (!curr) num = 0;
 }
 
-void unop_dump::connect(const unop_t *node, std::ofstream& file, int &num) const {
+void unop_dump::connect(const unop_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
     if (node->lhs != nullptr) {
@@ -129,10 +129,10 @@ void unop_dump::connect(const unop_t *node, std::ofstream& file, int &num) const
     if (!curr) num = 0;
 }
 
-void num_dump::connect(const num_t *node, std::ofstream& file, int &num) const { return; }
-void variable_dump::connect(const variable_t *node, std::ofstream& file, int &num) const { return; }
+void num_dump::connect(const num_t *node, std::ofstream &file, int &num) const {}
+void variable_dump::connect(const variable_t *node, std::ofstream &file, int &num) const {}
 
-void func_dump::connect(const func_t *node, std::ofstream& file, int &num) const {
+void func_dump::connect(const func_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
     if (node->lhs != nullptr) {
@@ -145,7 +145,7 @@ void func_dump::connect(const func_t *node, std::ofstream& file, int &num) const
     if (!curr) num = 0;
 }
 
-void flow_dump::connect(const flow_t *node, std::ofstream& file, int &num) const {
+void flow_dump::connect(const flow_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
     num++;
@@ -170,112 +170,104 @@ void flow_dump::connect(const flow_t *node, std::ofstream& file, int &num) const
     if (!curr) num = 0;
 }
 
-int assign_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int assign_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    size_t n = variables.size();
     std::unordered_map<std::string, name_t>::iterator search;
-    for (int idx = n - 1; idx >= 0; --idx)
-        search = variables[idx].find(var);
+    std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
+        search = scope.find(var);
+        if (search != scope.end()) return true;
+        return false;
+    });
     if (search == variables[0].end()) {
-        auto new_var = variables[n-1].insert({var, name_t{var, 0, 0}});
+        auto new_var = variables.back().insert({var, name_t{var, 0, 0}});
         search = new_var.first;
     }
     search->second.value = rhs->eval(variables);
     return search->second.value;
 }
 
-int pr_increment_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int pr_increment_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    size_t n = variables.size();
     std::unordered_map<std::string, name_t>::iterator search;
-    for (int idx = n - 1; idx >= 0; --idx)
-        search = variables[idx].find(var);
+    std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
+        search = scope.find(var);
+        if (search != scope.end()) return true;
+        return false;
+    });
     search->second.value = lhs->eval(variables) + 1;
     return search->second.value;
 } 
 
-int pr_decrement_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int pr_decrement_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const{
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    size_t n = variables.size();
     std::unordered_map<std::string, name_t>::iterator search;
-    for (int idx = n - 1; idx >= 0; --idx)
-        search = variables[idx].find(var);
+    std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
+        search = scope.find(var);
+        if (search != scope.end()) return true;
+        return false;
+    });
     search->second.value = lhs->eval(variables) - 1;
     return search->second.value;
 } 
 
-int pow_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
-    int degree = rhs->eval(variables);
-    if (degree < 0) {
-        int res = pow(lhs->eval(variables), -degree);
-        return 1/res;
-    } else {
-        int res = pow(lhs->eval(variables), degree);
-        return res;
-    }
+int pow_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
+    return std::pow(lhs->eval(variables), rhs->eval(variables));
 }
 
-int scolon_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int scolon_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     if (lhs != nullptr) lhs->eval(variables);
     if (rhs != nullptr) rhs->eval(variables);
     return 0;
 }
 
-int num_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
-    return value;
-}
-
-int variable_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int variable_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     std::string name = get_name();
-    size_t n = variables.size();
     std::unordered_map<std::string, name_t>::iterator search;
-    for (int idx = n - 1; idx >= 0; --idx)
-        search = variables[idx].find(name);
+    std::find_if(variables.rbegin(), variables.rend(), [&search, &name](std::unordered_map<std::string, name_t> &scope) {
+        search = scope.find(name);
+        if (search != scope.end()) return true;
+        return false;
+    });
     if (search == variables[0].end()) {
-        auto new_var = variables[n-1].insert({name, name_t{name, 0, 0}});
+        auto new_var = variables.back().insert({name, name_t{name, 0, 0}});
         search = new_var.first;
     }
     return search->second.value;
 }
 
-int print_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int print_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     int res = lhs->eval(variables);
     std::cout << res << std::endl; 
     return res;
 }
 
-int get_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
+int get_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
     if ((std::cin >> std::ws).eof()) 
         throw std::runtime_error("reached input file EOF");
     int res = get<int>();
     return res;
 }
 
-int if_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) { 
-    std::unordered_map<std::string, name_t> if_scope;
-    variables.push_back(if_scope);
-    if (cond->eval(variables)) {
-        std::unordered_map<std::string, name_t> scope;
-        variables.push_back(scope);
-        if (lhs) lhs->eval(variables);
+int if_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const { 
+    variables.push_back({});
+    if (lhs && cond->eval(variables)) {
+        variables.push_back({});
+        lhs->eval(variables);
         variables.pop_back();
-    } else if (rhs != nullptr) {
-        std::unordered_map<std::string, name_t> scope;
-        variables.push_back(scope);
-        if (rhs) rhs->eval(variables);
+    } else if (rhs) {
+        variables.push_back({});
+        rhs->eval(variables);
         variables.pop_back();
     }
     variables.pop_back();
     return 0;
 }
 
-int while_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) {
-    std::unordered_map<std::string, name_t> while_scope;
-    variables.push_back(while_scope);
-    while (cond->eval(variables)) {
-        std::unordered_map<std::string, name_t> scope;
-        variables.push_back(scope);
-        if (lhs) lhs->eval(variables);
+int while_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const {
+    variables.push_back({});
+    while (lhs && cond->eval(variables)) {
+        variables.push_back({});
+        lhs->eval(variables);
         variables.pop_back();
     }
     variables.pop_back();

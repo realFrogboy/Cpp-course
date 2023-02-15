@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <cstring>
 
+#include "parser.tab.hh"
 #include "lexer.hpp"
 #include "ast.hpp"
 
@@ -64,11 +65,13 @@ class driver_t final {
     }
 
     ast::name_t* find_variable(const std::string &name) {
-        size_t n = scopes.size();
-        for (int idx = n - 1; idx >= 0; --idx) {
-            if (auto search = scopes[idx].find(name); search != scopes[idx].end())
-                return &search->second;
-        }
+        std::unordered_map<std::string, ast::name_t>::iterator search;
+        std::find_if(scopes.rbegin(), scopes.rend(), [&search, &name](std::unordered_map<std::string, ast::name_t> &scope) {
+            search = scope.find(name);
+            if (search != scope.end()) return true; 
+            return false;
+        });
+        if (search != scopes[0].end()) return &search->second;
         return nullptr;
     }
 

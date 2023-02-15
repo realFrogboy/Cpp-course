@@ -3,7 +3,7 @@
 %option yyclass="yy::lexer_t"
 
 %{
-#include "driver.hpp"
+#include "parser.tab.hh"
 #include "lexer.hpp"
 
 #define YY_USER_ACTION location.step(); location.columns(yyleng);

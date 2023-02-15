@@ -6,17 +6,14 @@
 
 #include <fstream>
 
-#include "parser.tab.hh"
 #include "location.hh"
 
 namespace yy{
 
-class lexer_t : public yyFlexLexer{
-public:
+struct lexer_t : yyFlexLexer {
     yy::location location{};
-   
+
     lexer_t(std::ifstream *in) : yyFlexLexer(in) {}
-  
     int yylex() override;
 };
 

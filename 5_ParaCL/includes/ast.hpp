@@ -23,7 +23,7 @@ struct name_t {
 class binop_dump final {
     std::string operation;
     public:
-    binop_dump(const std::string op) : operation{op} {}
+    binop_dump(const std::string &op) : operation{op} {}
     void dump(const binop_t *node, std::ofstream &file, int &num) const;
     void connect(const binop_t *node, std::ofstream &file, int &num) const;
 };
@@ -31,19 +31,17 @@ class binop_dump final {
 class unop_dump final {
     std::string operation;
     public:
-    unop_dump(const std::string op) : operation{op} {}
+    unop_dump(const std::string &op) : operation{op} {}
     void dump(const unop_t *node, std::ofstream &file, int &num) const;
     void connect(const unop_t *node, std::ofstream &file, int &num) const;
 };
 
-class num_dump final {
-    public:
+struct num_dump final {
     void dump(const num_t *node, std::ofstream &file, int &num) const;
     void connect(const num_t *node, std::ofstream &file, int &num) const;
 };
 
-class variable_dump final {
-    public:
+struct variable_dump final {
     void dump(const variable_t *node, std::ofstream &file, int &num) const;
     void connect(const variable_t *node, std::ofstream &file, int &num) const;
 };
@@ -51,7 +49,7 @@ class variable_dump final {
 class func_dump final {
     std::string func;
     public:
-    func_dump(const std::string func_) : func{func_} {}
+    func_dump(const std::string &func_) : func{func_} {}
     void dump(const func_t *node, std::ofstream &file, int &num) const;
     void connect(const func_t *node, std::ofstream &file, int &num) const;
 };
@@ -59,16 +57,15 @@ class func_dump final {
 class flow_dump final {
     std::string flow;
     public:
-    flow_dump(const std::string flow_) : flow{flow_} {}
+    flow_dump(const std::string &flow_) : flow{flow_} {}
     void dump(const flow_t *node, std::ofstream &file, int &num) const;
     void connect(const flow_t *node, std::ofstream &file, int &num) const;
 };
 
-class node_t {
-    public:
-    virtual int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) = 0;
-    virtual void graph_node(std::ofstream& file, int &num) = 0;
-    virtual void connect_node(std::ofstream& file, int &num) = 0; 
+struct node_t {
+    virtual int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const = 0;
+    virtual void graph_node(std::ofstream &file, int &num) const = 0;
+    virtual void connect_node(std::ofstream &file, int &num) const = 0; 
     virtual ~node_t() {}
 };
 
@@ -88,138 +85,117 @@ class binop_t : public node_t {
         std::swap(rhs, node.rhs);
     }
 
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
 
-class g_t final : public binop_t {
-    public:
+struct g_t final : binop_t {
     g_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) > rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) > rhs->eval(variables)); }
 };
 
-class l_t final : public binop_t {
-    public:
+struct l_t final : binop_t {
     l_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) < rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) < rhs->eval(variables)); }
 };
 
-class e_t final : public binop_t {
-    public:
+struct e_t final : binop_t {
     e_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) == rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) == rhs->eval(variables)); }
 };
 
-class ne_t final : public binop_t {
-    public:
+struct ne_t final : binop_t {
     ne_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) != rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) != rhs->eval(variables)); }
 };
 
-class ge_t final : public binop_t {
-    public:
+struct ge_t final : binop_t {
     ge_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) >= rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) >= rhs->eval(variables)); }
 };
 
-class le_t final : public binop_t {
-    public:
+struct le_t final : binop_t {
     le_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) <= rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) <= rhs->eval(variables)); }
 };
 
-class add_t final : public binop_t {
-    public:
+struct add_t final : binop_t {
     add_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) + rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) + rhs->eval(variables)); }
 };
 
-class sub_t final : public binop_t {
-    public:
+struct sub_t final : binop_t {
     sub_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) - rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) - rhs->eval(variables)); }
 };
 
-class mul_t final : public binop_t {
-    public:
+struct mul_t final : binop_t {
     mul_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) * rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) * rhs->eval(variables)); }
 };
 
-class div_t final : public binop_t {
-    public:
+struct div_t final : binop_t {
     div_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) / rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) / rhs->eval(variables)); }
 };
 
-class remainder_t final : public binop_t {
-    public:
+struct remainder_t final : binop_t {
     remainder_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) % rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) % rhs->eval(variables)); }
 };
 
-class pow_t final : public binop_t {
-    public:
+struct pow_t final : binop_t {
     pow_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class b_and_t final : public binop_t {
-    public:
+struct b_and_t final : binop_t {
     b_and_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) & rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) & rhs->eval(variables)); }
 };
 
-class b_or_t final : public binop_t {
-    public:
+struct b_or_t final : binop_t {
     b_or_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) | rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) | rhs->eval(variables)); }
 };
 
-class xor_t final : public binop_t {
-    public:
+struct xor_t final : binop_t {
     xor_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) ^ rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) ^ rhs->eval(variables)); }
 };
 
-class l_shift_t final : public binop_t {
-    public:
+struct l_shift_t final : binop_t {
     l_shift_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) << rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) << rhs->eval(variables)); }
 };
 
-class r_shift_t final : public binop_t {
-    public:
+struct r_shift_t final : binop_t {
     r_shift_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) >> rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) >> rhs->eval(variables)); }
 };
 
-class l_and_t final : public binop_t {
-    public:
+struct l_and_t final : binop_t {
     l_and_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) && rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) && rhs->eval(variables)); }
 };
 
-class l_or_t final : public binop_t {
-    public:
+struct l_or_t final : binop_t {
     l_or_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return (lhs->eval(variables) || rhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return (lhs->eval(variables) || rhs->eval(variables)); }
 };
 
-class assign_t final : public binop_t {
-    public:
+struct assign_t final : binop_t {
     assign_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class scolon_t final : public binop_t {
-    public:
+struct scolon_t final : binop_t {
     scolon_t(std::unique_ptr<binop_dump>dump_, node_t *lhs_, node_t *rhs_) : binop_t{std::move(dump_), lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
 class unop_t : public node_t {
@@ -235,48 +211,42 @@ class unop_t : public node_t {
         std::swap(lhs, node.lhs);
     }
 
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
 
-class minus_t final : public unop_t {
-    public:
+struct minus_t final : unop_t {
     minus_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return -lhs->eval(variables); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return -lhs->eval(variables); }
 };
 
-class plus_t final : public unop_t {
-    public:
+struct plus_t final : unop_t {
     plus_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return lhs->eval(variables); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return lhs->eval(variables); }
 };
 
-class not_t final : public unop_t {
-    public:
+struct not_t final : unop_t {
     not_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return !lhs->eval(variables); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return !lhs->eval(variables); }
 };
 
-class b_not_t final : public unop_t {
-    public:
+struct b_not_t final : unop_t {
     b_not_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return ~lhs->eval(variables); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return ~lhs->eval(variables); }
 };
 
-class pr_increment_t final : public unop_t {
-    public:
+struct pr_increment_t final : unop_t {
     pr_increment_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class pr_decrement_t final : public unop_t {
-    public:
+struct pr_decrement_t final : unop_t {
     pr_decrement_t(std::unique_ptr<unop_dump>dump_, node_t *lhs_) : unop_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
 class num_t final : public node_t {
@@ -285,18 +255,18 @@ class num_t final : public node_t {
 
     public:
 
-    num_t(const int v, std::unique_ptr<num_dump>dump_) : value(v), dump{std::move(dump_)} {}
+    num_t(const int v, std::unique_ptr<num_dump>dump_) : value{v}, dump{std::move(dump_)} {}
 
     num_t(num_t &&node) : value{node.value}, dump{std::move(node.dump)} {}
 
     int get_value() const { return value; }
 
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return value; }
 
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
@@ -313,14 +283,12 @@ class variable_t final : public node_t {
 
     std::string get_name() const { return name.name; }
 
-    void set_value(int value) { name.value = value; }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
-
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
@@ -338,30 +306,27 @@ class func_t : public node_t {
         std::swap(lhs, node.lhs);
     }
 
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
 
-class print_t final : public func_t {
-    public:
+struct print_t final : func_t {
     print_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : func_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class abs_t final : public func_t {
-    public:
+struct abs_t final : func_t {
     abs_t(std::unique_ptr<func_dump>dump_, node_t *lhs_) : func_t{std::move(dump_), lhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override { return std::abs(lhs->eval(variables)); }
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override { return std::abs(lhs->eval(variables)); }
 };
 
-class get_t final : public func_t {
-    public:
+struct get_t final : func_t {
     get_t(std::unique_ptr<func_dump>dump_) : func_t{std::move(dump_), nullptr} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
 class flow_t : public node_t {
@@ -381,24 +346,22 @@ class flow_t : public node_t {
         std::swap(rhs, node.rhs);
     }
 
-    void graph_node(std::ofstream& file, int &num) override {
+    void graph_node(std::ofstream &file, int &num) const override {
         dump->dump(this, file, num);
     }
-    void connect_node(std::ofstream& file, int &num) override {
+    void connect_node(std::ofstream &file, int &num) const override {
         dump->connect(this, file, num);
     }
 };
 
-class if_t final : public flow_t {
-    public:
+struct if_t final : flow_t {
     if_t(std::unique_ptr<flow_dump>dump_, node_t *cond_, node_t *lhs_, node_t *rhs_) : flow_t{std::move(dump_), cond_, lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
-class while_t final : public flow_t {
-    public:
+struct while_t final : flow_t {
     while_t(std::unique_ptr<flow_dump>dump_, node_t *cond_, node_t *lhs_, node_t *rhs_) : flow_t{std::move(dump_), cond_, lhs_, rhs_} {}
-    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) override;
+    int eval(std::vector<std::unordered_map<std::string, ast::name_t>> &variables) const override;
 };
 
 class tree_t final {
@@ -409,7 +372,7 @@ class tree_t final {
 
     public:
 
-    tree_t(node_t *root_ = nullptr) : root(root_) {
+    tree_t(node_t *root_ = nullptr) : root{root_} {
         std::unordered_map<std::string, ast::name_t> global;
         variables.push_back(global);
     }
@@ -420,13 +383,13 @@ class tree_t final {
     tree_t(tree_t&&) = delete;
     tree_t &operator=(tree_t&&) = delete;
 
-    bool is_valid() {
+    bool is_valid() const {
         if (root) return 1;
         else return 0;
     }
 
     template<typename nodeT>
-    node_t* ast_insert(nodeT &&node) {
+    node_t* ast_insert(nodeT &node) {
         nodeT *n_node = new nodeT(std::move(node));
         nodes.push_back(n_node);
         root = n_node;

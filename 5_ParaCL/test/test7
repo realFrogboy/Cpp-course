@@ -1,6 +1,6 @@
 a = -1;
 if (?)
-    if (?) {}
+        if (?) {}
 else
         a = 1;
 else
