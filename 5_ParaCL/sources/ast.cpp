@@ -175,8 +175,7 @@ int assign_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &va
     std::unordered_map<std::string, name_t>::iterator search;
     std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
         search = scope.find(var);
-        if (search != scope.end()) return true;
-        return false;
+        return search != scope.end();
     });
     if (search == variables[0].end()) {
         auto new_var = variables.back().insert({var, name_t{var, 0, 0}});
@@ -191,8 +190,7 @@ int pr_increment_t::eval(std::vector<std::unordered_map<std::string, ast::name_t
     std::unordered_map<std::string, name_t>::iterator search;
     std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
         search = scope.find(var);
-        if (search != scope.end()) return true;
-        return false;
+        return search != scope.end();
     });
     search->second.value = lhs->eval(variables) + 1;
     return search->second.value;
@@ -203,8 +201,7 @@ int pr_decrement_t::eval(std::vector<std::unordered_map<std::string, ast::name_t
     std::unordered_map<std::string, name_t>::iterator search;
     std::find_if(variables.rbegin(), variables.rend(), [&search, &var](std::unordered_map<std::string, name_t> &scope) {
         search = scope.find(var);
-        if (search != scope.end()) return true;
-        return false;
+        return search != scope.end();
     });
     search->second.value = lhs->eval(variables) - 1;
     return search->second.value;
@@ -225,8 +222,7 @@ int variable_t::eval(std::vector<std::unordered_map<std::string, ast::name_t>> &
     std::unordered_map<std::string, name_t>::iterator search;
     std::find_if(variables.rbegin(), variables.rend(), [&search, &name](std::unordered_map<std::string, name_t> &scope) {
         search = scope.find(name);
-        if (search != scope.end()) return true;
-        return false;
+        return search != scope.end();
     });
     if (search == variables[0].end()) {
         auto new_var = variables.back().insert({name, name_t{name, 0, 0}});

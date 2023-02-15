@@ -68,8 +68,7 @@ class driver_t final {
         std::unordered_map<std::string, ast::name_t>::iterator search;
         std::find_if(scopes.rbegin(), scopes.rend(), [&search, &name](std::unordered_map<std::string, ast::name_t> &scope) {
             search = scope.find(name);
-            if (search != scope.end()) return true; 
-            return false;
+            return search != scope.end();
         });
         if (search != scopes[0].end()) return &search->second;
         return nullptr;
