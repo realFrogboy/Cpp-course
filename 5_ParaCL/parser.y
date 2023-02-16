@@ -110,42 +110,42 @@ namespace yy {
 
 stmt: IF LPAREN exp RPAREN body {
         ast::if_t node("if", $3, $5, nullptr);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | IF LPAREN exp RPAREN body ELSE body { 
         ast::if_t node("if", $3, $5, $7);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt ELSE body { 
         ast::if_t node("if", $3, $5, $7);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | IF LPAREN exp RPAREN body ELSE stmt { 
         ast::if_t node("if", $3, $5, $7);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | WHILE LPAREN exp RPAREN body { 
         ast::while_t node("while", $3, $5, nullptr);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt {
         ast::if_t node("if", $3, $5, nullptr);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt ELSE stmt { 
         ast::if_t node("if", $3, $5, $7);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     | WHILE LPAREN exp RPAREN stmt { 
         ast::while_t node("while", $3, $5, nullptr);
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
         drv.remove_scope();
     }
     ;
@@ -161,7 +161,7 @@ list: { $$ = nullptr; }
             $$ = $1;
         else {
             ast::scolon_t node{";", $1, $2};
-            $$ = drv.tree.ast_insert(node);
+            $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | line list {
@@ -169,7 +169,7 @@ list: { $$ = nullptr; }
             $$ = $1;
         else {
             ast::scolon_t node{";", $1, $2};
-            $$ = drv.tree.ast_insert(node);
+            $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | error SCOLON list { yyerrok; }
@@ -182,124 +182,124 @@ line: exp SCOLON     { $$ = $1; }
 
 exp:  exp GRATER exp {
         ast::g_t node{">", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp LESS exp { 
         ast::l_t node{"<", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp EQUAL exp { 
         ast::e_t node{"==", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp NEQUAL exp { 
         ast::ne_t node{"!=", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp GEQUAL exp { 
         ast::ge_t node{">=", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp LEQUAL exp { 
         ast::le_t node{"<=", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp PLUS exp { 
         ast::add_t node{"+", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp MINUS exp { 
         ast::sub_t node{"-", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp STAR exp { 
         ast::mul_t node{"*", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp SLASH exp { 
         ast::div_t node{"/", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp PERSENT exp { 
         ast::remainder_t node{"%", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp POW exp { 
         ast::pow_t node{"**", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME ASSIGN exp {
         auto search = drv.find_variable($1->name);
         search->is_init = 1;
         ast::variable_t v_node(*$1);
-        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(v_node);
+        ast::node_t *p_node = drv.tree.ast_insert<ast::variable_t>(std::move(v_node));
         ast::assign_t node{"=", p_node, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp AMPERSAND exp {
         ast::b_and_t node{"&", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp STICK exp {
         ast::b_or_t node{"|", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp CAP exp {
         ast::xor_t node{"^", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp L_SHIFT exp {
         ast::l_shift_t node{"<<", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp R_SHIFT exp {
         ast::r_shift_t node{">>", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp D_AMPERSAND exp {
         ast::l_and_t node{"&&", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | exp D_STICK exp {
         ast::l_or_t node{"||", $1, $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | ABS LPAREN exp RPAREN {
         ast::abs_t node{"abs", $3};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | GET {
         ast::get_t node{"?"};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | LPAREN exp RPAREN { $$ = $2; }
     | MINUS exp %prec UMINUS { 
         ast::minus_t node{"-", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | PLUS exp %prec UMINUS {
         ast::plus_t node{"+", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | NOT exp %prec UMINUS {
         ast::not_t node{"!", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | TILDA exp %prec UMINUS {
         ast::b_not_t node{"~", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | D_PLUS exp %prec UMINUS {
         ast::pr_increment_t node{"++", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | D_MINUS exp %prec UMINUS {
         ast::pr_decrement_t node{"--", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | NUMBER { 
         ast::num_t node{$1};
-        $$ = drv.tree.ast_insert<ast::num_t>(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
     | NAME { 
         if ($1->is_init == 0) {
@@ -308,7 +308,7 @@ exp:  exp GRATER exp {
         }
         else {
             ast::variable_t node(*$1);
-            $$ = drv.tree.ast_insert<ast::variable_t>(node);
+            $$ = drv.tree.ast_insert(std::move(node));
         }
     }
     | ERR {
@@ -319,7 +319,7 @@ exp:  exp GRATER exp {
 
 io_func: PRINT exp {
         ast::print_t node{"print", $2};
-        $$ = drv.tree.ast_insert(node);
+        $$ = drv.tree.ast_insert(std::move(node));
     }
 
 program: list END {

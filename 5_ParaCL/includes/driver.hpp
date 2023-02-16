@@ -14,7 +14,7 @@ const std::string norm = "\033[0m";
 
 class driver_t final {
     lexer_t *lexer = nullptr;
-    std::vector<std::unordered_map<std::string, ast::name_t>> scopes{};
+    ast::scopes_t scopes{};
 
     public:
 
@@ -22,8 +22,7 @@ class driver_t final {
 
     driver_t(std::ifstream *in) {
         lexer = new lexer_t{in};
-        std::unordered_map<std::string, ast::name_t> global;
-        scopes.push_back(global);
+        scopes.push_back({});
     }
 
     parser::token_type yylex(parser::semantic_type *yylval, parser::location_type *location) {
@@ -65,13 +64,13 @@ class driver_t final {
     }
 
     ast::name_t* find_variable(const std::string &name) {
-        std::unordered_map<std::string, ast::name_t>::iterator search;
-        std::find_if(scopes.rbegin(), scopes.rend(), [&search, &name](std::unordered_map<std::string, ast::name_t> &scope) {
-            search = scope.find(name);
+        auto scope = std::find_if(scopes.rbegin(), scopes.rend(), [&name](ast::scope_t &scope) {
+            auto search = scope.find(name);
             return search != scope.end();
         });
-        if (search != scopes[0].end()) return &search->second;
-        return nullptr;
+        if (scope == scopes.rend()) return nullptr;
+        auto search = scope->find(name);
+        return &search->second;
     }
 
     ast::name_t* add_variable(const std::string &name) {
@@ -81,7 +80,7 @@ class driver_t final {
     }
 
     void add_scope() {
-        std::unordered_map<std::string, ast::name_t> scope;
+        ast::scope_t scope;
         scopes.push_back(scope);
     }
 
