@@ -382,7 +382,7 @@ class tree_t final {
 
         public:
 
-        template<typename nodeT>
+        template <typename nodeT, class = typename std::enable_if<!std::is_lvalue_reference<nodeT>::value>::type>
         node_t* create(nodeT &&node) {
             nodes.emplace_back(std::make_unique<nodeT>(std::move(node)));
             return nodes.back().get();
