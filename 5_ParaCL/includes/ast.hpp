@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <cstring>
+#include <type_traits>
 #include <unordered_map>
 
 namespace ast {
@@ -395,8 +396,7 @@ class tree_t final {
     public:
 
     tree_t(node_t *root_ = nullptr) : root{root_} {
-        scope_t global;
-        variables.push_back(global);
+        variables.push_back({});
     }
 
     tree_t(const tree_t&) = delete;
@@ -410,7 +410,7 @@ class tree_t final {
         else return 0;
     }
 
-    template<typename nodeT>
+    template <typename nodeT, class = typename std::enable_if<!std::is_lvalue_reference<nodeT>::value>::type>
     node_t* ast_insert(nodeT &&node) {
         root = mgr.create(std::move(node));
         return root;
