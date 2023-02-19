@@ -288,7 +288,11 @@ program: list END {
         if (is_error) return 0;
         #ifdef DUMP
             drv.tree.dump();
-            system("dot -Tpng tree_dump.dot -o image.png");
+            int err = system("dot -Tpng tree_dump.dot -o image.png");
+            if (err < 0) {
+                std::cout << yy::red << "Error:" << yy::norm << @2 << ": can't execute \"dot -Tpng tree_dump.dot -o image.png\"" << std::endl;
+                return 0;
+            }
         #endif
         drv.tree.evaluate();
     }
@@ -307,4 +311,4 @@ void parser::error(const parser::location_type& location, const std::string& wha
     is_error = 1;
 }
 
-}
+} // yy

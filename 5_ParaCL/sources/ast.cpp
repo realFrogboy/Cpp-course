@@ -26,234 +26,131 @@ T get() {
     return val;
 }
 
-}
+} //namespace
 
 namespace ast {
 
-void binop_dump::dump(const binop_t *node, std::ofstream &file, int &num) const {
+void Dump::dump(const node_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    file << "\tnode" << num << " [shape = \"invtriangle\", style = \"filled\", fillcolor = \"pink\", label = \"" << operation << "\"];\n";
+    file << "\tnode" << num << " [shape = \"record\", label = \"" << msg << "\"];\n";
     num++;
 
-    if (node->lhs) node->lhs->graph_node(file, num);
-    if (node->rhs) node->rhs->graph_node(file, num);
+    if (node->cond) node->cond->graph_node(file, num);
+    if (node->lhs)  node->lhs->graph_node(file, num);
+    if (node->rhs)  node->rhs->graph_node(file, num);
 
     if (!curr) num = 0;
 }
 
-void unop_dump::dump(const unop_t *node, std::ofstream &file, int &num) const {
+void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
-    file << "\tnode" << num << " [shape = \"record\", fontcolor = \"white\", style = \"filled\", fillcolor = \"grey28\", label = \"" << operation << "\"];\n";
-    num++;
-
-    node->lhs->graph_node(file, num);
-
-    if (!curr) num = 0;
-}
-
-void num_dump::dump(const num_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-    
-    file << "\tnode" << num << " [shape = \"record\", style = \"filled\", fillcolor = \"greenyellow\", label = \"" << node->get_value() << "\"];\n";
-    num++;
-
-    if (!curr) num = 0;
-}
-
-void variable_dump::dump(const variable_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-    
-    file << "\tnode" << num << " [shape = \"circle\", style = \"filled\", fillcolor = \"lightskyblue1\", label = \"" << node->get_name() << "\"];\n";
-    num++;
-
-    if (!curr) num = 0;
-}
-
-void func_dump::dump(const func_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-
-    file << "\tnode" << num << " [shape = \"diamond\", style = \"filled\", fillcolor = \"red\", label = \"" << func << "\"];\n";
-    num++;
-
-    if (node->lhs) node->lhs->graph_node(file, num);
-
-    if (!curr) num = 0;
-}
-
-void flow_dump::dump(const flow_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-
-    file << "\tnode" << num << " [shape = \"invhouse\", style = \"filled\", fillcolor = \"gold\", label = \"" << flow << "\"];\n";
-    num++;
-
-    node->cond->graph_node(file, num);
-    if (node->lhs) node->lhs->graph_node(file, num);
-
-    if (node->rhs) node->rhs->graph_node(file, num);
-
-    if (!curr) num = 0;
-}
-
-void binop_dump::connect(const binop_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
+    if (node->cond != nullptr) {
+        num++;
+        file << "node" << curr << " -> node" << num << ";\n";
+        node->cond->connect_node(file, num);
+    }
 
     if (node->lhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
-
         node->lhs->connect_node(file, num);
     }
 
     if (node->rhs != nullptr) {
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
-
         node->rhs->connect_node(file, num);
     }
 
     if (!curr) num = 0;
 }
 
-void unop_dump::connect(const unop_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-
-    if (node->lhs != nullptr) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        node->lhs->connect_node(file, num);
-    }
-
-    if (!curr) num = 0;
-}
-
-void num_dump::connect(const num_t *node, std::ofstream &file, int &num) const {}
-void variable_dump::connect(const variable_t *node, std::ofstream &file, int &num) const {}
-
-void func_dump::connect(const func_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-
-    if (node->lhs != nullptr) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        node->lhs->connect_node(file, num);
-    }
-
-    if (!curr) num = 0;
-}
-
-void flow_dump::connect(const flow_t *node, std::ofstream &file, int &num) const {
-    int curr = num;
-
-    num++;
-    file << "node" << curr << " -> node" << num << ";\n";
-
-    node->cond->connect_node(file, num);
-
-    if (node->lhs != nullptr) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        node->lhs->connect_node(file, num);
-    }
-
-    if (node->rhs != nullptr) {
-        num++;
-        file << "node" << curr << " -> node" << num << ";\n";
-
-        node->rhs->connect_node(file, num);
-    }
-
-    if (!curr) num = 0;
-}
-
-int assign_t::eval(scopes_t &variables) const {
+int assign_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(variables, var);
+    auto scope = find_variable(var);
     scope_t::iterator search;
-    (scope == variables.rend()) ? search = variables.back().insert({var, name_t{var, 0, 0}}).first : search = scope->find(var);
-    search->second.value = rhs->eval(variables);
+    (scope == scopes.rend()) ? search = scopes.back().insert({var, name_t{var, 0, 0}}).first : search = scope->find(var);
+    search->second.value = rhs->eval();
     return search->second.value;
 }
 
-int pr_increment_t::eval(scopes_t &variables) const {
+int pr_increment_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(variables, var);
+    auto scope = find_variable(var);
     auto search = scope->find(var);
-    search->second.value = lhs->eval(variables) + 1;
+    search->second.value = lhs->eval() + 1;
     return search->second.value;
 } 
 
-int pr_decrement_t::eval(scopes_t &variables) const{
+int pr_decrement_t::eval() const{
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(variables, var);
+    auto scope = find_variable(var);
     auto search = scope->find(var);
-    search->second.value = lhs->eval(variables) - 1;
+    search->second.value = lhs->eval() - 1;
     return search->second.value;
 } 
 
-int pow_t::eval(scopes_t &variables) const {
-    return std::pow(lhs->eval(variables), rhs->eval(variables));
+int pow_t::eval() const {
+    return std::pow(lhs->eval(), rhs->eval());
 }
 
-int scolon_t::eval(scopes_t &variables) const {
-    if (lhs != nullptr) lhs->eval(variables);
-    if (rhs != nullptr) rhs->eval(variables);
+int scolon_t::eval() const {
+    if (lhs != nullptr) lhs->eval();
+    if (rhs != nullptr) rhs->eval();
     return 0;
 }
 
-int variable_t::eval(scopes_t &variables) const {
+int variable_t::eval() const {
     std::string name = get_name();
-    auto scope = find_variable(variables, name);
-    if (scope == variables.rend()) {
-        variables.back().insert({name, name_t{name, 0, 0}});
+    auto scope = find_variable(name);
+    if (scope == scopes.rend()) {
+        scopes.back().insert({name, name_t{name, 0, 0}});
         return 0;
     }
     auto search = scope->find(name);
     return search->second.value;
 }
 
-int print_t::eval(scopes_t &variables) const {
-    int res = lhs->eval(variables);
+int print_t::eval() const {
+    int res = lhs->eval();
     std::cout << res << std::endl; 
     return res;
 }
 
-int get_t::eval(scopes_t &variables) const {
+int get_t::eval() const {
     if ((std::cin >> std::ws).eof()) 
         throw std::runtime_error("reached input file EOF");
     int res = get<int>();
     return res;
 }
 
-int if_t::eval(scopes_t &variables) const { 
-    variables.push_back({});
-    if (cond->eval(variables)) {
+int if_t::eval() const { 
+    scopes.push_back({});
+    if (cond->eval()) {
         if (lhs) {
-            variables.push_back({});
-            lhs->eval(variables);
-            variables.pop_back();
+            scopes.push_back({});
+            lhs->eval();
+            scopes.pop_back();
         }
     } else if (rhs) {
-        variables.push_back({});
-        rhs->eval(variables);
-        variables.pop_back();
+        scopes.push_back({});
+        rhs->eval();
+        scopes.pop_back();
     }
-    variables.pop_back();
+    scopes.pop_back();
     return 0;
 }
 
-int while_t::eval(scopes_t &variables) const {
-    variables.push_back({});
-    while (lhs && cond->eval(variables)) {
-        variables.push_back({});
-        lhs->eval(variables);
-        variables.pop_back();
+int while_t::eval() const {
+    scopes.push_back({});
+    while (lhs && cond->eval()) {
+        scopes.push_back({});
+        lhs->eval();
+        scopes.pop_back();
     }
-    variables.pop_back();
+    scopes.pop_back();
     return 0;
 }
 
