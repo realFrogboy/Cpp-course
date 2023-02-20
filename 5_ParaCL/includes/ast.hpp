@@ -19,20 +19,8 @@ struct name_t {
 using scope_t  = std::unordered_map<std::string, ast::name_t>;
 using scopes_t = std::vector<scope_t>;
 
-class scopes_singleton;
-
-class singleton_destroyer final {
-    private:
-    scopes_singleton *instance;
-    public:
-    ~singleton_destroyer() { delete instance; }
-    void initialize(scopes_singleton *instance_) { instance = instance_; }
-};
-
 class scopes_singleton final {
     private:
-    static scopes_singleton *instance;
-    static singleton_destroyer destroyer;
     scopes_t scopes;
 
     scopes_singleton() {}
@@ -41,15 +29,11 @@ class scopes_singleton final {
     scopes_singleton(scopes_singleton&&) = delete;
     scopes_singleton& operator=(scopes_singleton&&) = delete;
 
-    friend class singleton_destroyer;
     public:
     ~scopes_singleton() {}
     static scopes_singleton &getInstance() {
-        if (!instance) {
-            instance = new scopes_singleton();
-            destroyer.initialize(instance);
-        }
-        return *instance;
+        static scopes_singleton instance;
+        return instance;
     }
 
     void open_scope() { scopes.push_back({}); }

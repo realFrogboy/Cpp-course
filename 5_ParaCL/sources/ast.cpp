@@ -30,9 +30,6 @@ T get() {
 
 namespace ast {
 
-scopes_singleton* scopes_singleton::instance = 0;
-singleton_destroyer scopes_singleton::destroyer;
-
 void Dump::dump(const node_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
