@@ -69,27 +69,26 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
 
 int assign_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(var);
-    scope_t::iterator search;
-    (scope == scopes.rend()) ? search = scopes.back().insert({var, name_t{var, 0, 0}}).first : search = scope->find(var);
-    search->second.value = rhs->eval();
-    return search->second.value;
+    auto search = scopes.find_variable(var);
+    if (search == nullptr) search = scopes.add_variable(var);
+    search->value = rhs->eval();
+    return search->value;
 }
 
 int pr_increment_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(var);
-    auto search = scope->find(var);
-    search->second.value = lhs->eval() + 1;
-    return search->second.value;
+    auto search = scopes.find_variable(var);
+    if (search == nullptr) throw std::runtime_error("can't find variable");
+    search->value = lhs->eval() + 1;
+    return search->value;
 } 
 
 int pr_decrement_t::eval() const{
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    auto scope = find_variable(var);
-    auto search = scope->find(var);
-    search->second.value = lhs->eval() - 1;
-    return search->second.value;
+    auto search = scopes.find_variable(var);
+    if (search == nullptr) throw std::runtime_error("can't find variable");
+    search->value = lhs->eval() - 1;
+    return search->value;
 } 
 
 int pow_t::eval() const {
@@ -104,13 +103,12 @@ int scolon_t::eval() const {
 
 int variable_t::eval() const {
     std::string name = get_name();
-    auto scope = find_variable(name);
-    if (scope == scopes.rend()) {
-        scopes.back().insert({name, name_t{name, 0, 0}});
+    auto search = scopes.find_variable(name);
+    if (search == nullptr) {
+        search = scopes.add_variable(name);
         return 0;
     }
-    auto search = scope->find(name);
-    return search->second.value;
+    return search->value;
 }
 
 int print_t::eval() const {
@@ -127,30 +125,30 @@ int get_t::eval() const {
 }
 
 int if_t::eval() const { 
-    scopes.push_back({});
+    scopes.open_scope();
     if (cond->eval()) {
         if (lhs) {
-            scopes.push_back({});
+            scopes.open_scope();
             lhs->eval();
-            scopes.pop_back();
+            scopes.close_scope();
         }
     } else if (rhs) {
-        scopes.push_back({});
+        scopes.open_scope();
         rhs->eval();
-        scopes.pop_back();
+        scopes.close_scope();
     }
-    scopes.pop_back();
+    scopes.close_scope();
     return 0;
 }
 
 int while_t::eval() const {
-    scopes.push_back({});
+    scopes.open_scope();
     while (lhs && cond->eval()) {
-        scopes.push_back({});
+        scopes.open_scope();
         lhs->eval();
-        scopes.pop_back();
+        scopes.close_scope();
     }
-    scopes.pop_back();
+    scopes.close_scope();
     return 0;
 }
 
