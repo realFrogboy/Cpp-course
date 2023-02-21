@@ -30,9 +30,6 @@ T get() {
 
 namespace ast {
 
-scopes_singleton* scopes_singleton::instance = 0;
-singleton_destroyer scopes_singleton::destroyer;
-
 void Dump::dump(const node_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
@@ -72,7 +69,6 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
 
 int assign_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     auto search = scopes.find_variable(var);
     if (search == nullptr) search = scopes.add_variable(var);
     search->value = rhs->eval();
@@ -81,7 +77,6 @@ int assign_t::eval() const {
 
 int pr_increment_t::eval() const {
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     auto search = scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() + 1;
@@ -90,7 +85,6 @@ int pr_increment_t::eval() const {
 
 int pr_decrement_t::eval() const{
     std::string var = static_cast<variable_t*>(lhs)->get_name();
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     auto search = scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() - 1;
@@ -109,7 +103,6 @@ int scolon_t::eval() const {
 
 int variable_t::eval() const {
     std::string name = get_name();
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     auto search = scopes.find_variable(name);
     if (search == nullptr) {
         search = scopes.add_variable(name);
@@ -132,7 +125,6 @@ int get_t::eval() const {
 }
 
 int if_t::eval() const { 
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     scopes.open_scope();
     if (cond->eval()) {
         if (lhs) {
@@ -150,7 +142,6 @@ int if_t::eval() const {
 }
 
 int while_t::eval() const {
-    scopes_singleton &scopes = scopes_singleton::getInstance();
     scopes.open_scope();
     while (lhs && cond->eval()) {
         scopes.open_scope();
