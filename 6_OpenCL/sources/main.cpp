@@ -39,7 +39,7 @@ int main() {
         unsigned size = get<unsigned>();
         std::vector<float> sequence = get_sequence(size);
 
-        OpenCL::OpenCL_app app{};
+        OpenCL::IOpenCL_app app{};
         auto res = app.bitonic_sort(sequence);
         copy(res.first.begin(), res.first.end(), std::ostream_iterator<float>(std::cout, " "));
         std::cout << "\n\nBitonic sort time: " << res.second << "ns." << std::endl;

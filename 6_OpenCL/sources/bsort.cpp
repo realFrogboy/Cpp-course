@@ -39,24 +39,18 @@ cl::Device OpenCL_app::choose_device(const cl::Platform &platform) {
     return devices.front();
 }
 
-cl::Program OpenCL_app::build_program(const std::string &path) const {
+void OpenCL_app::build_program(const std::string &path) {
     std::string code = read_file(path);
     cl::Program::Sources source{code};
-    cl::Program program(context, source);
+    program = cl::Program (context, source);
     cl::vector<cl::Device> devices{device};
     program.build(devices);
-    return program;
 }
 
-std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) {
-    if (path != bitonic_path) {
-        std::cout << "bsort.cl building" << std::endl;
-        program = build_program(bitonic_path);
-        path = bitonic_path;
-    }
-
+std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) const {
     cl::vector<cl::Kernel> kernels;
-    program.createKernels(&kernels);
+    cl::Program l_program = program;
+    l_program.createKernels(&kernels);
 
     unsigned local_size = kernels.front().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device);
     local_size = static_cast<unsigned>(std::pow(2, std::trunc(std::log2(local_size))));
@@ -125,6 +119,15 @@ std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std:
 
 void OpenCL_app::dump(std::ostream &os) const {
     os << platform.getInfo<CL_PLATFORM_NAME>() << " " << device.getInfo<CL_DEVICE_NAME>() << " " << context.getInfo<CL_CONTEXT_NUM_DEVICES>();
+}
+
+std::pair<std::vector<float>, unsigned long> IOpenCL_app::bitonic_sort(const std::vector<float> &sequence) {
+    if (path != bitonic_path) {
+        std::cout << "bsort.cl building" << std::endl;
+        app.build_program(bitonic_path);
+        path = bitonic_path;
+    }
+    return app.bitonic_sort(sequence);
 }
 
 std::ostream &operator<<(std::ostream &os, const OpenCL_app &app) {

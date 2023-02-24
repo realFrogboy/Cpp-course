@@ -7,7 +7,7 @@ namespace UnitTest {
 class bitonic_test final {
     unsigned num;
     unsigned size;
-    OpenCL::OpenCL_app app;
+    OpenCL::IOpenCL_app app;
 
     std::vector<float> generate_sequence() const;
 
