@@ -2,7 +2,7 @@
 Some applications in OpenCL.
 
 ## Bitonic sort
-I have implemented the algorithm proposed in the book ["OpenCL in Action"](https://www.amazon.com/OpenCL-Action-Accelerate-Graphics-Computations/dp/1617290173) - Matthew Scarpino
+I have implemented the algorithm proposed in the book ["OpenCL in Action"](https://www.amazon.com/OpenCL-Action-Accelerate-Graphics-Computations/dp/1617290173) - Matthew Scarpino.
 
 ## Instalation
 Run:
