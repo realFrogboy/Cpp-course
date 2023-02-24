@@ -11,7 +11,7 @@ endif()
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set (COMPILER_SETTINGS -g -Wall -Wextra -Wpedantic)
 else ()
-    set (COMPILER_SETTINGS -Wall -Wextra -Wpedantic)
+    set (COMPILER_SETTINGS -O2 -Wall -Wextra -Wpedantic)
 endif ()
 add_compile_options(${COMPILER_SETTINGS})
 
