@@ -48,7 +48,7 @@ cl::Program OpenCL_app::build_program(const std::string &path) const {
     return program;
 }
 
-std::vector<float> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) const {
+std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) const {
     cl::Program program = build_program(bitonic_path);
     cl::vector<cl::Kernel> kernels;
     program.createKernels(&kernels);
@@ -67,7 +67,9 @@ std::vector<float> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) 
         kernel.setArg(1, cl::Local(wi_size * local_size * sizeof(float)));
     }
 
-    cl::CommandQueue queue(context, device);
+    cl::CommandQueue queue(context, device, CL_QUEUE_PROFILING_ENABLE);
+    cl::Event profileEvent;
+    unsigned long total_time = 0;
 
     unsigned global_size = aligned_seq.size() / wi_size;
     if(global_size < local_size) 
@@ -75,7 +77,9 @@ std::vector<float> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) 
 
     cl::NDRange global(global_size);
     cl::NDRange local(local_size);
-    queue.enqueueNDRangeKernel(kernels[0] /*bsort_init*/, 0, global, local);
+    queue.enqueueNDRangeKernel(kernels[0] /*bsort_init*/, 0, global, local, nullptr, &profileEvent);
+    queue.finish();
+    total_time += command_duration(profileEvent);
 
     unsigned num_stages = global_size / local_size;
     for(unsigned high_stage = 2; high_stage < num_stages; high_stage <<= 1) {
@@ -84,10 +88,14 @@ std::vector<float> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) 
 
         for (unsigned stage = high_stage; stage > 1; stage >>= 1) {
             kernels[2].setArg(2, stage); // bsort_stage_n
-            queue.enqueueNDRangeKernel(kernels[2] /*bsort_stage_n*/, 0, global, local);
+            queue.enqueueNDRangeKernel(kernels[2] /*bsort_stage_n*/, 0, global, local, nullptr, &profileEvent);
+            queue.finish();
+            total_time += command_duration(profileEvent);
         }
 
-        queue.enqueueNDRangeKernel(kernels[1] /*bsort_stage_0*/, 0, global, local);
+        queue.enqueueNDRangeKernel(kernels[1] /*bsort_stage_0*/, 0, global, local, nullptr, &profileEvent);
+        queue.finish();
+        total_time += command_duration(profileEvent);
     }
 
     kernels[3].setArg(3, direction); // bsort_merge
@@ -95,16 +103,18 @@ std::vector<float> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) 
 
     for (unsigned stage = num_stages; stage > 1; stage >>= 1) {
         kernels[3].setArg(2, stage); // bsort_merge
-        queue.enqueueNDRangeKernel(kernels[3] /*bsort_merge*/, 0, global, local);
+        queue.enqueueNDRangeKernel(kernels[3] /*bsort_merge*/, 0, global, local, nullptr, &profileEvent);
+        queue.finish();
+        total_time += command_duration(profileEvent);
     }
 
-    cl::Event evt;
-    queue.enqueueNDRangeKernel(kernels[4] /*bsort_merge_last*/, 0, global, local, nullptr, &evt);
-    evt.wait();
+    queue.enqueueNDRangeKernel(kernels[4] /*bsort_merge_last*/, 0, global, local, nullptr, &profileEvent);
+    queue.finish();
+    total_time += command_duration(profileEvent);
 
     cl::copy(queue, data, aligned_seq.begin(), aligned_seq.end());
     aligned_seq.resize(sequence.size());
-    return aligned_seq;
+    return {aligned_seq, total_time};
 }
 
 void OpenCL_app::dump(std::ostream &os) const {

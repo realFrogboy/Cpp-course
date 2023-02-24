@@ -1,6 +1,6 @@
 #include <random>
+#include <chrono>
 #include <iostream>
-#include <fstream>
 #include <algorithm>
 
 #include "unit_test.h"
@@ -35,10 +35,18 @@ void bitonic_test::run() const {
     unsigned correct = 0;
     for (unsigned cnt = 1; cnt <= num; ++cnt) {
         std::vector<float> sequence = generate_sequence();
-        std::vector<float> res = app.bitonic_sort(sequence);
-        bool check = check_answer(res);
+        auto res = app.bitonic_sort(sequence);
+
+        bool check = check_answer(res.first);
         if (!check)
             std::cout << "Incorrect answer in the test #" << num << std::endl;
+        else {
+            std::chrono::high_resolution_clock::time_point TimeStart, TimeFin;
+            TimeStart = std::chrono::high_resolution_clock::now();
+            std::sort(sequence.begin(), sequence.end());
+            TimeFin = std::chrono::high_resolution_clock::now();
+            std::cout << "Test #" << cnt << ": Bitonic time:" << res.second << "ns. VS std::sort time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(TimeFin - TimeStart).count() << "ns." << std::endl;
+        }
         correct += check;
     }
     std::cout << "Number of correct: " << correct << " / " << num << std::endl;

@@ -7,6 +7,7 @@
 
 #define CL_HPP_ENABLE_EXCEPTIONS
 
+#include <utility>
 #include <CL/cl2.hpp>
 
 namespace OpenCL {
@@ -26,10 +27,13 @@ class OpenCL_app final {
     cl::Context context;
 
     static cl::Platform choose_platform();
-
     static cl::Device choose_device(const cl::Platform &platform);
-
     cl::Program build_program(const std::string &path) const;
+    unsigned long command_duration(const cl::Event &evt) const {
+        unsigned long start = evt.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+        unsigned long end = evt.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+        return (end - start);
+    }
 
     public:
 
@@ -39,8 +43,7 @@ class OpenCL_app final {
     OpenCL_app(OpenCL_app&&) = delete;
     OpenCL_app &operator=(OpenCL_app&&) = delete;
 
-    std::vector<float> bitonic_sort(const std::vector<float> &sequence) const;
-
+    std::pair<std::vector<float>, unsigned long> bitonic_sort(const std::vector<float> &sequence) const;
     void dump(std::ostream &os) const;
 };
 

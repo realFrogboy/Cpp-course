@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -37,9 +38,17 @@ int main() {
     try {
         unsigned size = get<unsigned>();
         std::vector<float> sequence = get_sequence(size);
+
         OpenCL::OpenCL_app app{};
-        std::vector<float> res = app.bitonic_sort(sequence);
-        copy(res.begin(), res.end(), std::ostream_iterator<float>(std::cout, " "));
+        auto res = app.bitonic_sort(sequence);
+        copy(res.first.begin(), res.first.end(), std::ostream_iterator<float>(std::cout, " "));
+        std::cout << "\n\nBitonic sort time: " << res.second << "ns." << std::endl;
+
+        std::chrono::high_resolution_clock::time_point TimeStart, TimeFin;
+        TimeStart = std::chrono::high_resolution_clock::now();
+        std::sort(sequence.begin(), sequence.end());
+        TimeFin = std::chrono::high_resolution_clock::now();
+        std::cout << "std::sort time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(TimeFin - TimeStart).count() << "ns." << std::endl;
     } catch (cl::Error &e) {
         std::cout << "Error: " << e.err() << " " << e.what() << std::endl;
     } catch (std::exception & e) {
