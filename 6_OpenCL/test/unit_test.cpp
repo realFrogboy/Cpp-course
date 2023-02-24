@@ -18,7 +18,7 @@ std::vector<float> bitonic_test::generate_sequence() const {
 
 bool bitonic_test::check_answer(const std::vector<float> &sequence) const {
     int idx = 0;
-    if (direction == 0) {
+    if (OpenCL::direction == 0) {
         auto check = std::find_if(std::next(sequence.begin()), sequence.end(), [&idx, &sequence](float curr) {
             return (curr < sequence[idx++]);
         });
@@ -31,7 +31,7 @@ bool bitonic_test::check_answer(const std::vector<float> &sequence) const {
     }
 }
 
-void bitonic_test::run() const {
+void bitonic_test::run() {
     unsigned correct = 0;
     for (unsigned cnt = 1; cnt <= num; ++cnt) {
         std::vector<float> sequence = generate_sequence();
@@ -45,9 +45,10 @@ void bitonic_test::run() const {
             TimeStart = std::chrono::high_resolution_clock::now();
             std::sort(sequence.begin(), sequence.end());
             TimeFin = std::chrono::high_resolution_clock::now();
-            std::cout << "Test #" << cnt << ": Bitonic time:" << res.second << "ns. VS std::sort time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(TimeFin - TimeStart).count() << "ns." << std::endl;
+            std::cout << "Test #" << cnt << ": Bitonic time:" << res.second << "ns."
+                "VS std::sort time: " << std::chrono::duration_cast<std::chrono::nanoseconds>(TimeFin - TimeStart).count() << "ns." << std::endl;
+            ++correct;
         }
-        correct += check;
     }
     std::cout << "Number of correct: " << correct << " / " << num << std::endl;
 }

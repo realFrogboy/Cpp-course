@@ -48,16 +48,22 @@ cl::Program OpenCL_app::build_program(const std::string &path) const {
     return program;
 }
 
-std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) const {
-    cl::Program program = build_program(bitonic_path);
+std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std::vector<float> &sequence) {
+    if (path != bitonic_path) {
+        std::cout << "bsort.cl building" << std::endl;
+        program = build_program(bitonic_path);
+        path = bitonic_path;
+    }
+
     cl::vector<cl::Kernel> kernels;
     program.createKernels(&kernels);
+
     unsigned local_size = kernels.front().getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(device);
     local_size = static_cast<unsigned>(std::pow(2, std::trunc(std::log2(local_size))));
 
     std::vector<float> aligned_seq = sequence;
     unsigned aligned_sz = static_cast<unsigned>(std::pow(2, std::ceil(std::log2(sequence.size()))));
-    aligned_seq.resize(aligned_sz, CL_FLT_MAX);
+    aligned_seq.resize(std::max(wi_size, aligned_sz), CL_FLT_MAX);
 
     cl::Buffer data(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, 
             aligned_seq.size() * sizeof(float), aligned_seq.data());
