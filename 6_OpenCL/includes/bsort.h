@@ -7,13 +7,12 @@
 
 #define CL_HPP_ENABLE_EXCEPTIONS
 
-#include <CL/cl2.hpp>
+#include <CL/opencl.hpp>
 
 namespace OpenCL {
 
 const std::string bitonic_path = "../bsort.cl";
 constexpr unsigned wi_size = 8;
-constexpr int direction = 0; /* Ascending: 0, Descending: -1 */
 
 class OpenCL_app final {
     cl::Platform platform;
@@ -30,6 +29,7 @@ class OpenCL_app final {
     }
 
     public:
+    static constexpr int direction = 0; /* Ascending: 0, Descending: -1 */
 
     OpenCL_app() : platform{choose_platform()}, device{choose_device(platform)}, context{device} {}
     OpenCL_app(const OpenCL_app&) = delete;
@@ -48,8 +48,8 @@ class IOpenCL_app final {
     std::string path{};
 
     public:
-
     std::pair<std::vector<float>, unsigned long> bitonic_sort(const std::vector<float> &sequence);
+    int direction() const { return app.direction; }
 };
 
 std::ostream &operator<<(std::ostream &os, const OpenCL_app &app);

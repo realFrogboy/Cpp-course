@@ -26,9 +26,7 @@ T get() {
 }
 std::vector<float> get_sequence(const unsigned size) {
     std::vector<float> sequence(size);
-    std::for_each(sequence.begin(), sequence.end(), [](float &curr) {
-        curr = get<float>();
-    });
+    std::generate(sequence.begin(), sequence.end(), [](){ return get<float>(); });
     return sequence;
 }
 
