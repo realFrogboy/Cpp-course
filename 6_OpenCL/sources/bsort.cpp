@@ -69,7 +69,7 @@ std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std:
 
     cl::CommandQueue queue(context, device, CL_QUEUE_PROFILING_ENABLE);
     cl::Event profileEvent;
-    unsigned long total_time = 0;
+    unsigned long gpu_time = 0;
 
     unsigned global_size = aligned_seq.size() / wi_size;
     if(global_size < local_size) 
@@ -79,7 +79,7 @@ std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std:
     cl::NDRange local(local_size);
     queue.enqueueNDRangeKernel(kernels[0] /*bsort_init*/, 0, global, local, nullptr, &profileEvent);
     queue.finish();
-    total_time += command_duration(profileEvent);
+    gpu_time += command_duration(profileEvent);
 
     unsigned num_stages = global_size / local_size;
     for(unsigned high_stage = 2; high_stage < num_stages; high_stage <<= 1) {
@@ -90,12 +90,12 @@ std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std:
             kernels[2].setArg(2, stage); // bsort_stage_n
             queue.enqueueNDRangeKernel(kernels[2] /*bsort_stage_n*/, 0, global, local, nullptr, &profileEvent);
             queue.finish();
-            total_time += command_duration(profileEvent);
+            gpu_time += command_duration(profileEvent);
         }
 
         queue.enqueueNDRangeKernel(kernels[1] /*bsort_stage_0*/, 0, global, local, nullptr, &profileEvent);
         queue.finish();
-        total_time += command_duration(profileEvent);
+        gpu_time += command_duration(profileEvent);
     }
 
     kernels[3].setArg(3, direction); // bsort_merge
@@ -105,32 +105,46 @@ std::pair<std::vector<float>, unsigned long> OpenCL_app::bitonic_sort(const std:
         kernels[3].setArg(2, stage); // bsort_merge
         queue.enqueueNDRangeKernel(kernels[3] /*bsort_merge*/, 0, global, local, nullptr, &profileEvent);
         queue.finish();
-        total_time += command_duration(profileEvent);
+        gpu_time += command_duration(profileEvent);
     }
 
     queue.enqueueNDRangeKernel(kernels[4] /*bsort_merge_last*/, 0, global, local, nullptr, &profileEvent);
     queue.finish();
-    total_time += command_duration(profileEvent);
+    gpu_time += command_duration(profileEvent);
 
     cl::copy(queue, data, aligned_seq.begin(), aligned_seq.end());
     aligned_seq.resize(sequence.size());
-    return {aligned_seq, total_time};
+    return {aligned_seq, gpu_time};
 }
 
 void OpenCL_app::dump(std::ostream &os) const {
-    os << platform.getInfo<CL_PLATFORM_NAME>() << " " << device.getInfo<CL_DEVICE_NAME>() << " " << context.getInfo<CL_CONTEXT_NUM_DEVICES>();
+    os << "Platform: " << platform.getInfo<CL_PLATFORM_NAME>() << "\nDevice: " << device.getInfo<CL_DEVICE_NAME>() << "\n";
 }
 
-std::pair<std::vector<float>, unsigned long> IOpenCL_app::bitonic_sort(const std::vector<float> &sequence) {
+std::tuple<std::vector<float>, unsigned long, unsigned long> IOpenCL_app::bitonic_sort(const std::vector<float> &sequence) {
     if (path != bitonic_path) {
         std::cout << "bsort.cl building" << std::endl;
         app.build_program(bitonic_path);
         path = bitonic_path;
     }
-    return app.bitonic_sort(sequence);
+    std::chrono::high_resolution_clock::time_point TimeStart, TimeFin;
+    TimeStart = std::chrono::high_resolution_clock::now();
+    auto [res, gpu_time] = app.bitonic_sort(sequence);
+    TimeFin = std::chrono::high_resolution_clock::now();
+    unsigned long total_time = std::chrono::duration_cast<std::chrono::nanoseconds>(TimeFin - TimeStart).count();
+    return std::make_tuple(res, total_time, gpu_time);
+}
+
+void IOpenCL_app::dump(std::ostream &os) const {
+    app.dump(os);
 }
 
 std::ostream &operator<<(std::ostream &os, const OpenCL_app &app) {
+    app.dump(os);
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const IOpenCL_app &app) {
     app.dump(os);
     return os;
 }

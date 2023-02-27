@@ -48,10 +48,12 @@ class IOpenCL_app final {
     std::string path{};
 
     public:
-    std::pair<std::vector<float>, unsigned long> bitonic_sort(const std::vector<float> &sequence);
+    std::tuple<std::vector<float>, unsigned long, unsigned long> bitonic_sort(const std::vector<float> &sequence);
     int direction() const { return app.direction; }
+    void dump(std::ostream &os) const;
 };
 
 std::ostream &operator<<(std::ostream &os, const OpenCL_app &app);
+std::ostream &operator<<(std::ostream &os, const IOpenCL_app &app);
 
 } // OpenCL

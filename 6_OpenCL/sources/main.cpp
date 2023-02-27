@@ -26,7 +26,7 @@ T get() {
 }
 std::vector<float> get_sequence(const unsigned size) {
     std::vector<float> sequence(size);
-    std::generate(sequence.begin(), sequence.end(), [](){ return get<float>(); });
+    std::generate(sequence.begin(), sequence.end(), []{ return get<float>(); });
     return sequence;
 }
 
@@ -38,9 +38,14 @@ int main() {
         std::vector<float> sequence = get_sequence(size);
 
         OpenCL::IOpenCL_app app{};
-        auto res = app.bitonic_sort(sequence);
-        copy(res.first.begin(), res.first.end(), std::ostream_iterator<float>(std::cout, " "));
-        std::cout << "\n\nBitonic sort time: " << res.second << "ns." << std::endl;
+        std::cout << app << std::endl;
+
+        auto [res, total_time, gpu_time] = app.bitonic_sort(sequence);
+        copy(res.begin(), res.end(), std::ostream_iterator<float>(std::cout, " "));
+        std::cout << "\n\nBitonic sort time (total time / host_time / gpu_time):" 
+        " " << total_time << "ns. /"
+        " " << (total_time - gpu_time) << "ns. /" 
+        " "<< gpu_time << "ns." << std::endl;
 
         std::chrono::high_resolution_clock::time_point TimeStart, TimeFin;
         TimeStart = std::chrono::high_resolution_clock::now();
