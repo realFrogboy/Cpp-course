@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(bsort)
 
+find_package(OpenCLICDLoader)
+if (NOT OpenCLICDLoader_FOUND)
+    message("If cmake couldn't find OpenCL loader, please set the path to OpenCLICDLoaderConfig.cmake in CMAKE_PREFIX_PATH")
+endif()
+
 find_package(OpenCL REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -12,11 +17,6 @@ if (NOT OpenCLHeaders_FOUND)
     message("If cmake couldn't find OpenCL header files, please set the path to OpenCLHeadersConfig.cmake in CMAKE_PREFIX_PATH")
 else()
     set(OpenCL_libs ${OpenCL_libs} OpenCL::Headers)
-endif()
-
-find_package(OpenCLICDLoader)
-if (NOT OpenCLICDLoader_FOUND)
-    message("If cmake couldn't find OpenCL loader, please set the path to OpenCLICDLoaderConfig.cmake in CMAKE_PREFIX_PATH")
 endif()
 
 find_package(OpenCLHeadersCpp)
@@ -46,12 +46,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCL_libs})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 #unit_test
+find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
+
 set (PROJ_TEST_NAME bitonic_sort_test)
 set (TEST_SOURCES test/main.cpp sources/bsort.cpp test/unit_test.cpp)
 
 add_executable(${PROJ_TEST_NAME} ${TEST_SOURCES})
-target_include_directories (${PROJ_TEST_NAME} PRIVATE includes)
-target_link_libraries(${PROJ_TEST_NAME} PRIVATE ${OpenCL_libs})
+target_include_directories (${PROJ_TEST_NAME} PRIVATE includes ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJ_TEST_NAME} PRIVATE ${OpenCL_libs} ${Boost_LIBRARIES})
 target_compile_features(${PROJ_TEST_NAME} PRIVATE cxx_std_20)
 
 #gtest
