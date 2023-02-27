@@ -21,3 +21,7 @@ Run:
         ./bitonic_sort_test
         
 Program generates 10 sequences of 2^20 floats, sort them and check answers. Also it compares time spent by bitonic sort and time spent by std::sort.
+
+        ./gtest
+
+Run gtests with handmade sequences and corner cases.
