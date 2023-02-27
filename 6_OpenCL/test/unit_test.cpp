@@ -17,7 +17,7 @@ std::vector<float> bitonic_test::monotonic_generator::generate_sequence() {
     float start = get_random_number(l_board, r_board);
 
     float l_step = 0.f, r_step = 0.f;
-    (order == Order::ASCENDING) ? r_step = 10.f : l_step = -10.f;
+    (order == OpenCL::Order::ASCENDING) ? r_step = 10.f : l_step = -10.f;
     float step = get_random_number(l_step, r_step);
 
     std::generate(sequence.begin(), sequence.end(), [&start, step]{ return start += step; });
@@ -31,18 +31,9 @@ std::vector<float> bitonic_test::one_number_generator::generate_sequence() {
 }
 
 bool bitonic_test::check_answer(const std::vector<float> &sequence) const {
-    int idx = 0;
-    if (app.direction() == 0) {
-        auto check = std::find_if(std::next(sequence.begin()), sequence.end(), [&idx, &sequence](float curr) {
-            return (curr < sequence[idx++]);
-        });
-        return (check == sequence.end());
-    } else {
-        auto check = std::find_if(std::next(sequence.begin()), sequence.end(), [&idx, &sequence](float curr) {
-            return (curr > sequence[idx++]);
-        });
-        return (check == sequence.end());
-    }
+    if (app.direction() == 0) 
+        return std::is_sorted(sequence.begin(), sequence.end());
+    return std::is_sorted(sequence.rbegin(), sequence.rend());
 }
 
 void bitonic_test::run() {

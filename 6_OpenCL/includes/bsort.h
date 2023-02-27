@@ -14,6 +14,11 @@ namespace OpenCL {
 const std::string bitonic_path = "../bsort.cl";
 constexpr unsigned wi_size = 8;
 
+enum class Order {
+    ASCENDING = 0, 
+    DESCENDING = -1,
+};
+
 class OpenCL_app final {
     cl::Platform platform;
     cl::Device device;
@@ -29,7 +34,7 @@ class OpenCL_app final {
     }
 
     public:
-    static constexpr int direction = 0; /* Ascending: 0, Descending: -1 */
+    static constexpr int direction = static_cast<int>(Order::ASCENDING); /* Ascending: 0, Descending: -1 */
 
     OpenCL_app() : platform{choose_platform()}, device{choose_device(platform)}, context{device} {}
     OpenCL_app(const OpenCL_app&) = delete;

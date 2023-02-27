@@ -29,16 +29,11 @@ class bitonic_test final {
         virtual ~generator() {}
     };
 
-    enum class Order {
-        ASCENDING, 
-        DESCENDING
-    };
-
     class monotonic_generator : public generator {
-        Order order;
+        OpenCL::Order order;
 
         public:
-        monotonic_generator(const unsigned size_, const std::string &mode, const Order order_) : generator(size_, mode), order{order_} {}
+        monotonic_generator(const unsigned size_, const std::string &mode, const OpenCL::Order order_) : generator(size_, mode), order{order_} {}
         std::vector<float> generate_sequence() override;
     };
 
@@ -57,11 +52,11 @@ class bitonic_test final {
     };
 
     struct ascending_generator final : monotonic_generator {
-        ascending_generator(const unsigned size_) : monotonic_generator(size_, "ASCENDING", Order::ASCENDING) {}
+        ascending_generator(const unsigned size_) : monotonic_generator(size_, "ASCENDING", OpenCL::Order::ASCENDING) {}
     };
 
     struct descending_generator final : monotonic_generator {
-        descending_generator(const unsigned size_) : monotonic_generator(size_, "DESCENDING", Order::DESCENDING) {}
+        descending_generator(const unsigned size_) : monotonic_generator(size_, "DESCENDING", OpenCL::Order::DESCENDING) {}
     };
 
     struct one_number_generator final : generator {

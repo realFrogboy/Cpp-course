@@ -1,15 +1,40 @@
 #include <iostream>
+#include <boost/program_options.hpp>
 
 #include "unit_test.h"
 
-int main(int argc, char **argv) {
+namespace {
+
+namespace po = boost::program_options;
+
+bool command_line_arg_handler(const int argc, const char *argv[]) {
+    po::options_description desc("Allowed options");
+    desc.add_options()
+        ("test-size", po::value<unsigned>(), "test size")
+    ;
+
+    po::positional_options_description p;
+    p.add("test-size", -1);
+
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("test-size")) {
+        UnitTest::bitonic_test test{1, vm["test-size"].as<unsigned>()};
+        test.run();
+        return 1;
+    }
+
+    return 0;
+}
+
+}
+
+int main(const int argc, const char *argv[]) {
     try {
-        if (argc > 1) {
-            unsigned test_size = std::stoi(argv[1]);
-            UnitTest::bitonic_test test{1, test_size};
-            test.run();
-            return 0;
-        }
+        bool is_tested = command_line_arg_handler(argc, argv);
+        if (is_tested) return 0;
 
         UnitTest::bitonic_test test{5, 3000};
         test.run();
