@@ -28,4 +28,4 @@ Program generates a sequence of *number* floats and then it executes similarly "
 
         ./gtest
 
-Run gtests with handmade sequences and corner cases.
+Program runs gtests with handmade sequences and corner cases.
