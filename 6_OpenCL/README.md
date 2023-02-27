@@ -20,7 +20,11 @@ Run:
 ## Test
         ./bitonic_sort_test
         
-Program generates 10 sequences of 2^20 floats, sort them and check answers. Also it compares time spent by bitonic sort and time spent by std::sort.
+Program generates different sequences of floats, sort them and check answers. Also it compares time spent by bitonic sort and time spent by std::sort.
+
+        ./bitonic_sort_test <number>
+
+Program generates a sequence of *number* floats and then it executes similarly "./bitonic_sort_test".
 
         ./gtest
 
