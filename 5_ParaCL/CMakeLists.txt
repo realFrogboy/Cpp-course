@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(paracl)
 
-find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
+find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug)
@@ -13,11 +14,9 @@ if (DUMP)
 endif()
 
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set (COMPILER_SETTINGS  -g -Wall  -Wextra -Wpedantic)
-    
+    set (COMPILER_SETTINGS -g -Wall -Wextra -Wpedantic)  
 else ()
-    set (COMPILER_SETTINGS -Wall  -Wextra -Wpedantic)
-
+    set (COMPILER_SETTINGS -O2 -Wall -Wextra -Wpedantic)
 endif ()
 
 add_compile_options(${COMPILER_SETTINGS})
@@ -39,7 +38,6 @@ add_executable(${PROJECT_NAME}
   ${FLEX_scanner_OUTPUTS}
   sources/main.cpp sources/ast.cpp
 )
-
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE includes)
+target_include_directories(${PROJECT_NAME} PRIVATE includes ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
