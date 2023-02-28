@@ -1,0 +1,14 @@
+a = 5;
+b = 6;
+a + b;
+c = { 
+    i = 6;
+    while (i > 0) {
+        --i;
+        ++b;
+    }
+    b + 1;
+};
+print c;
+t = { x = 5; y = 10; x + y; };
+print t;

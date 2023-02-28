@@ -96,9 +96,10 @@ int pow_t::eval() const {
 }
 
 int scolon_t::eval() const {
-    if (lhs != nullptr) lhs->eval();
-    if (rhs != nullptr) rhs->eval();
-    return 0;
+    int res = 0;
+    if (lhs != nullptr) res = lhs->eval();
+    if (rhs != nullptr) res = rhs->eval();
+    return res;
 }
 
 int variable_t::eval() const {
@@ -125,31 +126,24 @@ int get_t::eval() const {
 }
 
 int if_t::eval() const { 
+    int res = 0;
     scopes.open_scope();
     if (cond->eval()) {
-        if (lhs) {
-            scopes.open_scope();
-            lhs->eval();
-            scopes.close_scope();
-        }
-    } else if (rhs) {
-        scopes.open_scope();
-        rhs->eval();
-        scopes.close_scope();
-    }
+        if (lhs) 
+            res = lhs->eval();
+    } else if (rhs) 
+        res = rhs->eval();
     scopes.close_scope();
-    return 0;
+    return res;
 }
 
 int while_t::eval() const {
+    int res = 0;
     scopes.open_scope();
-    while (lhs && cond->eval()) {
-        scopes.open_scope();
-        lhs->eval();
-        scopes.close_scope();
-    }
+    while (lhs && cond->eval())
+        res = lhs->eval();
     scopes.close_scope();
-    return 0;
+    return res;
 }
 
 void tree_t::dump() const {

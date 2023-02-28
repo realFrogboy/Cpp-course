@@ -253,6 +253,17 @@ struct while_t final : node_t {
     int eval() const override;
 };
 
+struct block final : node_t {
+    block(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "block", lhs_} {}
+    int eval() const override { 
+        int res = 0;
+        scopes.open_scope();
+        if (lhs) res = lhs->eval();
+        scopes.close_scope();
+        return res;
+    }
+};
+
 class tree_t final {
     node_t *root;
     std::vector<std::unique_ptr<node_t>> nodes;

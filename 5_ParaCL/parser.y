@@ -87,6 +87,7 @@ namespace yy {
 %nterm <ast::node_t*> io_func
 %nterm <ast::node_t*> line
 %nterm <ast::node_t*> body
+%nterm <ast::node_t*> block
 
 %nonassoc RPAREN
 %nonassoc ELSE
@@ -143,9 +144,14 @@ stmt: IF LPAREN exp RPAREN body {
     ;
 
 body: line { $$ = $1; }
-    | LUNICORN list RUNICORN { $$ = $2; }
+    | block { $$ = $1; }
     | END  { $$ = nullptr; }
     ;
+
+block: LUNICORN list RUNICORN {
+         $$ = drv.tree.ast_insert<ast::block>($2);
+     }
+     ;
 
 list: { $$ = nullptr; }
     | stmt list {
@@ -207,6 +213,12 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::pow_t>($1, $3);
     }
     | NAME ASSIGN exp {
+        auto search = drv.find_variable($1->name);
+        search->is_init = 1;
+        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
+    }
+    | NAME ASSIGN block {
         auto search = drv.find_variable($1->name);
         search->is_init = 1;
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
