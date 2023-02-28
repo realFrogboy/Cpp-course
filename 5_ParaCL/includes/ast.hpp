@@ -2,8 +2,6 @@
 
 #include <vector>
 #include <memory>
-#include <cstring>
-#include <type_traits>
 #include <unordered_map>
 
 namespace ast {

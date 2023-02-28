@@ -1,8 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-#include <cstring>
-
 #include "parser.tab.hh"
 #include "lexer.hpp"
 #include "ast.hpp"
