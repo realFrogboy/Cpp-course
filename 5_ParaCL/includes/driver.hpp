@@ -44,6 +44,7 @@ class driver_t final {
             case yy::parser::token_type::LUNICORN:
             case yy::parser::token_type::IF:
             case yy::parser::token_type::WHILE:
+            case yy::parser::token_type::FUNC:
                 add_scope();
                 break;
             default: {}

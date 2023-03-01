@@ -71,6 +71,7 @@ namespace yy {
     IF      "if"
     ELSE    "else"
     WHILE   "while"
+    FUNC    "func"
 
     PRINT   "print"
     ABS     "abs"
@@ -215,14 +216,21 @@ exp:  exp GRATER exp {
     | NAME ASSIGN exp {
         auto search = drv.find_variable($1->name);
         search->is_init = 1;
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN block {
         auto search = drv.find_variable($1->name);
         search->is_init = 1;
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
+    }
+    | NAME ASSIGN FUNC LPAREN RPAREN block {
+        auto search = drv.find_variable($1->name);
+        search->is_init = 1;
+        ast::node_t *p_node = drv.tree.ast_insert<ast::func_variable>($1->name);
+        $$ = drv.tree.ast_insert<ast::func_assign_t>(p_node, $6);
+        drv.remove_scope();
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
@@ -279,7 +287,16 @@ exp:  exp GRATER exp {
             is_error = 1;
         }
         else {
-            $$ = drv.tree.ast_insert($1->name);
+            $$ = drv.tree.ast_insert<ast::scalar_variable>($1->name);
+        }
+    }
+    | NAME LPAREN RPAREN {
+        if ($1->is_init == 0) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
+            is_error = 1;
+        }
+        else {
+            $$ = drv.tree.ast_insert<ast::func_variable>($1->name);
         }
     }
     | ERR {

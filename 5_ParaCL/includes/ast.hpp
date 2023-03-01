@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <variant>
 #include <unordered_map>
 
 namespace ast {
@@ -10,7 +11,7 @@ class node_t;
 
 struct name_t {
     std::string name;
-    int value = 0;
+    std::variant<int, node_t*> value = 0;
     bool is_init = 0;
 };
 
@@ -60,13 +61,10 @@ struct node_t {
     node_t(Scopes &scopes_, const std::string &msg_, node_t *lhs_ = nullptr, node_t *rhs_ = nullptr, node_t *cond_ = nullptr) : 
             dump{std::make_unique<Dump>(msg_)}, scopes{scopes_}, lhs{lhs_}, rhs{rhs_}, cond{cond_} {}
     virtual int eval() const = 0;
-    void graph_node(std::ofstream &file, int &num) const {
-        dump->dump(this, file, num);
-    }
-    void connect_node(std::ofstream &file, int &num) const {
-        dump->connect(this, file, num);
-    } 
     virtual ~node_t() {}
+
+    void graph_node(std::ofstream &file, int &num) const { dump->dump(this, file, num); }
+    void connect_node(std::ofstream &file, int &num) const { dump->connect(this, file, num); } 
 };
 
 struct g_t final : node_t {
@@ -169,6 +167,11 @@ struct assign_t final : node_t {
     int eval() const override;
 };
 
+struct func_assign_t final : node_t {
+    func_assign_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "=", lhs_, rhs_} {}
+    int eval() const override;
+};
+
 struct scolon_t final : node_t {
     scolon_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, ";", lhs_, rhs_} {}
     int eval() const override;
@@ -208,21 +211,26 @@ class num_t final : public node_t {
     int value = 0;
 
     public:
-
     num_t(Scopes &scopes_, const int v) : node_t{scopes_, std::to_string(v)}, value{v} {}
-
     int get_value() const { return value; }
     int eval() const override { return value; }
 };
 
-class variable_t final : public node_t {
+class variable_t : public node_t {
     std::string name;
 
     public:
-
     variable_t(Scopes &scopes_, const std::string &name_) : node_t{scopes_, name_}, name{name_} {}
-
     std::string get_name() const { return name; }
+};
+
+struct scalar_variable final : variable_t {
+    scalar_variable(Scopes &scopes_, const std::string &name_) : variable_t{scopes_, name_} {}
+    int eval() const override;
+};
+
+struct func_variable final : variable_t {
+    func_variable(Scopes &scopes_, const std::string &name_) : variable_t{scopes_, name_} {}
     int eval() const override;
 };
 
@@ -297,14 +305,14 @@ class tree_t final {
         return root;
     }
 
+    template <typename nodeT>
     node_t* ast_insert(const std::string &var) {
-        nodes.emplace_back(std::make_unique<variable_t>(scopes, var));
+        nodes.emplace_back(std::make_unique<nodeT>(scopes, var));
         root = nodes.back().get();
         return root;
     }
 
     int evaluate() { return root->eval(); }
-
     void dump() const;
 };
 

@@ -68,27 +68,35 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
 }
 
 int assign_t::eval() const {
-    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    std::string var = static_cast<scalar_variable*>(lhs)->get_name();
     auto search = scopes.find_variable(var);
     if (search == nullptr) search = scopes.add_variable(var);
     search->value = rhs->eval();
-    return search->value;
+    return std::get<int>(search->value);
+}
+
+int func_assign_t::eval() const {
+    std::string var = static_cast<func_variable*>(lhs)->get_name();
+    auto search = scopes.find_variable(var);
+    if (search == nullptr) search = scopes.add_variable(var);
+    search->value = rhs;
+    return 0;
 }
 
 int pr_increment_t::eval() const {
-    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    std::string var = static_cast<scalar_variable*>(lhs)->get_name();
     auto search = scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() + 1;
-    return search->value;
+    return std::get<int>(search->value);
 } 
 
 int pr_decrement_t::eval() const{
-    std::string var = static_cast<variable_t*>(lhs)->get_name();
+    std::string var = static_cast<scalar_variable*>(lhs)->get_name();
     auto search = scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() - 1;
-    return search->value;
+    return std::get<int>(search->value);
 } 
 
 int pow_t::eval() const {
@@ -102,14 +110,24 @@ int scolon_t::eval() const {
     return res;
 }
 
-int variable_t::eval() const {
+int scalar_variable::eval() const {
     std::string name = get_name();
     auto search = scopes.find_variable(name);
     if (search == nullptr) {
         search = scopes.add_variable(name);
         return 0;
     }
-    return search->value;
+    return std::get<int>(search->value);
+}
+
+int func_variable::eval() const {
+    std::string name = get_name();
+    auto search = scopes.find_variable(name);
+    if (search == nullptr) {
+        search = scopes.add_variable(name);
+        return 0;
+    }
+    return std::get<node_t*>(search->value)->eval();
 }
 
 int print_t::eval() const {
