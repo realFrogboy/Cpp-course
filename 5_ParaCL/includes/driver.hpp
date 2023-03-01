@@ -12,9 +12,12 @@ const std::string norm = "\033[0m";
 class driver_t final {
     lexer_t *lexer = nullptr;
     ast::scopes_t scopes{};
+    ast::scopes_t scopes_tmp{};
 
     public:
 
+    std::vector<std::string> arg_list{};
+    std::vector<int> arg_init_list{};
     ast::tree_t tree{};
 
     driver_t(std::ifstream *in) {
@@ -44,14 +47,15 @@ class driver_t final {
             case yy::parser::token_type::LUNICORN:
             case yy::parser::token_type::IF:
             case yy::parser::token_type::WHILE:
-            case yy::parser::token_type::FUNC:
                 add_scope();
+                break;
+            case yy::parser::token_type::FUNC:
+                hide_scopes();
                 break;
             default: {}
         }
 
         *location = lexer->location;
-
         return tt;
     }
 
@@ -71,9 +75,9 @@ class driver_t final {
         return &search->second;
     }
 
-    ast::name_t* add_variable(const std::string &name) {
+    ast::name_t* add_variable(const std::string &name, const bool init = 0) {
         auto cur_scope = std::prev(scopes.end());
-        auto new_elem = cur_scope->insert({name, ast::name_t{name, 0, 0}});
+        auto new_elem = cur_scope->insert({name, ast::name_t{name, 0, init}});
         return &new_elem.first->second;
     }
 
@@ -84,6 +88,24 @@ class driver_t final {
 
     void remove_scope() {
         scopes.pop_back();
+    }
+
+    void hide_scopes() {
+        scopes_tmp.swap(scopes);
+        scopes.push_back({});
+    }
+
+    void recover_scopes() {
+        scopes.swap(scopes_tmp);
+        scopes_tmp.clear();
+    }
+
+    void clear_arg_list() {
+        arg_list.clear();
+    }
+
+    void clear_arg_init_list() {
+        arg_list.clear();
     }
 
     ~driver_t() {

@@ -8,10 +8,19 @@
 namespace ast {
 
 class node_t;
+struct name_t;
+
+using scope_t  = std::unordered_map<std::string, ast::name_t>;
+using scopes_t = std::vector<scope_t>;
+
+struct func_info {
+    node_t *root;
+    std::vector<std::string> signature;
+};
 
 struct name_t {
     std::string name;
-    std::variant<int, node_t*> value = 0;
+    std::variant<int, func_info> value;
     bool is_init = 0;
 };
 
@@ -19,11 +28,14 @@ using scope_t  = std::unordered_map<std::string, ast::name_t>;
 using scopes_t = std::vector<scope_t>;
 
 class Scopes final {
-    scopes_t scopes;
+    scopes_t scopes{};
+    scopes_t hiden_scopes{};
 
     public:
     void open_scope() { scopes.push_back({}); }
     void close_scope() { scopes.pop_back(); }
+    void hide_scopes() { hiden_scopes.swap(scopes); scopes.push_back({}); }
+    void recover_scopes() { scopes.swap(hiden_scopes); hiden_scopes.clear(); }
 
     ast::name_t* find_variable(const std::string &name) {
         auto scope = std::find_if(scopes.rbegin(), scopes.rend(), [&name](scope_t &scope) {
@@ -37,6 +49,10 @@ class Scopes final {
 
     ast::name_t* add_variable(const std::string &name) {
         return &(scopes.back().insert({name, name_t{name, 0, 0}}).first->second);
+    }
+
+    ast::name_t* add_init_variable(const std::string &name, const int val) {
+        return &(scopes.back().insert({name, name_t{name, val, 1}}).first->second);
     }
 };
 
@@ -167,8 +183,10 @@ struct assign_t final : node_t {
     int eval() const override;
 };
 
-struct func_assign_t final : node_t {
-    func_assign_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "=", lhs_, rhs_} {}
+class func_assign_t final : public node_t {
+    func_info info;
+    public:
+    func_assign_t(Scopes &scopes_, node_t *lhs_, const func_info &info_) : node_t{scopes_, "=", lhs_}, info{info_} {}
     int eval() const override;
 };
 
@@ -229,8 +247,10 @@ struct scalar_variable final : variable_t {
     int eval() const override;
 };
 
-struct func_variable final : variable_t {
-    func_variable(Scopes &scopes_, const std::string &name_) : variable_t{scopes_, name_} {}
+class func_variable final : public variable_t {
+    std::vector<int> args;
+    public:
+    func_variable(Scopes &scopes_, const std::string &name_, const std::vector<int> &args_) : variable_t{scopes_, name_}, args{args_} {}
     int eval() const override;
 };
 
@@ -305,9 +325,20 @@ class tree_t final {
         return root;
     }
 
-    template <typename nodeT>
     node_t* ast_insert(const std::string &var) {
-        nodes.emplace_back(std::make_unique<nodeT>(scopes, var));
+        nodes.emplace_back(std::make_unique<scalar_variable>(scopes, var));
+        root = nodes.back().get();
+        return root;
+    }
+
+    node_t* ast_insert(const std::string &var, const std::vector<int> &args) {
+        nodes.emplace_back(std::make_unique<func_variable>(scopes, var, args));
+        root = nodes.back().get();
+        return root;
+    }
+
+    node_t* ast_insert(node_t* lhs, const func_info &info) {
+        nodes.emplace_back(std::make_unique<func_assign_t>(scopes, lhs, info));
         root = nodes.back().get();
         return root;
     }

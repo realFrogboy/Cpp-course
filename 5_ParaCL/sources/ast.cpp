@@ -76,10 +76,10 @@ int assign_t::eval() const {
 }
 
 int func_assign_t::eval() const {
-    std::string var = static_cast<func_variable*>(lhs)->get_name();
+    std::string var = static_cast<scalar_variable*>(lhs)->get_name();
     auto search = scopes.find_variable(var);
     if (search == nullptr) search = scopes.add_variable(var);
-    search->value = rhs;
+    search->value = info;
     return 0;
 }
 
@@ -123,11 +123,18 @@ int scalar_variable::eval() const {
 int func_variable::eval() const {
     std::string name = get_name();
     auto search = scopes.find_variable(name);
-    if (search == nullptr) {
-        search = scopes.add_variable(name);
-        return 0;
-    }
-    return std::get<node_t*>(search->value)->eval();
+    if (search == nullptr) throw std::runtime_error("can't find function");
+
+    scopes.hide_scopes();
+
+    func_info info = std::get<func_info>(search->value);
+    std::vector<std::string> signature = info.signature;
+    for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
+        scopes.add_init_variable(signature[idx], args[idx]);
+
+    int res = info.root->eval();
+    scopes.recover_scopes();
+    return res;
 }
 
 int print_t::eval() const {
