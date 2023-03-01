@@ -1,0 +1,9 @@
+boo = func () { i = 5; j = 10; i + j; };
+print j;
+a = foo();
+foo = func () { i = 1; 42 * i; };
+b = foo();
+print a;
+print b;
+a = boo();
+print a;

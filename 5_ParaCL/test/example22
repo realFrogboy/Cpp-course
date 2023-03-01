@@ -1,0 +1,11 @@
+foo = func(){
+    i = 5;
+    j = 10;
+
+    while (i > 0) {
+        --i;
+        ++j;
+    }
+};
+a = foo();
+print a;

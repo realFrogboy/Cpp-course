@@ -1,0 +1,12 @@
+boo = func(){
+    i = ?;
+    if (i)
+        print 1;
+    else 
+        print 0;
+};
+
+a = boo();
+b = boo();
+c = {i = 5; j = 10; i = j;};
+print c;
