@@ -14,6 +14,8 @@
 location.step();
 %}
 
+","  return yy::parser::token_type::COMMA;
+
 "+"  return yy::parser::token_type::PLUS;
 "-"  return yy::parser::token_type::MINUS;
 "*"  return yy::parser::token_type::STAR;

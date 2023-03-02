@@ -31,6 +31,7 @@ namespace yy {
 
 %token
     ERR     "UNKNOWN OPERATION"
+    COMMA   ","
 
     POW     "**"
     MINUS   "-"
@@ -90,7 +91,7 @@ namespace yy {
 %nterm <ast::node_t*> body
 %nterm <ast::node_t*> block
 %nterm arg_list
-%nterm init_arg_list
+%nterm <ast::node_t*> init_arg_list
 
 %nonassoc RPAREN
 %nonassoc ELSE
@@ -164,9 +165,15 @@ arg_list:
         }
         ;
 
-init_arg_list:
-             | init_arg_list NUMBER {
-                 drv.arg_init_list.push_back($2);
+init_arg_list: { $$ = nullptr; }
+             | exp {
+                  $$ = drv.tree.ast_insert<ast::arg_list_insertion>($1);
+                  drv.arg_init_list.push_back(0);
+             }
+             | init_arg_list COMMA exp  {
+                auto list_ins = drv.tree.ast_insert<ast::arg_list_insertion>($3);
+                $$ = drv.tree.ast_insert<ast::scolon_t>(list_ins, $1);
+                drv.arg_init_list.push_back(0);
              }
              ;
 
@@ -245,6 +252,7 @@ exp:  exp GRATER exp {
         drv.recover_scopes();
         auto search = drv.find_variable($1->name);
         search->is_init = 1;
+        search->value = drv.arg_list.size();
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert(p_node, ast::func_info{$7, drv.arg_list});
         drv.clear_arg_list();
@@ -312,8 +320,12 @@ exp:  exp GRATER exp {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
             is_error = 1;
         }
+        if (static_cast<unsigned>(std::get<int>($1->value)) != drv.arg_init_list.size()) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": mismatch with function signature" << std::endl;
+            is_error = 1;
+        }
         else {
-            $$ = drv.tree.ast_insert($1->name, drv.arg_init_list);
+            $$ = drv.tree.ast_insert($1->name, $3);
             drv.clear_arg_init_list();
         }
     }

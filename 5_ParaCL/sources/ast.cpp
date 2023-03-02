@@ -125,12 +125,12 @@ int func_variable::eval() const {
     auto search = scopes.find_variable(name);
     if (search == nullptr) throw std::runtime_error("can't find function");
 
+    if (args) args->eval();
+
     scopes.hide_scopes();
 
     func_info info = std::get<func_info>(search->value);
-    std::vector<std::string> signature = info.signature;
-    for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
-        scopes.add_init_variable(signature[idx], args[idx]);
+    scopes.init_func_args(info.signature);
 
     int res = info.root->eval();
     scopes.recover_scopes();

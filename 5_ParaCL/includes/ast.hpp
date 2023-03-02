@@ -8,10 +8,6 @@
 namespace ast {
 
 class node_t;
-struct name_t;
-
-using scope_t  = std::unordered_map<std::string, ast::name_t>;
-using scopes_t = std::vector<scope_t>;
 
 struct func_info {
     node_t *root;
@@ -30,12 +26,14 @@ using scopes_t = std::vector<scope_t>;
 class Scopes final {
     scopes_t scopes{};
     scopes_t hiden_scopes{};
+    std::vector<int> arg_list{};
 
     public:
     void open_scope() { scopes.push_back({}); }
     void close_scope() { scopes.pop_back(); }
     void hide_scopes() { hiden_scopes.swap(scopes); scopes.push_back({}); }
     void recover_scopes() { scopes.swap(hiden_scopes); hiden_scopes.clear(); }
+    void add_arg_list(const int val) { arg_list.push_back(val); }
 
     ast::name_t* find_variable(const std::string &name) {
         auto scope = std::find_if(scopes.rbegin(), scopes.rend(), [&name](scope_t &scope) {
@@ -53,6 +51,12 @@ class Scopes final {
 
     ast::name_t* add_init_variable(const std::string &name, const int val) {
         return &(scopes.back().insert({name, name_t{name, val, 1}}).first->second);
+    }
+
+    void init_func_args(const std::vector<std::string> &signature) {
+        for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
+            scopes.back().insert({signature[idx], name_t{signature[idx], arg_list[sz - idx - 1], 1}});
+        arg_list.clear();
     }
 };
 
@@ -186,7 +190,7 @@ struct assign_t final : node_t {
 class func_assign_t final : public node_t {
     func_info info;
     public:
-    func_assign_t(Scopes &scopes_, node_t *lhs_, const func_info &info_) : node_t{scopes_, "=", lhs_}, info{info_} {}
+    func_assign_t(Scopes &scopes_, node_t *lhs_, const func_info &info_) : node_t{scopes_, "=", lhs_, info_.root}, info{info_} {}
     int eval() const override;
 };
 
@@ -248,9 +252,9 @@ struct scalar_variable final : variable_t {
 };
 
 class func_variable final : public variable_t {
-    std::vector<int> args;
+    node_t *args;
     public:
-    func_variable(Scopes &scopes_, const std::string &name_, const std::vector<int> &args_) : variable_t{scopes_, name_}, args{args_} {}
+    func_variable(Scopes &scopes_, const std::string &name_, node_t *args_) : variable_t{scopes_, name_}, args{args_} {}
     int eval() const override;
 };
 
@@ -286,6 +290,16 @@ struct block final : node_t {
         scopes.open_scope();
         if (lhs) res = lhs->eval();
         scopes.close_scope();
+        return res;
+    }
+};
+
+struct arg_list_insertion final : node_t {
+    arg_list_insertion(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "arg_list", lhs_} {}
+    int eval() const override {
+        int res = 0;
+        if (lhs) res = lhs->eval();
+        scopes.add_arg_list(res);
         return res;
     }
 };
@@ -331,7 +345,7 @@ class tree_t final {
         return root;
     }
 
-    node_t* ast_insert(const std::string &var, const std::vector<int> &args) {
+    node_t* ast_insert(const std::string &var, node_t *args) {
         nodes.emplace_back(std::make_unique<func_variable>(scopes, var, args));
         root = nodes.back().get();
         return root;
