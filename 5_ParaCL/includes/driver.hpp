@@ -15,9 +15,6 @@ class driver_t final {
     ast::scopes_t scopes_tmp{};
 
     public:
-
-    std::vector<std::string> arg_list{};
-    std::vector<int> arg_init_list{};
     ast::tree_t tree{};
 
     driver_t(std::ifstream *in) {
@@ -45,8 +42,6 @@ class driver_t final {
                 remove_scope();
                 break;
             case yy::parser::token_type::LUNICORN:
-            case yy::parser::token_type::IF:
-            case yy::parser::token_type::WHILE:
                 add_scope();
                 break;
             case yy::parser::token_type::FUNC:
@@ -75,20 +70,15 @@ class driver_t final {
         return &search->second;
     }
 
-    ast::name_t* add_variable(const std::string &name, const bool init = 0) {
+    ast::name_t* add_variable(const std::string &name) {
         auto cur_scope = std::prev(scopes.end());
-        auto new_elem = cur_scope->insert({name, ast::name_t{name, 0, init}});
+        auto new_elem = cur_scope->insert({name, ast::name_t{name, 0, 0}});
         return &new_elem.first->second;
     }
 
-    void add_scope() {
-        ast::scope_t scope;
-        scopes.push_back(scope);
-    }
+    void add_scope() { scopes.push_back({}); }
 
-    void remove_scope() {
-        scopes.pop_back();
-    }
+    void remove_scope() { scopes.pop_back(); }
 
     void hide_scopes() {
         scopes_tmp.swap(scopes);
@@ -98,14 +88,6 @@ class driver_t final {
     void recover_scopes() {
         scopes.swap(scopes_tmp);
         scopes_tmp.clear();
-    }
-
-    void clear_arg_list() {
-        arg_list.clear();
-    }
-
-    void clear_arg_init_list() {
-        arg_list.clear();
     }
 
     ~driver_t() {

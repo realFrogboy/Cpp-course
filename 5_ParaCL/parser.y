@@ -12,7 +12,7 @@
 
 %code requires {
 #include <iostream>
-#include <cstring>
+#include <string>
 #include <memory>
 #include <cmath>
 
@@ -25,6 +25,8 @@ namespace yy { class driver_t; }
 #include "driver.hpp"
 namespace yy { 
     parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); 
+    std::vector<std::string> v_arg_list{};
+    unsigned init_arg_size = 0;
     bool is_error = 0;
 }
 }
@@ -73,6 +75,7 @@ namespace yy {
     ELSE    "else"
     WHILE   "while"
     FUNC    "func"
+    RETURN  "return"
 
     PRINT   "print"
     ABS     "abs"
@@ -115,35 +118,27 @@ namespace yy {
 
 stmt: IF LPAREN exp RPAREN body {
         $$ = drv.tree.ast_insert<ast::if_t>($5, nullptr, $3);
-        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN body ELSE body {
         $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
-        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt ELSE body {
         $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
-        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN body ELSE stmt {
         $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
-        drv.remove_scope();
     }
     | WHILE LPAREN exp RPAREN body { 
         $$ = drv.tree.ast_insert<ast::while_t>($5, nullptr, $3);
-        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt {
         $$ = drv.tree.ast_insert<ast::if_t>($5, nullptr, $3);
-        drv.remove_scope();
     }
     | IF LPAREN exp RPAREN stmt ELSE stmt { 
         $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
-        drv.remove_scope();
     }
     | WHILE LPAREN exp RPAREN stmt { 
         $$ = drv.tree.ast_insert<ast::while_t>($5, nullptr, $3);
-        drv.remove_scope();
     }
     ;
 
@@ -158,22 +153,27 @@ block: LUNICORN list RUNICORN {
      ;
 
 arg_list:
-        | arg_list NAME {
-            auto search = drv.find_variable($2->name);
+        | NAME {
+            auto search = drv.find_variable($1->name);
             search->is_init = 1;
-            drv.arg_list.push_back($2->name);
+            v_arg_list.push_back($1->name);
+        }
+        | arg_list COMMA NAME {
+            auto search = drv.find_variable($3->name);
+            search->is_init = 1;
+            v_arg_list.push_back($3->name);
         }
         ;
 
 init_arg_list: { $$ = nullptr; }
              | exp {
                   $$ = drv.tree.ast_insert<ast::arg_list_insertion>($1);
-                  drv.arg_init_list.push_back(0);
+                  ++init_arg_size;
              }
              | init_arg_list COMMA exp  {
                 auto list_ins = drv.tree.ast_insert<ast::arg_list_insertion>($3);
                 $$ = drv.tree.ast_insert<ast::scolon_t>(list_ins, $1);
-                drv.arg_init_list.push_back(0);
+                ++init_arg_size;
              }
              ;
 
@@ -237,25 +237,26 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::pow_t>($1, $3);
     }
     | NAME ASSIGN exp {
-        auto search = drv.find_variable($1->name);
-        search->is_init = 1;
+        $1->is_init = 1;
+
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN block {
-        auto search = drv.find_variable($1->name);
-        search->is_init = 1;
+        $1->is_init = 1;
+
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN block {
         drv.recover_scopes();
-        auto search = drv.find_variable($1->name);
-        search->is_init = 1;
-        search->value = drv.arg_list.size();
+
+        $1->is_init = 1;
+        $1->value = v_arg_list.size();
+
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(p_node, ast::func_info{$7, drv.arg_list});
-        drv.clear_arg_list();
+        $$ = drv.tree.ast_insert(p_node, ast::func_info{$7, v_arg_list});
+        v_arg_list.clear();
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
@@ -320,13 +321,13 @@ exp:  exp GRATER exp {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
             is_error = 1;
         }
-        if (static_cast<unsigned>(std::get<int>($1->value)) != drv.arg_init_list.size()) {
+        if (static_cast<unsigned>(std::get<int>($1->value)) != init_arg_size) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": mismatch with function signature" << std::endl;
             is_error = 1;
         }
         else {
             $$ = drv.tree.ast_insert($1->name, $3);
-            drv.clear_arg_init_list();
+            init_arg_size = 0;
         }
     }
     | ERR {
@@ -335,9 +336,11 @@ exp:  exp GRATER exp {
     }
     ;
 
-io_func: PRINT exp {
-        $$ = drv.tree.ast_insert<ast::print_t>($2);
-    }
+io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>($2); }
+       | RETURN exp { 
+           $$ = drv.tree.ast_insert<ast::return_t>($2); 
+           }
+       ;
 
 program: list END {
         if (!drv.tree.is_valid()) {

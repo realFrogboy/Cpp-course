@@ -106,7 +106,7 @@ int pow_t::eval() const {
 int scolon_t::eval() const {
     int res = 0;
     if (lhs != nullptr) res = lhs->eval();
-    if (rhs != nullptr) res = rhs->eval();
+    if (rhs != nullptr && !scopes.get_return_status()) res = rhs->eval();
     return res;
 }
 
@@ -133,6 +133,8 @@ int func_variable::eval() const {
     scopes.init_func_args(info.signature);
 
     int res = info.root->eval();
+    scopes.remove_return_status();
+
     scopes.recover_scopes();
     return res;
 }
@@ -156,7 +158,7 @@ int if_t::eval() const {
     if (cond->eval()) {
         if (lhs) 
             res = lhs->eval();
-    } else if (rhs) 
+    } else if (rhs && !scopes.get_return_status()) 
         res = rhs->eval();
     scopes.close_scope();
     return res;
@@ -165,7 +167,7 @@ int if_t::eval() const {
 int while_t::eval() const {
     int res = 0;
     scopes.open_scope();
-    while (lhs && cond->eval())
+    while (lhs && cond->eval() && !scopes.get_return_status())
         res = lhs->eval();
     scopes.close_scope();
     return res;

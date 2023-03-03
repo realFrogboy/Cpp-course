@@ -53,10 +53,11 @@ location.step();
 
 "!"  return yy::parser::token_type::NOT;
 
-"if"    return yy::parser::token_type::IF;
-"else"  return yy::parser::token_type::ELSE;
-"while" return yy::parser::token_type::WHILE;
-"func"  return yy::parser::token_type::FUNC;
+"if"     return yy::parser::token_type::IF;
+"else"   return yy::parser::token_type::ELSE;
+"while"  return yy::parser::token_type::WHILE;
+"func"   return yy::parser::token_type::FUNC;
+"return" return yy::parser::token_type::RETURN;
 
 "print" return yy::parser::token_type::PRINT;
 "abs"   return yy::parser::token_type::ABS;

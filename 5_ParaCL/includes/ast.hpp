@@ -27,13 +27,19 @@ class Scopes final {
     scopes_t scopes{};
     scopes_t hiden_scopes{};
     std::vector<int> arg_list{};
+    bool is_return = 0;
 
     public:
     void open_scope() { scopes.push_back({}); }
     void close_scope() { scopes.pop_back(); }
     void hide_scopes() { hiden_scopes.swap(scopes); scopes.push_back({}); }
     void recover_scopes() { scopes.swap(hiden_scopes); hiden_scopes.clear(); }
+    
     void add_arg_list(const int val) { arg_list.push_back(val); }
+    
+    void set_return_status() { is_return = 1; }
+    void remove_return_status() { is_return = 0; }
+    bool get_return_status() const { return is_return; }
 
     ast::name_t* find_variable(const std::string &name) {
         auto scope = std::find_if(scopes.rbegin(), scopes.rend(), [&name](scope_t &scope) {
@@ -300,6 +306,16 @@ struct arg_list_insertion final : node_t {
         int res = 0;
         if (lhs) res = lhs->eval();
         scopes.add_arg_list(res);
+        return res;
+    }
+};
+
+struct return_t final : node_t {
+    return_t(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t(scopes_, "return", lhs_) {}
+    int eval() const override { 
+        int res = 0;
+        if (lhs) res = lhs->eval();
+        scopes.set_return_status();
         return res;
     }
 };
