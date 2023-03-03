@@ -1,5 +1,4 @@
 a = ?;
-boo = func ( x ) { ++x; };
-c = boo(1);
+boo = func (x, y) { ++x; ++y; };
+c = boo(1, ?);
 print c;
-print x;

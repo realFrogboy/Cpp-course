@@ -1,0 +1,17 @@
+a = ?;
+foo = func(x){
+    tmp = x;
+    if (x < 0)
+        return -1;
+    
+    while (x > 0) {
+        if (x == 5)
+            return tmp;
+        --x;
+    }
+};
+
+if (a == 0) {}
+
+c = foo(a);
+print c;

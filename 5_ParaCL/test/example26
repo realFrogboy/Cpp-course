@@ -1,0 +1,4 @@
+a = ?;
+if (a) {}
+c = a;
+print c;
