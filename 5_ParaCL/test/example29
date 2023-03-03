@@ -1,0 +1,14 @@
+fact = func(x) : factorial {
+  res = 1;
+  boo = func(x){ print x; };
+  if (x > 0)
+    res = x * factorial(x - 1);
+
+  boo(res);
+  res;
+};
+
+a = fact(5);
+print a;
+b = factorial(6);
+print b;
