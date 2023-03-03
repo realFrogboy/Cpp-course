@@ -1,6 +1,6 @@
 fact = func(x) : factorial {
   res = 1;
-  boo = func(x){ print x; };
+  boo = func(x) : printf { print x; };
   if (x > 0)
     res = x * factorial(x - 1);
 
@@ -9,6 +9,6 @@ fact = func(x) : factorial {
 };
 
 a = fact(5);
-print a;
+printf(a);
 b = factorial(6);
-print b;
+printf(b);
