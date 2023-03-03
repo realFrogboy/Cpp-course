@@ -238,12 +238,14 @@ exp:  exp GRATER exp {
     }
     | NAME ASSIGN exp {
         $1->is_init = 1;
+        $1->value = -1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN block {
         $1->is_init = 1;
+        $1->value = -1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
@@ -319,6 +321,10 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert($1);
     }
     | NAME { 
+        if (std::get<int>($1->value) >= 0) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": " << $1->name << " incorrect call" << std::endl;
+            is_error = 1;
+        }
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized variable" << std::endl;
             is_error = 1;
@@ -328,6 +334,10 @@ exp:  exp GRATER exp {
         }
     }
     | NAME LPAREN init_arg_list RPAREN {
+        if (std::get<int>($1->value) < 0) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": scalar type call" << std::endl;
+            is_error = 1;
+        }
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
             is_error = 1;

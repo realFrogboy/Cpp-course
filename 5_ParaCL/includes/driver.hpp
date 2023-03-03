@@ -94,7 +94,7 @@ class driver_t final {
 
     ast::name_t* add_variable(const std::string &name) {
         auto cur_scope = std::prev(scopes.back().end());
-        auto new_elem = cur_scope->insert({name, ast::name_t{name, 0, 0}});
+        auto new_elem = cur_scope->insert({name, ast::name_t{name, -1, 0}});
         return &new_elem.first->second;
     }
 

@@ -26,23 +26,19 @@ using scopes_t = std::vector<scope_t>;
 class Scopes final {
     std::vector<ast::scopes_t> scopes{};
     scope_t func_scope{};
-    std::vector<int> arg_list{};
-    bool is_return = 0;
 
     public:
     void open_scope() { scopes.back().push_back({}); }
     void close_scope() { scopes.back().pop_back(); }
+    void recover_scopes() { scopes.pop_back(); }
     void hide_scopes() { 
         scopes.push_back({});
         open_scope(); 
     }
-    void recover_scopes() { scopes.pop_back(); }
-    
-    void add_arg_list(const int val) { arg_list.push_back(val); }
-    
-    void set_return_status() { is_return = 1; }
-    void remove_return_status() { is_return = 0; }
-    bool get_return_status() const { return is_return; }
+
+    ast::name_t* add_variable(const std::string &name, const int val = 0) {
+        return &(scopes.back().back().insert({name, name_t{name, val, 1}}).first->second);
+    }
 
     ast::name_t* find_variable(const std::string &name) {
         auto scope = std::find_if(scopes.back().rbegin(), scopes.back().rend(), [&name](scope_t &scope) {
@@ -54,23 +50,27 @@ class Scopes final {
         return &(search->second);
     }
 
+    ast::name_t* add_func(const std::string &name, const func_info &info) {
+        return &(func_scope.insert({name, name_t{name, info, 1}}).first->second);
+    }
+
     ast::name_t* find_func(const std::string &name) {
         auto search = func_scope.find(name);
         if (search == func_scope.end()) return nullptr;
         return &(search->second);
     }
+};
 
-    ast::name_t* add_func(const std::string &name, const func_info &info) {
-        return &(func_scope.insert({name, name_t{name, info, 0}}).first->second);
-    }
+struct node_info final {
+    Scopes &scopes;
+    bool is_return = 0;
+    std::vector<int> arg_list;
 
-    ast::name_t* add_variable(const std::string &name) {
-        return &(scopes.back().back().insert({name, name_t{name, 0, 0}}).first->second);
-    }
+    node_info(Scopes &scopes_) : scopes{scopes_} {}
 
     void init_func_args(const std::vector<std::string> &signature) {
         for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
-            scopes.back().back().insert({signature[idx], name_t{signature[idx], arg_list[sz - idx - 1], 1}});
+            scopes.add_variable(signature[idx], arg_list[sz - idx - 1]);
         arg_list.clear();
     }
 };
@@ -86,15 +86,15 @@ class Dump final {
 struct node_t {
     protected:
     std::unique_ptr<Dump> dump;
-    Scopes &scopes;
+    node_info &n_info;
 
     public:
     node_t *lhs = nullptr;
     node_t *rhs = nullptr;
     node_t *cond = nullptr;
 
-    node_t(Scopes &scopes_, const std::string &msg_, node_t *lhs_ = nullptr, node_t *rhs_ = nullptr, node_t *cond_ = nullptr) : 
-            dump{std::make_unique<Dump>(msg_)}, scopes{scopes_}, lhs{lhs_}, rhs{rhs_}, cond{cond_} {}
+    node_t(node_info &n_info_, const std::string &msg_, node_t *lhs_ = nullptr, node_t *rhs_ = nullptr, node_t *cond_ = nullptr) : 
+            dump{std::make_unique<Dump>(msg_)}, n_info{n_info_}, lhs{lhs_}, rhs{rhs_}, cond{cond_} {}
     virtual int eval() const = 0;
     virtual ~node_t() {}
 
@@ -103,144 +103,144 @@ struct node_t {
 };
 
 struct g_t final : node_t {
-    g_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, ">", lhs_, rhs_} {}
+    g_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, ">", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() > rhs->eval()); }
 };
 
 struct l_t final : node_t {
-    l_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "<", lhs_, rhs_} {}
+    l_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "<", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() < rhs->eval()); }
 };
 
 struct e_t final : node_t {
-    e_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "==", lhs_, rhs_} {}
+    e_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "==", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() == rhs->eval()); }
 };
 
 struct ne_t final : node_t {
-    ne_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "!=", lhs_, rhs_} {}
+    ne_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "!=", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() != rhs->eval()); }
 };
 
 struct ge_t final : node_t {
-    ge_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, ">=", lhs_, rhs_} {}
+    ge_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, ">=", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() >= rhs->eval()); }
 };
 
 struct le_t final : node_t {
-    le_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "<=", lhs_, rhs_} {}
+    le_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "<=", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() <= rhs->eval()); }
 };
 
 struct add_t final : node_t {
-    add_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "+", lhs_, rhs_} {}
+    add_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "+", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() + rhs->eval()); }
 };
 
 struct sub_t final : node_t {
-    sub_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "-", lhs_, rhs_} {}
+    sub_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "-", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() - rhs->eval()); }
 };
 
 struct mul_t final : node_t {
-    mul_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "*", lhs_, rhs_} {}
+    mul_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "*", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() * rhs->eval()); }
 };
 
 struct div_t final : node_t {
-    div_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "/", lhs_, rhs_} {}
+    div_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "/", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() / rhs->eval()); }
 };
 
 struct remainder_t final : node_t {
-    remainder_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "%", lhs_, rhs_} {}
+    remainder_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "%", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() % rhs->eval()); }
 };
 
 struct pow_t final : node_t {
-    pow_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "**", lhs_, rhs_} {}
+    pow_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "**", lhs_, rhs_} {}
     int eval() const override;
 };
 
 struct b_and_t final : node_t {
-    b_and_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "&", lhs_, rhs_} {}
+    b_and_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "&", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() & rhs->eval()); }
 };
 
 struct b_or_t final : node_t {
-    b_or_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "|", lhs_, rhs_} {}
+    b_or_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "|", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() | rhs->eval()); }
 };
 
 struct xor_t final : node_t {
-    xor_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "^", lhs_, rhs_} {}
+    xor_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "^", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() ^ rhs->eval()); }
 };
 
 struct l_shift_t final : node_t {
-    l_shift_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "<<", lhs_, rhs_} {}
+    l_shift_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "<<", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() << rhs->eval()); }
 };
 
 struct r_shift_t final : node_t {
-    r_shift_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, ">>", lhs_, rhs_} {}
+    r_shift_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, ">>", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() >> rhs->eval()); }
 };
 
 struct l_and_t final : node_t {
-    l_and_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "&&", lhs_, rhs_} {}
+    l_and_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "&&", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() && rhs->eval()); }
 };
 
 struct l_or_t final : node_t {
-    l_or_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "||", lhs_, rhs_} {}
+    l_or_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "||", lhs_, rhs_} {}
     int eval() const override { return (lhs->eval() || rhs->eval()); }
 };
 
 struct assign_t final : node_t {
-    assign_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, "=", lhs_, rhs_} {}
+    assign_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, "=", lhs_, rhs_} {}
     int eval() const override;
 };
 
 class func_assign_t final : public node_t {
     func_info info;
     public:
-    func_assign_t(Scopes &scopes_, const func_info &info_, node_t *lhs_, node_t *rhs_ = nullptr) : node_t{scopes_, "=", lhs_, info_.root, rhs_}, info{info_} {}
+    func_assign_t(node_info &n_info_, const func_info &info_, node_t *lhs_, node_t *rhs_ = nullptr) : node_t{n_info_, "=", lhs_, info_.root, rhs_}, info{info_} {}
     int eval() const override;
 };
 
 struct scolon_t final : node_t {
-    scolon_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{scopes_, ";", lhs_, rhs_} {}
+    scolon_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t* = nullptr) : node_t{n_info_, ";", lhs_, rhs_} {}
     int eval() const override;
 };
 
 struct minus_t final : node_t {
-    minus_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "-", lhs_} {}
+    minus_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "-", lhs_} {}
     int eval() const override { return -lhs->eval(); }
 };
 
 struct plus_t final : node_t {
-    plus_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "+", lhs_} {}
+    plus_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "+", lhs_} {}
     int eval() const override { return lhs->eval(); }
 };
 
 struct not_t final : node_t {
-    not_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "!", lhs_} {}
+    not_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "!", lhs_} {}
     int eval() const override { return !lhs->eval(); }
 };
 
 struct b_not_t final : node_t {
-    b_not_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "~", lhs_} {}
+    b_not_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "~", lhs_} {}
     int eval() const override { return ~lhs->eval(); }
 };
 
 struct pr_increment_t final : node_t {
-    pr_increment_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "++", lhs_} {}
+    pr_increment_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "++", lhs_} {}
     int eval() const override;
 };
 
 struct pr_decrement_t final : node_t {
-    pr_decrement_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "--", lhs_} {}
+    pr_decrement_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "--", lhs_} {}
     int eval() const override;
 };
 
@@ -248,7 +248,7 @@ class num_t final : public node_t {
     int value = 0;
 
     public:
-    num_t(Scopes &scopes_, const int v) : node_t{scopes_, std::to_string(v)}, value{v} {}
+    num_t(node_info &n_info_, const int v) : node_t{n_info_, std::to_string(v)}, value{v} {}
     int get_value() const { return value; }
     int eval() const override { return value; }
 };
@@ -257,74 +257,74 @@ class variable_t : public node_t {
     std::string name;
 
     public:
-    variable_t(Scopes &scopes_, const std::string &name_) : node_t{scopes_, name_}, name{name_} {}
+    variable_t(node_info &n_info_, const std::string &name_) : node_t{n_info_, name_}, name{name_} {}
     std::string get_name() const { return name; }
 };
 
 struct scalar_variable final : variable_t {
-    scalar_variable(Scopes &scopes_, const std::string &name_) : variable_t{scopes_, name_} {}
+    scalar_variable(node_info &n_info_, const std::string &name_) : variable_t{n_info_, name_} {}
     int eval() const override;
 };
 
 class func_variable final : public variable_t {
     node_t *args;
     public:
-    func_variable(Scopes &scopes_, const std::string &name_, node_t *args_) : variable_t{scopes_, name_}, args{args_} {}
+    func_variable(node_info &n_info_, const std::string &name_, node_t *args_) : variable_t{n_info_, name_}, args{args_} {}
     int eval() const override;
 };
 
 struct print_t final : node_t {
-    print_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "print", lhs_} {}
+    print_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "print", lhs_} {}
     int eval() const override;
 };
 
 struct abs_t final : node_t {
-    abs_t(Scopes &scopes_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "abs", lhs_} {}
+    abs_t(node_info &n_info_, node_t *lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "abs", lhs_} {}
     int eval() const override { return std::abs(lhs->eval()); }
 };
 
 struct get_t final : node_t {
-    get_t(Scopes &scopes_, node_t* = nullptr, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "?", nullptr} {}
+    get_t(node_info &n_info_, node_t* = nullptr, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "?", nullptr} {}
     int eval() const override;
 };
 
 struct if_t final : node_t {
-    if_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t *cond_) : node_t{scopes_, "if", lhs_, rhs_, cond_} {}
+    if_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t *cond_) : node_t{n_info_, "if", lhs_, rhs_, cond_} {}
     int eval() const override;
 };
 
 struct while_t final : node_t {
-    while_t(Scopes &scopes_, node_t *lhs_, node_t *rhs_, node_t *cond_) : node_t{scopes_, "while", lhs_, rhs_, cond_} {}
+    while_t(node_info &n_info_, node_t *lhs_, node_t *rhs_, node_t *cond_) : node_t{n_info_, "while", lhs_, rhs_, cond_} {}
     int eval() const override;
 };
 
 struct block final : node_t {
-    block(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "block", lhs_} {}
+    block(node_info &n_info_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "block", lhs_} {}
     int eval() const override { 
         int res = 0;
-        scopes.open_scope();
+        n_info.scopes.open_scope();
         if (lhs) res = lhs->eval();
-        scopes.close_scope();
+        n_info.scopes.close_scope();
         return res;
     }
 };
 
 struct arg_list_insertion final : node_t {
-    arg_list_insertion(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{scopes_, "arg_list", lhs_} {}
+    arg_list_insertion(node_info &n_info_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t{n_info_, "arg_list", lhs_} {}
     int eval() const override {
         int res = 0;
         if (lhs) res = lhs->eval();
-        scopes.add_arg_list(res);
+        n_info.arg_list.push_back(res);
         return res;
     }
 };
 
 struct return_t final : node_t {
-    return_t(Scopes &scopes_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t(scopes_, "return", lhs_) {}
+    return_t(node_info &n_info_, node_t* lhs_, node_t* = nullptr, node_t* = nullptr) : node_t(n_info_, "return", lhs_) {}
     int eval() const override { 
         int res = 0;
         if (lhs) res = lhs->eval();
-        scopes.set_return_status();
+        n_info.is_return = 1;
         return res;
     }
 };
@@ -333,10 +333,11 @@ class tree_t final {
     node_t *root;
     std::vector<std::unique_ptr<node_t>> nodes;
     Scopes scopes;
+    node_info n_info;
 
     public:
 
-    tree_t(node_t *root_ = nullptr) : root{root_} {
+    tree_t(node_t *root_ = nullptr) : root{root_}, n_info{scopes} {
         scopes.hide_scopes();
     }
 
@@ -353,31 +354,31 @@ class tree_t final {
 
     template <typename nodeT>
     node_t* ast_insert(node_t *lhs = nullptr, node_t *rhs = nullptr, node_t *cond = nullptr) {
-        nodes.emplace_back(std::make_unique<nodeT>(scopes, lhs, rhs, cond));
+        nodes.emplace_back(std::make_unique<nodeT>(n_info, lhs, rhs, cond));
         root = nodes.back().get();
         return root;
     }
 
     node_t* ast_insert(const int val) {
-        nodes.emplace_back(std::make_unique<num_t>(scopes, val));
+        nodes.emplace_back(std::make_unique<num_t>(n_info, val));
         root = nodes.back().get();
         return root;
     }
 
     node_t* ast_insert(const std::string &var) {
-        nodes.emplace_back(std::make_unique<scalar_variable>(scopes, var));
+        nodes.emplace_back(std::make_unique<scalar_variable>(n_info, var));
         root = nodes.back().get();
         return root;
     }
 
     node_t* ast_insert(const std::string &var, node_t *args) {
-        nodes.emplace_back(std::make_unique<func_variable>(scopes, var, args));
+        nodes.emplace_back(std::make_unique<func_variable>(n_info, var, args));
         root = nodes.back().get();
         return root;
     }
 
     node_t* ast_insert(const func_info &info, node_t* lhs, node_t *rhs = nullptr) {
-        nodes.emplace_back(std::make_unique<func_assign_t>(scopes, info, lhs, rhs));
+        nodes.emplace_back(std::make_unique<func_assign_t>(n_info, info, lhs, rhs));
         root = nodes.back().get();
         return root;
     }

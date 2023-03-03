@@ -69,8 +69,8 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
 
 int assign_t::eval() const {
     std::string var = static_cast<scalar_variable*>(lhs)->get_name();
-    auto search = scopes.find_variable(var);
-    if (search == nullptr) search = scopes.add_variable(var);
+    auto search = n_info.scopes.find_variable(var);
+    if (search == nullptr) search = n_info.scopes.add_variable(var);
     search->value = rhs->eval();
     return std::get<int>(search->value);
 }
@@ -78,23 +78,23 @@ int assign_t::eval() const {
 int func_assign_t::eval() const {
     if (cond) {
         std::string func_name = static_cast<scalar_variable*>(cond)->get_name();
-        auto search = scopes.find_func(func_name);
+        auto search = n_info.scopes.find_func(func_name);
         if (search == nullptr)
-            search = scopes.add_func(func_name, info);
+            search = n_info.scopes.add_func(func_name, info);
         else 
             search->value = info;
     }
 
     std::string var = static_cast<scalar_variable*>(lhs)->get_name();
-    auto search = scopes.find_variable(var);
-    if (search == nullptr) search = scopes.add_variable(var);
+    auto search = n_info.scopes.find_variable(var);
+    if (search == nullptr) search = n_info.scopes.add_variable(var);
     search->value = info;
     return 0;
 }
 
 int pr_increment_t::eval() const {
     std::string var = static_cast<scalar_variable*>(lhs)->get_name();
-    auto search = scopes.find_variable(var);
+    auto search = n_info.scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() + 1;
     return std::get<int>(search->value);
@@ -102,7 +102,7 @@ int pr_increment_t::eval() const {
 
 int pr_decrement_t::eval() const{
     std::string var = static_cast<scalar_variable*>(lhs)->get_name();
-    auto search = scopes.find_variable(var);
+    auto search = n_info.scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
     search->value = lhs->eval() - 1;
     return std::get<int>(search->value);
@@ -115,15 +115,15 @@ int pow_t::eval() const {
 int scolon_t::eval() const {
     int res = 0;
     if (lhs != nullptr) res = lhs->eval();
-    if (rhs != nullptr && !scopes.get_return_status()) res = rhs->eval();
+    if (rhs != nullptr && !n_info.is_return) res = rhs->eval();
     return res;
 }
 
 int scalar_variable::eval() const {
     std::string name = get_name();
-    auto search = scopes.find_variable(name);
+    auto search = n_info.scopes.find_variable(name);
     if (search == nullptr) {
-        search = scopes.add_variable(name);
+        search = n_info.scopes.add_variable(name);
         return 0;
     }
     return std::get<int>(search->value);
@@ -131,23 +131,23 @@ int scalar_variable::eval() const {
 
 int func_variable::eval() const {
     std::string name = get_name();
-    auto search = scopes.find_func(name);
+    auto search = n_info.scopes.find_func(name);
     if (search == nullptr) 
-        search = scopes.find_variable(name);
-        
+        search = n_info.scopes.find_variable(name);
+
     if (search == nullptr) throw std::runtime_error("can't find function");
 
     if (args) args->eval();
 
-    scopes.hide_scopes();
+    n_info.scopes.hide_scopes();
 
     func_info info = std::get<func_info>(search->value);
-    scopes.init_func_args(info.signature);
+    n_info.init_func_args(info.signature);
 
     int res = info.root->eval();
-    scopes.remove_return_status();
+    n_info.is_return = 0;
 
-    scopes.recover_scopes();
+    n_info.scopes.recover_scopes();
     return res;
 }
 
@@ -166,22 +166,22 @@ int get_t::eval() const {
 
 int if_t::eval() const { 
     int res = 0;
-    scopes.open_scope();
+    n_info.scopes.open_scope();
     if (cond->eval()) {
         if (lhs) 
             res = lhs->eval();
-    } else if (rhs && !scopes.get_return_status()) 
+    } else if (rhs && !n_info.is_return) 
         res = rhs->eval();
-    scopes.close_scope();
+    n_info.scopes.close_scope();
     return res;
 }
 
 int while_t::eval() const {
     int res = 0;
-    scopes.open_scope();
-    while (lhs && cond->eval() && !scopes.get_return_status())
+    n_info.scopes.open_scope();
+    while (lhs && cond->eval() && !n_info.is_return)
         res = lhs->eval();
-    scopes.close_scope();
+    n_info.scopes.close_scope();
     return res;
 }
 
