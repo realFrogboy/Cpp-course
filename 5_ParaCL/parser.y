@@ -25,7 +25,6 @@ namespace yy { class driver_t; }
 #include "driver.hpp"
 namespace yy { 
     parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); 
-    std::vector<std::string> v_arg_list{};
     unsigned init_arg_size = 0;
     bool is_error = 0;
 }
@@ -47,6 +46,7 @@ namespace yy {
     LUNICORN "{"
     RUNICORN "}"
     SCOLON   ";"
+    COLON    ":"
 
     GRATER  ">"
     LESS    "<"
@@ -156,12 +156,12 @@ arg_list:
         | NAME {
             auto search = drv.find_variable($1->name);
             search->is_init = 1;
-            v_arg_list.push_back($1->name);
+            drv.add_arg($1->name);
         }
         | arg_list COMMA NAME {
             auto search = drv.find_variable($3->name);
             search->is_init = 1;
-            v_arg_list.push_back($3->name);
+            drv.add_arg($3->name);
         }
         ;
 
@@ -252,11 +252,22 @@ exp:  exp GRATER exp {
         drv.recover_scopes();
 
         $1->is_init = 1;
-        $1->value = v_arg_list.size();
+        $1->value = drv.arg_list_size();
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(p_node, ast::func_info{$7, v_arg_list});
-        v_arg_list.clear();
+        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.v_arg_list.back()}, p_node);
+        drv.clear_agr_list();
+    }
+    | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
+        drv.recover_scopes();
+
+        $1->is_init = 1;
+        $1->value = drv.arg_list_size();
+
+        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *func_name = drv.tree.ast_insert($8->name);
+        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.v_arg_list.back()}, p_node, func_name);
+        drv.clear_agr_list();
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
@@ -338,6 +349,10 @@ exp:  exp GRATER exp {
 
 io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>($2); }
        | RETURN exp { 
+           if (drv.scopes_depth() <= 1) {
+                std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from main" << std::endl;
+                is_error = 1;
+           }
            $$ = drv.tree.ast_insert<ast::return_t>($2); 
            }
        ;

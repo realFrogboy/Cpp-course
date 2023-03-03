@@ -76,6 +76,15 @@ int assign_t::eval() const {
 }
 
 int func_assign_t::eval() const {
+    if (cond) {
+        std::string func_name = static_cast<scalar_variable*>(cond)->get_name();
+        auto search = scopes.find_func(func_name);
+        if (search == nullptr)
+            search = scopes.add_func(func_name, info);
+        else 
+            search->value = info;
+    }
+
     std::string var = static_cast<scalar_variable*>(lhs)->get_name();
     auto search = scopes.find_variable(var);
     if (search == nullptr) search = scopes.add_variable(var);
@@ -122,7 +131,10 @@ int scalar_variable::eval() const {
 
 int func_variable::eval() const {
     std::string name = get_name();
-    auto search = scopes.find_variable(name);
+    auto search = scopes.find_func(name);
+    if (search == nullptr) 
+        search = scopes.find_variable(name);
+        
     if (search == nullptr) throw std::runtime_error("can't find function");
 
     if (args) args->eval();

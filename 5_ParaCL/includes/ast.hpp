@@ -24,16 +24,19 @@ using scope_t  = std::unordered_map<std::string, ast::name_t>;
 using scopes_t = std::vector<scope_t>;
 
 class Scopes final {
-    scopes_t scopes{};
-    scopes_t hiden_scopes{};
+    std::vector<ast::scopes_t> scopes{};
+    scope_t func_scope{};
     std::vector<int> arg_list{};
     bool is_return = 0;
 
     public:
-    void open_scope() { scopes.push_back({}); }
-    void close_scope() { scopes.pop_back(); }
-    void hide_scopes() { hiden_scopes.swap(scopes); scopes.push_back({}); }
-    void recover_scopes() { scopes.swap(hiden_scopes); hiden_scopes.clear(); }
+    void open_scope() { scopes.back().push_back({}); }
+    void close_scope() { scopes.back().pop_back(); }
+    void hide_scopes() { 
+        scopes.push_back({});
+        open_scope(); 
+    }
+    void recover_scopes() { scopes.pop_back(); }
     
     void add_arg_list(const int val) { arg_list.push_back(val); }
     
@@ -42,26 +45,32 @@ class Scopes final {
     bool get_return_status() const { return is_return; }
 
     ast::name_t* find_variable(const std::string &name) {
-        auto scope = std::find_if(scopes.rbegin(), scopes.rend(), [&name](scope_t &scope) {
+        auto scope = std::find_if(scopes.back().rbegin(), scopes.back().rend(), [&name](scope_t &scope) {
             auto search = scope.find(name);
             return search != scope.end();
         });
-        if (scope == scopes.rend()) return nullptr;
+        if (scope == scopes.back().rend()) return nullptr;
         auto search = scope->find(name);
         return &(search->second);
     }
 
-    ast::name_t* add_variable(const std::string &name) {
-        return &(scopes.back().insert({name, name_t{name, 0, 0}}).first->second);
+    ast::name_t* find_func(const std::string &name) {
+        auto search = func_scope.find(name);
+        if (search == func_scope.end()) return nullptr;
+        return &(search->second);
     }
 
-    ast::name_t* add_init_variable(const std::string &name, const int val) {
-        return &(scopes.back().insert({name, name_t{name, val, 1}}).first->second);
+    ast::name_t* add_func(const std::string &name, const func_info &info) {
+        return &(func_scope.insert({name, name_t{name, info, 0}}).first->second);
+    }
+
+    ast::name_t* add_variable(const std::string &name) {
+        return &(scopes.back().back().insert({name, name_t{name, 0, 0}}).first->second);
     }
 
     void init_func_args(const std::vector<std::string> &signature) {
         for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
-            scopes.back().insert({signature[idx], name_t{signature[idx], arg_list[sz - idx - 1], 1}});
+            scopes.back().back().insert({signature[idx], name_t{signature[idx], arg_list[sz - idx - 1], 1}});
         arg_list.clear();
     }
 };
@@ -196,7 +205,7 @@ struct assign_t final : node_t {
 class func_assign_t final : public node_t {
     func_info info;
     public:
-    func_assign_t(Scopes &scopes_, node_t *lhs_, const func_info &info_) : node_t{scopes_, "=", lhs_, info_.root}, info{info_} {}
+    func_assign_t(Scopes &scopes_, const func_info &info_, node_t *lhs_, node_t *rhs_ = nullptr) : node_t{scopes_, "=", lhs_, info_.root, rhs_}, info{info_} {}
     int eval() const override;
 };
 
@@ -328,7 +337,7 @@ class tree_t final {
     public:
 
     tree_t(node_t *root_ = nullptr) : root{root_} {
-        scopes.open_scope();
+        scopes.hide_scopes();
     }
 
     tree_t(const tree_t&) = delete;
@@ -367,8 +376,8 @@ class tree_t final {
         return root;
     }
 
-    node_t* ast_insert(node_t* lhs, const func_info &info) {
-        nodes.emplace_back(std::make_unique<func_assign_t>(scopes, lhs, info));
+    node_t* ast_insert(const func_info &info, node_t* lhs, node_t *rhs = nullptr) {
+        nodes.emplace_back(std::make_unique<func_assign_t>(scopes, info, lhs, rhs));
         root = nodes.back().get();
         return root;
     }

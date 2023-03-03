@@ -23,6 +23,7 @@ location.step();
 "%"  return yy::parser::token_type::PERSENT;
 "**" return yy::parser::token_type::POW;
 
+":"  return yy::parser::token_type::COLON;
 ";"  return yy::parser::token_type::SCOLON;
 "("  return yy::parser::token_type::LPAREN;
 ")"  return yy::parser::token_type::RPAREN;
