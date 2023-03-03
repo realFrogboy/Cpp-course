@@ -28,7 +28,8 @@ class Scopes final {
     scope_t func_scope{};
 
     public:
-    void open_scope() { scopes.back().push_back({}); }
+    unsigned scopes_depth() const { return scopes.size(); }
+    void open_scope()  { scopes.back().push_back({}); }
     void close_scope() { scopes.back().pop_back(); }
     void recover_scopes() { scopes.pop_back(); }
     void hide_scopes() { 
@@ -36,11 +37,11 @@ class Scopes final {
         open_scope(); 
     }
 
-    ast::name_t* add_variable(const std::string &name, const int val = 0) {
-        return &(scopes.back().back().insert({name, name_t{name, val, 1}}).first->second);
+    ast::name_t* add_variable(const std::string &name, const int val = -1) {
+        return &(scopes.back().back().insert({name, name_t{name, val, 0}}).first->second);
     }
 
-    ast::name_t* find_variable(const std::string &name) {
+    ast::name_t* find_variable (const std::string &name) {
         auto scope = std::find_if(scopes.back().rbegin(), scopes.back().rend(), [&name](scope_t &scope) {
             auto search = scope.find(name);
             return search != scope.end();
@@ -52,6 +53,10 @@ class Scopes final {
 
     ast::name_t* add_func(const std::string &name, const func_info &info) {
         return &(func_scope.insert({name, name_t{name, info, 1}}).first->second);
+    }
+
+    ast::name_t* add_func(const std::string &name, const int val) {
+        return &(func_scope.insert({name, name_t{name, val, 1}}).first->second);
     }
 
     ast::name_t* find_func(const std::string &name) {
@@ -68,10 +73,9 @@ struct node_info final {
 
     node_info(Scopes &scopes_) : scopes{scopes_} {}
 
-    void init_func_args(const std::vector<std::string> &signature) {
+    void init_func_args(const std::vector<std::string> &signature) const {
         for (unsigned idx = 0, sz = signature.size(); idx < sz; ++idx)
             scopes.add_variable(signature[idx], arg_list[sz - idx - 1]);
-        arg_list.clear();
     }
 };
 
@@ -383,7 +387,7 @@ class tree_t final {
         return root;
     }
 
-    int evaluate() { return root->eval(); }
+    int evaluate() const { return root->eval(); }
     void dump() const;
 };
 

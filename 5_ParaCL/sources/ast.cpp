@@ -143,6 +143,7 @@ int func_variable::eval() const {
 
     func_info info = std::get<func_info>(search->value);
     n_info.init_func_args(info.signature);
+    n_info.arg_list.clear();
 
     int res = info.root->eval();
     n_info.is_return = 0;

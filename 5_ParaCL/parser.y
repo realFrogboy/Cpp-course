@@ -154,14 +154,12 @@ block: LUNICORN list RUNICORN {
 
 arg_list:
         | NAME {
-            auto search = drv.find_variable($1->name);
-            search->is_init = 1;
-            drv.add_arg($1->name);
+            $1->is_init = 1;
+            drv.arg_list.add_arg($1->name);
         }
         | arg_list COMMA NAME {
-            auto search = drv.find_variable($3->name);
-            search->is_init = 1;
-            drv.add_arg($3->name);
+            $3->is_init = 1;
+            drv.arg_list.add_arg($3->name);
         }
         ;
 
@@ -238,38 +236,36 @@ exp:  exp GRATER exp {
     }
     | NAME ASSIGN exp {
         $1->is_init = 1;
-        $1->value = -1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN block {
         $1->is_init = 1;
-        $1->value = -1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN block {
-        drv.recover_scopes();
+        drv.scopes.recover_scopes();
 
         $1->is_init = 1;
-        $1->value = drv.arg_list_size();
+        $1->value = drv.arg_list.size();
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.v_arg_list.back()}, p_node);
-        drv.clear_agr_list();
+        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, p_node);
+        drv.arg_list.clear();
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
-        drv.recover_scopes();
+        drv.scopes.recover_scopes();
 
         $1->is_init = 1;
-        $1->value = drv.arg_list_size();
+        $1->value = drv.arg_list.size();
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         ast::node_t *func_name = drv.tree.ast_insert($8->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.v_arg_list.back()}, p_node, func_name);
-        drv.clear_agr_list();
+        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, p_node, func_name);
+        drv.arg_list.clear();
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
@@ -321,12 +317,12 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert($1);
     }
     | NAME { 
-        if (std::get<int>($1->value) >= 0) {
-            std::cout << yy::red << "Error:" << yy::norm << @1 << ": " << $1->name << " incorrect call" << std::endl;
-            is_error = 1;
-        }
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized variable" << std::endl;
+            is_error = 1;
+        }
+        if (std::get<int>($1->value) >= 0) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": " << $1->name << " incorrect call" << std::endl;
             is_error = 1;
         }
         else {
@@ -334,12 +330,12 @@ exp:  exp GRATER exp {
         }
     }
     | NAME LPAREN init_arg_list RPAREN {
-        if (std::get<int>($1->value) < 0) {
-            std::cout << yy::red << "Error:" << yy::norm << @1 << ": scalar type call" << std::endl;
-            is_error = 1;
-        }
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
+            is_error = 1;
+        }
+        if (std::get<int>($1->value) < 0) {
+            std::cout << yy::red << "Error:" << yy::norm << @1 << ": scalar type call" << std::endl;
             is_error = 1;
         }
         if (static_cast<unsigned>(std::get<int>($1->value)) != init_arg_size) {
@@ -359,7 +355,7 @@ exp:  exp GRATER exp {
 
 io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>($2); }
        | RETURN exp { 
-           if (drv.scopes_depth() <= 1) {
+           if (drv.scopes.scopes_depth() <= 1) {
                 std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from main" << std::endl;
                 is_error = 1;
            }
