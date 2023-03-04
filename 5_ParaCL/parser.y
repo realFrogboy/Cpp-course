@@ -118,28 +118,28 @@ namespace yy {
 %% 
 
 stmt: IF LPAREN exp RPAREN body {
-        $$ = drv.tree.ast_insert<ast::if_t>($5, nullptr, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, nullptr, $3});
     }
     | IF LPAREN exp RPAREN body ELSE body {
-        $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
     }
     | IF LPAREN exp RPAREN stmt ELSE body {
-        $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
     }
     | IF LPAREN exp RPAREN body ELSE stmt {
-        $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
     }
     | WHILE LPAREN exp RPAREN body { 
-        $$ = drv.tree.ast_insert<ast::while_t>($5, nullptr, $3);
+        $$ = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$5, $3});
     }
     | IF LPAREN exp RPAREN stmt {
-        $$ = drv.tree.ast_insert<ast::if_t>($5, nullptr, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, nullptr, $3});
     }
     | IF LPAREN exp RPAREN stmt ELSE stmt { 
-        $$ = drv.tree.ast_insert<ast::if_t>($5, $7, $3);
+        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
     }
     | WHILE LPAREN exp RPAREN stmt { 
-        $$ = drv.tree.ast_insert<ast::while_t>($5, nullptr, $3);
+        $$ = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$5, $3});
     }
     ;
 
@@ -149,7 +149,7 @@ body: line { $$ = $1; }
     ;
 
 block: LUNICORN list RUNICORN {
-         $$ = drv.tree.ast_insert<ast::block>($2);
+         $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$2});
      }
      ;
 
@@ -166,12 +166,12 @@ arg_list:
 
 init_arg_list: { $$ = nullptr; }
              | exp {
-                  $$ = drv.tree.ast_insert<ast::arg_list_insertion>($1);
+                  $$ = drv.tree.ast_insert<ast::arg_list_insertion>(std::vector<ast::node_t*>{$1});
                   ++init_arg_size;
              }
              | init_arg_list COMMA exp  {
-                auto list_ins = drv.tree.ast_insert<ast::arg_list_insertion>($3);
-                $$ = drv.tree.ast_insert<ast::scolon_t>(list_ins, $1);
+                auto list_ins = drv.tree.ast_insert<ast::arg_list_insertion>(std::vector<ast::node_t*>{$3});
+                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{list_ins, $1});
                 ++init_arg_size;
              }
              ;
@@ -181,14 +181,14 @@ list: { $$ = nullptr; }
         if ($2 == nullptr)
             $$ = $1;
         else {
-            $$ = drv.tree.ast_insert<ast::scolon_t>($1, $2);
+            $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
         }
     }
     | line list {
         if ($2 == nullptr)
             $$ = $1;
         else {
-            $$ = drv.tree.ast_insert<ast::scolon_t>($1, $2);
+            $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
         }
     }
     | error SCOLON list { yyerrok; }
@@ -203,7 +203,7 @@ line: exp SCOLON     { $$ = $1; }
         $1->value = static_cast<int>(drv.arg_list.size());
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, p_node);
+        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, std::vector<ast::node_t*>{p_node, nullptr});
         drv.arg_list.clear();
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
@@ -214,105 +214,105 @@ line: exp SCOLON     { $$ = $1; }
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         ast::node_t *func_name = drv.tree.ast_insert($8->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, p_node, func_name);
+        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, std::vector<ast::node_t*>{p_node, func_name});
         drv.arg_list.clear();
     }
     | SCOLON         { $$ = nullptr; }
     ;
 
 exp:  exp GRATER exp {
-        $$ = drv.tree.ast_insert<ast::g_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::g_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp LESS exp { 
-        $$ = drv.tree.ast_insert<ast::l_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::l_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp EQUAL exp { 
-        $$ = drv.tree.ast_insert<ast::e_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::e_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp NEQUAL exp { 
-        $$ = drv.tree.ast_insert<ast::ne_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::ne_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp GEQUAL exp { 
-        $$ = drv.tree.ast_insert<ast::ge_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::ge_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp LEQUAL exp { 
-        $$ = drv.tree.ast_insert<ast::le_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::le_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp PLUS exp {
-        $$ = drv.tree.ast_insert<ast::add_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::add_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp MINUS exp {
-        $$ = drv.tree.ast_insert<ast::sub_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::sub_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp STAR exp { 
-        $$ = drv.tree.ast_insert<ast::mul_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::mul_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp SLASH exp { 
-        $$ = drv.tree.ast_insert<ast::div_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::div_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp PERSENT exp {
-        $$ = drv.tree.ast_insert<ast::remainder_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::remainder_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp POW exp { 
-        $$ = drv.tree.ast_insert<ast::pow_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::pow_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | NAME ASSIGN exp {
         $1->is_init = 1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
+        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
     }
     | NAME ASSIGN block {
         $1->is_init = 1;
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
+        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
     }
     | exp AMPERSAND exp {
-        $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::b_and_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp STICK exp {
-        $$ = drv.tree.ast_insert<ast::b_or_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::b_or_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp CAP exp {
-        $$ = drv.tree.ast_insert<ast::xor_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::xor_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp L_SHIFT exp {
-        $$ = drv.tree.ast_insert<ast::l_shift_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::l_shift_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp R_SHIFT exp {
-        $$ = drv.tree.ast_insert<ast::r_shift_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::r_shift_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp D_AMPERSAND exp {
-        $$ = drv.tree.ast_insert<ast::l_and_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::l_and_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp D_STICK exp {
-        $$ = drv.tree.ast_insert<ast::l_or_t>($1, $3);
+        $$ = drv.tree.ast_insert<ast::l_or_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | ABS LPAREN exp RPAREN {
-        $$ = drv.tree.ast_insert<ast::abs_t>($3);
+        $$ = drv.tree.ast_insert<ast::abs_t>(std::vector<ast::node_t*>{$3});
     }
     | GET {
         $$ = drv.tree.ast_insert<ast::get_t>();
     }
     | LPAREN exp RPAREN { $$ = $2; }
     | MINUS exp %prec UMINUS { 
-        $$ = drv.tree.ast_insert<ast::minus_t>($2);
+        $$ = drv.tree.ast_insert<ast::minus_t>(std::vector<ast::node_t*>{$2});
     }
     | PLUS exp %prec UMINUS {
-        $$ = drv.tree.ast_insert<ast::plus_t>($2);
+        $$ = drv.tree.ast_insert<ast::plus_t>(std::vector<ast::node_t*>{$2});
     }
     | NOT exp %prec UMINUS {
-        $$ = drv.tree.ast_insert<ast::not_t>($2);
+        $$ = drv.tree.ast_insert<ast::not_t>(std::vector<ast::node_t*>{$2});
     }
     | TILDA exp %prec UMINUS {
-        $$ = drv.tree.ast_insert<ast::b_not_t>($2);
+        $$ = drv.tree.ast_insert<ast::b_not_t>(std::vector<ast::node_t*>{$2});
     }
     | D_PLUS exp %prec UMINUS {
-        $$ = drv.tree.ast_insert<ast::pr_increment_t>($2);
+        $$ = drv.tree.ast_insert<ast::pr_increment_t>(std::vector<ast::node_t*>{$2});
     }
     | D_MINUS exp %prec UMINUS {
-        $$ = drv.tree.ast_insert<ast::pr_decrement_t>($2);
+        $$ = drv.tree.ast_insert<ast::pr_decrement_t>(std::vector<ast::node_t*>{$2});
     }
     | NUMBER { 
         $$ = drv.tree.ast_insert($1);
@@ -354,13 +354,13 @@ exp:  exp GRATER exp {
     }
     ;
 
-io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>($2); }
+io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>(std::vector<ast::node_t*>{$2}); }
        | RETURN exp { 
            if (drv.scopes.scopes_depth() <= 1) {
                 std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from main" << std::endl;
                 is_error = 1;
            }
-           $$ = drv.tree.ast_insert<ast::return_t>($2); 
+           $$ = drv.tree.ast_insert<ast::return_t>(std::vector<ast::node_t*>{$2}); 
            }
        ;
 
