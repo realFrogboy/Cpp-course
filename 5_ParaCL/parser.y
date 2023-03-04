@@ -195,6 +195,27 @@ list: { $$ = nullptr; }
 
 line: exp SCOLON     { $$ = $1; }
     | io_func SCOLON { $$ = $1; }
+    | NAME ASSIGN FUNC LPAREN arg_list RPAREN block {
+        drv.scopes.recover_scopes();
+
+        $1->is_init = 1;
+        $1->value = drv.arg_list.size();
+
+        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, p_node);
+        drv.arg_list.clear();
+    }
+    | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
+        drv.scopes.recover_scopes();
+
+        $1->is_init = 1;
+        $1->value = drv.arg_list.size();
+
+        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *func_name = drv.tree.ast_insert($8->name);
+        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, p_node, func_name);
+        drv.arg_list.clear();
+    }
     | SCOLON         { $$ = nullptr; }
     ;
 
@@ -245,27 +266,6 @@ exp:  exp GRATER exp {
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(p_node, $3);
-    }
-    | NAME ASSIGN FUNC LPAREN arg_list RPAREN block {
-        drv.scopes.recover_scopes();
-
-        $1->is_init = 1;
-        $1->value = drv.arg_list.size();
-
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, p_node);
-        drv.arg_list.clear();
-    }
-    | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
-        drv.scopes.recover_scopes();
-
-        $1->is_init = 1;
-        $1->value = drv.arg_list.size();
-
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        ast::node_t *func_name = drv.tree.ast_insert($8->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, p_node, func_name);
-        drv.arg_list.clear();
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>($1, $3);
