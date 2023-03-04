@@ -1,4 +1,4 @@
-boo = func () { i = 5; j = 10; i + j; };
+boo = func () { i = 5; j = 10; i + j; }
 a = 6;
 c = boo();
 print c;

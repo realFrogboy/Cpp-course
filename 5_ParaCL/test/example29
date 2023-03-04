@@ -1,12 +1,12 @@
 fact = func(x) : factorial {
   res = 1;
-  boo = func(x) : printf { print x; };
+  boo = func(x) : printf { print x; }
   if (x > 0)
     res = x * factorial(x - 1);
 
   boo(res);
   res;
-};
+}
 
 a = fact(5);
 printf(a);

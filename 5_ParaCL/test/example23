@@ -4,7 +4,7 @@ boo = func(){
         return 1;
     else 
         return 0;
-};
+}
 
 a = boo();
 print a;

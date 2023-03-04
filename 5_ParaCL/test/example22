@@ -6,6 +6,6 @@ foo = func(){
         --i;
         ++j;
     }
-};
+}
 a = foo();
 print a;
