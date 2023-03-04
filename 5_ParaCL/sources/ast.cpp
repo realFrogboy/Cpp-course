@@ -122,10 +122,7 @@ int scolon_t::eval() const {
 int scalar_variable::eval() const {
     std::string name = get_name();
     auto search = n_info.scopes.find_variable(name);
-    if (search == nullptr) {
-        search = n_info.scopes.add_variable(name);
-        return 0;
-    }
+    if (search == nullptr) throw std::runtime_error("can't find scalar");
     return std::get<int>(search->value);
 }
 
@@ -134,7 +131,6 @@ int func_variable::eval() const {
     auto search = n_info.scopes.find_func(name);
     if (search == nullptr) 
         search = n_info.scopes.find_variable(name);
-
     if (search == nullptr) throw std::runtime_error("can't find function");
 
     if (args) args->eval();

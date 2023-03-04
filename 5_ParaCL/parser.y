@@ -12,6 +12,7 @@
 
 %code requires {
 #include <iostream>
+#include <variant>
 #include <string>
 #include <memory>
 #include <cmath>
@@ -199,7 +200,7 @@ line: exp SCOLON     { $$ = $1; }
         drv.scopes.recover_scopes();
 
         $1->is_init = 1;
-        $1->value = drv.arg_list.size();
+        $1->value = static_cast<int>(drv.arg_list.size());
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, p_node);
@@ -209,7 +210,7 @@ line: exp SCOLON     { $$ = $1; }
         drv.scopes.recover_scopes();
 
         $1->is_init = 1;
-        $1->value = drv.arg_list.size();
+        $1->value = static_cast<int>(drv.arg_list.size());
 
         ast::node_t *p_node = drv.tree.ast_insert($1->name);
         ast::node_t *func_name = drv.tree.ast_insert($8->name);
