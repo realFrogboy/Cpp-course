@@ -121,7 +121,7 @@ struct node_t {
 
     node_t(node_info &n_info_, const std::string &msg_, const std::vector<node_t*> &children_ = {}) : 
             dump{std::make_unique<Dump>(msg_)}, n_info{n_info_}, children{children_} {}
-    virtual int eval(eval_info &e_info) const = 0;
+    virtual void eval(eval_info &e_info) const = 0;
     virtual ~node_t() {}
 
     void graph_node(std::ofstream &file, int &num) const { dump->dump(this, file, num); }
@@ -130,192 +130,174 @@ struct node_t {
 
 struct g_t final : node_t {
     g_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, ">", children_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs > rhs);
-        return (lhs > rhs); 
     }
 };
 
 struct l_t final : node_t {
     l_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "<", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs < rhs);
-        return (lhs < rhs);
     }
 };
 
 struct e_t final : node_t {
     e_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "==", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs == rhs);
-        return (lhs == rhs); 
     }
 };
 
 struct ne_t final : node_t {
     ne_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "!=", children_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
-        e_info.results.push_back(lhs != rhs); 
-        return (lhs != rhs); 
+        e_info.results.push_back(lhs != rhs);
     }
 };
 
 struct ge_t final : node_t {
     ge_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, ">=", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs >= rhs);
-        return (lhs >= rhs); 
     }
 };
 
 struct le_t final : node_t {
     le_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "<=", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs <= rhs); 
-        return (lhs <= rhs); 
     }
 };
 
 struct add_t final : node_t {
     add_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "+", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs + rhs);
-        return (lhs + rhs); 
     }
 };
 
 struct sub_t final : node_t {
     sub_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "-", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs - rhs);
-        return (lhs - rhs); 
     }
 };
 
 struct mul_t final : node_t {
     mul_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "*", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs * rhs);
-        return (lhs * rhs); 
     }
 };
 
 struct div_t final : node_t {
     div_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "/", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs / rhs);
-        return (lhs / rhs); 
     }
 };
 
 struct remainder_t final : node_t {
     remainder_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "%", children_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
-        e_info.results.push_back(lhs % rhs);  
-        return (lhs % rhs); 
+        e_info.results.push_back(lhs % rhs);
     }
 };
 
 struct pow_t final : node_t {
     pow_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "**", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct b_and_t final : node_t {
     b_and_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "&", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs & rhs);
-        return (lhs & rhs); 
     }
 };
 
 struct b_or_t final : node_t {
     b_or_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "|", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs | rhs);
-        return (lhs | rhs); 
     }
 };
 
 struct xor_t final : node_t {
     xor_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "^", children_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs ^ rhs); 
-        return (lhs ^ rhs); 
     }
 };
 
 struct l_shift_t final : node_t {
     l_shift_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "<<", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs << rhs);
-        return (lhs << rhs); 
     }
 };
 
 struct r_shift_t final : node_t {
     r_shift_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, ">>", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back(); 
         e_info.results.push_back(lhs >> rhs);
-        return (lhs >> rhs); 
     }
 };
 
 struct l_and_t final : node_t {
     l_and_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "&&", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs && rhs); 
-        return (lhs && rhs); 
     }
 };
 
 struct l_or_t final : node_t {
     l_or_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "||", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int rhs = e_info.results.back(); e_info.results.pop_back();
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs || rhs); 
-        return (lhs || rhs); 
     }
 };
 
 struct assign_t final : node_t {
     assign_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "=", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 class func_assign_t final : public node_t {
@@ -323,69 +305,63 @@ class func_assign_t final : public node_t {
     std::string func_name;
     public:
     func_assign_t(node_info &n_info_, const func_info &info_, const std::string &func_name_, const std::vector<node_t*> &children_) : node_t{n_info_, "=", children_}, info{info_}, func_name{func_name_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct scolon_t final : node_t {
     scolon_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, ";", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct minus_t final : node_t {
     minus_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "-", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(-lhs);
-        return -lhs; 
     }
 };
 
 struct plus_t final : node_t {
     plus_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "+", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(lhs);
-        return lhs; 
     }
 };
 
 struct not_t final : node_t {
     not_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "!", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(!lhs);
-        return !lhs; 
     }
 };
 
 struct b_not_t final : node_t {
     b_not_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "~", children_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(~lhs); 
-        return ~lhs; 
     }
 };
 
 struct pr_increment_t final : node_t {
     pr_increment_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "++", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct pr_decrement_t final : node_t {
     pr_decrement_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "--", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 class num_t final : public node_t {
     int value = 0;
-
     public:
     num_t(node_info &n_info_, const int v) : node_t{n_info_, std::to_string(v)}, value{v} {}
     int get_value() const { return value; }
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         e_info.results.push_back(value);
-        return value; 
     }
 };
 
@@ -398,97 +374,66 @@ class variable_t : public node_t {
 
 struct scalar_variable final : variable_t {
     scalar_variable(node_info &n_info_, const std::string &name_) : variable_t{n_info_, name_} {}
-    int eval(eval_info &e_info) const override;
-};
-
-class func_variable final : public node_t {
-    std::string name;
-    public:
-    func_variable(node_info &n_info_, const std::string &name_, const std::vector<node_t*> &children_) : node_t{n_info_, name_, children_} {}
-    int eval(eval_info &e_info) const override;
-    std::string get_name() const { return name; }
+    void eval(eval_info &e_info) const override;
 };
 
 struct print_t final : node_t {
     print_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "print", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct abs_t final : node_t {
     abs_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "abs", children_} {}
-    int eval(eval_info &e_info) const override { 
+    void eval(eval_info &e_info) const override { 
         int lhs = e_info.results.back(); e_info.results.pop_back();
         e_info.results.push_back(std::abs(lhs));
-        return std::abs(lhs); 
     }
 };
 
 struct get_t final : node_t {
     get_t(node_info &n_info_, const std::vector<node_t*> &) : node_t{n_info_, "?"} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct if_t final : node_t {
     if_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "if", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct while_t final : node_t {
     while_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "while", children_} {}
-    int eval(eval_info &e_info) const override;
+    void eval(eval_info &e_info) const override;
 };
 
 struct block final : node_t {
     block(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "block", children_} {}
-    int eval(eval_info &e_info) const override {
-        return 0;
-    }
+    void eval(eval_info &) const override {}
 };
 
 struct return_t final : node_t {
     return_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "return", children_} {}
-    int eval(eval_info &e_info) const override { 
-        e_info.fl = flag::RETURN;
-        return 0;
-    }
+    void eval(eval_info &e_info) const override { e_info.fl = flag::RETURN; }
 };
 
 struct open_scope final : node_t {
     open_scope(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "{"} {}
-    int eval(eval_info &e_info) const override {
-        n_info.scopes.open_scope(); 
-        return 0;
-    }
+    void eval(eval_info &) const override { n_info.scopes.open_scope(); }
 };
 
 struct close_scope final : node_t {
     close_scope(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "}"} {}
-    int eval(eval_info &e_info) const override {
-        n_info.scopes.close_scope(); 
-        return 0;
-    }
-};
-
-struct hide_scopes final : node_t {
-    hide_scopes(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "hide_scope"} {}
-    int eval(eval_info &e_info) const override {
-        n_info.scopes.hide_scopes(); 
-        return 0;
-    }
+    void eval(eval_info &) const override { n_info.scopes.close_scope(); }
 };
 
 struct recover_scopes final : node_t {
     recover_scopes(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "recover_scope"} {}
-    int eval(eval_info &e_info) const override {
-        n_info.scopes.recover_scopes(); 
-        return 0;
-    }
+    void eval(eval_info &) const override { n_info.scopes.recover_scopes(); }
 };
 
 struct func_init final : node_t {
     std::string func_name;
     func_init(node_info &n_info, const std::string &name_) : node_t{n_info, name_}, func_name{name_} {}
-    int eval(eval_info &e_info) const override {
+    void eval(eval_info &e_info) const override {
         std::string name = func_name;
         auto search = n_info.scopes.find_func(name);
         if (search == nullptr) 
@@ -502,16 +447,12 @@ struct func_init final : node_t {
 
         e_info.fl = flag::FUNC_ENTRY;
         e_info.root = info.root;
-        return 0;
     }
 };
 
 struct func_exec final : node_t {
     func_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "func_exec", children_} {}
-    int eval(eval_info &e_info) const override { 
-        e_info.fl = flag::FUNC_EXIT;
-        return 0;
-    }
+    void eval(eval_info &e_info) const override { e_info.fl = flag::FUNC_EXIT; }
 };
 
 class tree_t final {
