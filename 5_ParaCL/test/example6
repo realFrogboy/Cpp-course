@@ -1,3 +1,5 @@
 a = ?;
 if (a)
     print a;
+else 
+    print a - 1;

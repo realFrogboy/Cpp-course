@@ -8,7 +8,7 @@ fact = func(x) : factorial {
   res;
 }
 
-a = fact(5);
+a = fact(1);
 printf(a);
 b = factorial(6);
 printf(b);
