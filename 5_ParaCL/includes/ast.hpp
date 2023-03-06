@@ -4,7 +4,6 @@
 #include <memory>
 #include <variant>
 #include <unordered_map>
-#include <algorithm>
 
 namespace ast {
 
@@ -25,12 +24,12 @@ enum class flag {
     NOT_DEFINED
 };
 
-struct func_info {
+struct func_info final {
     node_t *root;
     std::vector<std::string> signature;
 };
 
-struct name_t {
+struct name_t final {
     std::string name;
     std::variant<int, func_info> value;
     bool is_init = 0;
@@ -40,8 +39,8 @@ using scope_t  = std::unordered_map<std::string, ast::name_t>;
 using scopes_t = std::vector<scope_t>;
 
 class Scopes final {
-    std::vector<ast::scopes_t> scopes{};
-    scope_t func_scope{};
+    std::vector<ast::scopes_t> scopes;
+    scope_t func_scope;
 
     public:
     unsigned scopes_depth() const { return scopes.size(); }
@@ -88,16 +87,10 @@ struct node_info final {
     std::vector<int> arg_list;
 
     node_info(Scopes &scopes_) : scopes{scopes_} {}
-
-    void init_func_args(std::vector<std::string> &signature, std::vector<int> &results) const {
-        std::for_each(signature.begin(), signature.end(), [&results, this](const std::string &name){
-            scopes.add_variable(name, results.back());
-            results.pop_back();
-        });
-    }
+    void init_func_args(const std::vector<std::string> &signature, std::vector<int> &results) const;
 };
 
-struct eval_info {
+struct eval_info final {
     std::vector<int> results;
     node_t *root = nullptr;
     flag fl = flag::NOT_DEFINED;
@@ -305,7 +298,7 @@ class func_assign_t final : public node_t {
     std::string func_name;
     public:
     func_assign_t(node_info &n_info_, const func_info &info_, const std::string &func_name_, const std::vector<node_t*> &children_) : node_t{n_info_, "=", children_}, info{info_}, func_name{func_name_} {}
-    void eval(eval_info &e_info) const override;
+    void eval(eval_info &) const override;
 };
 
 struct scolon_t final : node_t {
@@ -365,16 +358,12 @@ class num_t final : public node_t {
     }
 };
 
-class variable_t : public node_t {
+class scalar_variable final : public node_t {
     std::string name;
     public:
-    variable_t(node_info &n_info_, const std::string &name_) : node_t{n_info_, name_}, name{name_} {}
-    std::string get_name() const { return name; }
-};
-
-struct scalar_variable final : variable_t {
-    scalar_variable(node_info &n_info_, const std::string &name_) : variable_t{n_info_, name_} {}
+    scalar_variable(node_info &n_info_, const std::string &name_) : node_t{n_info_, name_}, name{name_} {}
     void eval(eval_info &e_info) const override;
+    std::string get_name() const { return name; }
 };
 
 struct print_t final : node_t {
@@ -504,93 +493,7 @@ class tree_t final {
         return root;
     }
 
-    void traversal() const {
-        node_t *root_ = root;
-        unsigned currentRootIndex = 0;
-        std::vector<std::pair<node_t*, unsigned>> stack;
-        std::vector<node_t*> return_point;
-        eval_info e_info{};
-
-        bool have_children = 1;
-
-        while (have_children || stack.size() > 0) {
-            if (have_children) {
-                stack.push_back(std::pair(root_, currentRootIndex));
-                currentRootIndex = 0;
-
-                if (root_ && root_->children.size() >= 1)
-                    root_ = root_->children[0];
-                else
-                     have_children = 0;
-                continue;
-            }
-
-            auto tmp = stack.back();
-            stack.pop_back();
-            if (tmp.first) 
-                tmp.first->eval(e_info);
-            else e_info.results.push_back(0);
-
-            while (stack.size() > 0 && (tmp.second == stack.back().first->children.size() - 1 || e_info.fl == flag::WHILE_FALSE) &&
-                        e_info.fl != flag::WHILE_TRUE && e_info.fl != flag::RETURN) {
-                if (e_info.fl == flag::WHILE_FALSE && tmp.second == 0)
-                    e_info.results.push_back(0);
-                
-                tmp = stack.back();
-                stack.pop_back();
-
-                e_info.fl = flag::NOT_DEFINED;
-                
-                tmp.first->eval(e_info);
-            }
-
-            if (stack.size() > 0) {
-                switch (e_info.fl) {
-                    case flag::IF_FALSE: 
-                        root_ = stack.back().first->children[tmp.second + 2];
-                        currentRootIndex = tmp.second + 2;
-                        break;
-                    case flag::IF_TRUE:
-                        root_ = stack.back().first->children[tmp.second + 1];
-                        currentRootIndex = tmp.second + 2;
-                        break;
-                    case flag::WHILE_TRUE:
-                        if (tmp.second != 0) {
-                            root_ = stack.back().first->children[tmp.second - 1];
-                            currentRootIndex = tmp.second - 1;
-                        } else {
-                            root_ = stack.back().first->children[tmp.second + 1];
-                            currentRootIndex = tmp.second + 1;
-                        }
-                        break;
-                    case flag::FUNC_ENTRY:
-                        return_point.push_back(stack.back().first);
-                        root_ = e_info.root;
-                        currentRootIndex = 0;
-                        break;
-                    case flag::FUNC_EXIT: 
-                        return_point.pop_back();
-                        root_ = stack.back().first->children[2];
-                        currentRootIndex = 2;
-                        break;
-                    case flag::RETURN: {
-                        auto ptr = return_point.back();
-                        return_point.pop_back();
-
-                        while (stack.back().first != ptr) { stack.pop_back(); }
-                        root_ = stack.back().first->children[2];
-                        currentRootIndex = 2;
-                        break;
-                    }
-                    default:
-                        root_ = stack.back().first->children[tmp.second + 1];
-                        currentRootIndex = tmp.second + 1;
-                };
-                e_info.fl = flag::NOT_DEFINED;
-                have_children = 1;
-            }
-        }
-    }
+    void traversal() const;
     void dump() const;
 };
 
