@@ -37,7 +37,7 @@ void Dump::dump(const node_t *node, std::ofstream &file, int &num) const {
     num++;
 
     for (auto child : node->children)
-        child->graph_node(file, num);
+        if (child) child->graph_node(file, num);
 
     if (!curr) num = 0;
 }
@@ -46,6 +46,7 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
     int curr = num;
 
     for (auto child : node->children) {
+        if (!child) continue;
         num++;
         file << "node" << curr << " -> node" << num << ";\n";
         child->connect_node(file, num);
@@ -54,17 +55,20 @@ void Dump::connect(const node_t *node, std::ofstream &file, int &num) const {
     if (!curr) num = 0;
 }
 
-int assign_t::eval() const {
+int assign_t::eval(eval_info &e_info) const {
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
     auto search = n_info.scopes.find_variable(var);
-    if (search == nullptr) search = n_info.scopes.add_variable(var);
-    search->value = children[1]->eval();
+    if (search == nullptr) throw std::runtime_error("can't find variable");
+
+    int rhs = e_info.results.back(); e_info.results.pop_back();
+    e_info.results.pop_back();
+    search->value = rhs;
+    e_info.results.push_back(rhs);
     return std::get<int>(search->value);
 }
 
-int func_assign_t::eval() const {
-    if (children[1]) {
-        std::string func_name = static_cast<scalar_variable*>(children[1])->get_name();
+int func_assign_t::eval(eval_info &e_info) const {
+    if (!func_name.empty()) {
         auto search = n_info.scopes.find_func(func_name);
         if (search == nullptr)
             search = n_info.scopes.add_func(func_name, info);
@@ -74,99 +78,83 @@ int func_assign_t::eval() const {
 
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
     auto search = n_info.scopes.find_variable(var);
-    if (search == nullptr) search = n_info.scopes.add_variable(var);
+    if (search == nullptr) throw std::runtime_error("can't find function");
     search->value = info;
     return 0;
 }
 
-int pr_increment_t::eval() const {
+int pr_increment_t::eval(eval_info &e_info) const {
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
     auto search = n_info.scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
-    search->value = children[0]->eval() + 1;
+
+    int lhs = e_info.results.back(); e_info.results.pop_back();
+    search->value = lhs + 1;
+    e_info.results.push_back(lhs + 1);
     return std::get<int>(search->value);
 } 
 
-int pr_decrement_t::eval() const{
+int pr_decrement_t::eval(eval_info &e_info) const{
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
     auto search = n_info.scopes.find_variable(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
-    search->value = children[0]->eval() - 1;
+
+    int lhs = e_info.results.back(); e_info.results.pop_back();
+    search->value = lhs - 1;
+    e_info.results.push_back(lhs - 1);
     return std::get<int>(search->value);
 } 
 
-int pow_t::eval() const {
-    return std::pow(children[0]->eval(), children[1]->eval());
+int pow_t::eval(eval_info &e_info) const {
+    int rhs = e_info.results.back(); e_info.results.pop_back();
+    int lhs = e_info.results.back(); e_info.results.pop_back();
+    e_info.results.push_back(std::pow(lhs, rhs)); 
+    return std::pow(lhs, rhs);
 }
 
-int scolon_t::eval() const {
-    int res = 0;
-    if (children[0] != nullptr) res = children[0]->eval();
-    if (children[1] != nullptr && !n_info.is_return) res = children[1]->eval();
-    return res;
+int scolon_t::eval(eval_info &e_info) const {
+    if (children[1]) {
+        int rhs = e_info.results.back();
+        e_info.results.pop_back();
+        e_info.results.pop_back();
+        e_info.results.push_back(rhs);
+    }
+    return e_info.results.back();
 }
 
-int scalar_variable::eval() const {
+int scalar_variable::eval(eval_info &e_info) const {
     std::string name = get_name();
     auto search = n_info.scopes.find_variable(name);
-    if (search == nullptr) throw std::runtime_error("can't find scalar");
+    if (search == nullptr)
+        search = n_info.scopes.add_variable(name, 0);
+    e_info.results.push_back(std::get<int>(search->value));
     return std::get<int>(search->value);
 }
 
-int func_variable::eval() const {
-    std::string name = get_name();
-    auto search = n_info.scopes.find_func(name);
-    if (search == nullptr) 
-        search = n_info.scopes.find_variable(name);
-    if (search == nullptr) throw std::runtime_error("can't find function");
-
-    if (args) args->eval();
-
-    n_info.scopes.hide_scopes();
-
-    func_info info = std::get<func_info>(search->value);
-    n_info.init_func_args(info.signature);
-    n_info.arg_list.clear();
-
-    int res = info.root->eval();
-    n_info.is_return = 0;
-
-    n_info.scopes.recover_scopes();
-    return res;
-}
-
-int print_t::eval() const {
-    int res = children[0]->eval();
+int print_t::eval(eval_info &e_info) const {
+    int res = e_info.results.back();
     std::cout << res << std::endl; 
     return res;
 }
 
-int get_t::eval() const {
+int get_t::eval(eval_info &e_info) const {
     if ((std::cin >> std::ws).eof()) 
         throw std::runtime_error("reached input file EOF");
     int res = get<int>();
+    e_info.results.push_back(res);
     return res;
 }
 
-int if_t::eval() const { 
-    int res = 0;
-    n_info.scopes.open_scope();
-    if (children[2]->eval()) {
-        if (children[0]) 
-            res = children[0]->eval();
-    } else if (children[1] && !n_info.is_return) 
-        res = children[1]->eval();
-    n_info.scopes.close_scope();
-    return res;
+int if_t::eval(eval_info &e_info) const { 
+    int cond = e_info.results.back(); e_info.results.pop_back();
+    (cond) ? e_info.fl = flag::IF_TRUE : e_info.fl = flag::IF_FALSE;
+    return 0;
 }
 
-int while_t::eval() const {
-    int res = 0;
-    n_info.scopes.open_scope();
-    while (children[0] && children[1]->eval() && !n_info.is_return)
-        res = children[0]->eval();
-    n_info.scopes.close_scope();
-    return res;
+int while_t::eval(eval_info &e_info) const {
+    int cond = e_info.results.back(); e_info.results.pop_back();
+    (cond) ? e_info.fl = flag::WHILE_TRUE : e_info.fl = flag::WHILE_FALSE;
+    return 0;
 }
 
 void tree_t::dump() const {

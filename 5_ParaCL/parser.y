@@ -118,28 +118,36 @@ namespace yy {
 %% 
 
 stmt: IF LPAREN exp RPAREN body {
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, nullptr, $3});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, nullptr});
     }
     | IF LPAREN exp RPAREN body ELSE body {
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
     }
     | IF LPAREN exp RPAREN stmt ELSE body {
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
     }
     | IF LPAREN exp RPAREN body ELSE stmt {
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
     }
-    | WHILE LPAREN exp RPAREN body { 
-        $$ = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$5, $3});
+    | WHILE LPAREN exp RPAREN body {
+        auto while_cond = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$3}); 
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5,  while_cond});
     }
     | IF LPAREN exp RPAREN stmt {
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, nullptr, $3});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, nullptr});
     }
-    | IF LPAREN exp RPAREN stmt ELSE stmt { 
-        $$ = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$5, $7, $3});
+    | IF LPAREN exp RPAREN stmt ELSE stmt {
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3}); 
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
     }
     | WHILE LPAREN exp RPAREN stmt { 
-        $$ = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$5, $3});
+        auto while_cond = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$3}); 
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5, while_cond});
     }
     ;
 
@@ -149,7 +157,9 @@ body: line { $$ = $1; }
     ;
 
 block: LUNICORN list RUNICORN {
-         $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$2});
+        auto open_scope = drv.tree.ast_insert<ast::open_scope>();
+        auto close_scope = drv.tree.ast_insert<ast::close_scope>();
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{open_scope, $2, close_scope});
      }
      ;
 
@@ -166,12 +176,11 @@ arg_list:
 
 init_arg_list: { $$ = nullptr; }
              | exp {
-                  $$ = drv.tree.ast_insert<ast::arg_list_insertion>(std::vector<ast::node_t*>{$1});
+                  $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$1});
                   ++init_arg_size;
              }
              | init_arg_list COMMA exp  {
-                auto list_ins = drv.tree.ast_insert<ast::arg_list_insertion>(std::vector<ast::node_t*>{$3});
-                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{list_ins, $1});
+                $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$3, $1});
                 ++init_arg_size;
              }
              ;
@@ -202,8 +211,9 @@ line: exp SCOLON     { $$ = $1; }
         $1->is_init = 1;
         $1->value = static_cast<int>(drv.arg_list.size());
 
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, std::vector<ast::node_t*>{p_node, nullptr});
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
+        ast::node_t *func_addr = drv.tree.ast_insert<ast::func_exec>(std::vector<ast::node_t*>{$7});
+        $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, "", std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
@@ -212,9 +222,9 @@ line: exp SCOLON     { $$ = $1; }
         $1->is_init = 1;
         $1->value = static_cast<int>(drv.arg_list.size());
 
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
-        ast::node_t *func_name = drv.tree.ast_insert($8->name);
-        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, std::vector<ast::node_t*>{p_node, func_name});
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
+        ast::node_t *func_addr = drv.tree.ast_insert<ast::func_exec>(std::vector<ast::node_t*>{$9});
+        $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, $8->name, std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
     | SCOLON         { $$ = nullptr; }
@@ -259,13 +269,13 @@ exp:  exp GRATER exp {
     | NAME ASSIGN exp {
         $1->is_init = 1;
 
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
     }
     | NAME ASSIGN block {
         $1->is_init = 1;
 
-        ast::node_t *p_node = drv.tree.ast_insert($1->name);
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
         $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
     }
     | exp AMPERSAND exp {
@@ -327,7 +337,7 @@ exp:  exp GRATER exp {
             is_error = 1;
         }
         else {
-            $$ = drv.tree.ast_insert($1->name);
+            $$ = drv.tree.ast_insert<ast::scalar_variable>($1->name);
         }
     }
     | NAME LPAREN init_arg_list RPAREN {
@@ -343,10 +353,10 @@ exp:  exp GRATER exp {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": mismatch with function signature" << std::endl;
             is_error = 1;
         }
-        else {
-            $$ = drv.tree.ast_insert($1->name, $3);
-            init_arg_size = 0;
-        }
+        auto func_init = drv.tree.ast_insert<ast::func_init>($1->name);
+        auto recover_scopes = drv.tree.ast_insert<ast::recover_scopes>();
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$3, func_init, recover_scopes});
+        init_arg_size = 0;
     }
     | ERR {
         std::cout << yy::red << "Error:" << yy::norm << @1 << ": unknown operation" << std::endl;
@@ -378,7 +388,7 @@ program: list END {
                 return 0;
             }
         #endif
-        drv.tree.evaluate();
+        drv.tree.traversal();
     }
     ;
 
