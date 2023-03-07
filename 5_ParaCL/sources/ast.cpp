@@ -222,6 +222,16 @@ void tree_t::traversal() const {
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
+                case flag::BLOCK_ENTRY:
+                    return_point.push_back(stack.back().first);
+                    root_ = stack.back().first->children[tmp.second + 1];
+                    currentRootIndex = tmp.second + 1;
+                    break;
+                case flag::BLOCK_EXIT:
+                    return_point.pop_back();
+                    root_ = stack.back().first->children[2];
+                    currentRootIndex = 2;
+                    break;
                 case flag::RETURN: {
                     auto return_ptr = return_point.back();
                     return_point.pop_back();

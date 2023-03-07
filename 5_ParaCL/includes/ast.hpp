@@ -19,6 +19,9 @@ enum class flag {
     FUNC_ENTRY,
     FUNC_EXIT,
 
+    BLOCK_ENTRY,
+    BLOCK_EXIT,
+
     RETURN,
 
     NOT_DEFINED
@@ -423,13 +426,12 @@ struct func_init final : node_t {
     std::string func_name;
     func_init(node_info &n_info, const std::string &name_) : node_t{n_info, name_}, func_name{name_} {}
     void eval(eval_info &e_info) const override {
-        std::string name = func_name;
-        auto search = n_info.scopes.find_func(name);
+        auto search = n_info.scopes.find_func(func_name);
         if (search == nullptr) 
-            search = n_info.scopes.find_variable(name);
+            search = n_info.scopes.find_variable(func_name);
         if (search == nullptr) throw std::runtime_error("can't find function");
 
-        n_info.scopes.hide_scopes(); 
+        n_info.scopes.hide_scopes();
 
         func_info info = std::get<func_info>(search->value);
         n_info.init_func_args(info.signature, e_info.results);
@@ -442,6 +444,19 @@ struct func_init final : node_t {
 struct func_exec final : node_t {
     func_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "func_exec", children_} {}
     void eval(eval_info &e_info) const override { e_info.fl = flag::FUNC_EXIT; }
+};
+
+struct block_init final : node_t {
+    block_init(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "block_init"} {}
+    void eval(eval_info &e_info) const override {
+         n_info.scopes.hide_scopes();
+         e_info.fl = flag::BLOCK_ENTRY;
+    }
+};
+
+struct block_exec final : node_t {
+    block_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "block_exec", children_} {}
+    void eval(eval_info &e_info) const override { e_info.fl = flag::BLOCK_EXIT; }
 };
 
 class tree_t final {

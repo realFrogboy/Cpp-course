@@ -227,6 +227,18 @@ line: exp SCOLON     { $$ = $1; }
         $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, $8->name, std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
+    | NAME ASSIGN block {
+        $1->is_init = 1;
+        drv.scopes.recover_scopes();
+
+        auto block_init = drv.tree.ast_insert<ast::block_init>();
+        auto block_exec = drv.tree.ast_insert<ast::block_exec>(std::vector<ast::node_t*>{$3});
+        auto recover_scopes = drv.tree.ast_insert<ast::recover_scopes>();
+        auto block = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{block_init, block_exec, recover_scopes});
+
+        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
+        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, block});
+    }
     | SCOLON         { $$ = nullptr; }
     ;
 
@@ -267,12 +279,6 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::pow_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | NAME ASSIGN exp {
-        $1->is_init = 1;
-
-        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
-        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
-    }
-    | NAME ASSIGN block {
         $1->is_init = 1;
 
         ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
