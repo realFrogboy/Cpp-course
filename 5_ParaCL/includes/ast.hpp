@@ -43,10 +43,11 @@ using scopes_t = std::vector<scope_t>;
 
 class Scopes final {
     std::vector<ast::scopes_t> scopes;
-    scope_t func_scope;
+    scope_t glob_scope;
 
     public:
     unsigned scopes_depth() const { return scopes.size(); }
+    unsigned scopes_level() const { return scopes.back().size(); }
     void open_scope()  { scopes.back().push_back({}); }
     void close_scope() { scopes.back().pop_back(); }
     void recover_scopes() { scopes.pop_back(); }
@@ -69,18 +70,25 @@ class Scopes final {
         return &(search->second);
     }
 
-    ast::name_t* add_func(const std::string &name, const func_info &info) {
-        return &(func_scope.insert({name, name_t{name, info, 1}}).first->second);
+    ast::name_t* add_global(const std::string &name, const func_info &info) {
+        return &(glob_scope.insert({name, name_t{name, info, 0}}).first->second);
     }
 
-    ast::name_t* add_func(const std::string &name, const int val) {
-        return &(func_scope.insert({name, name_t{name, val, 1}}).first->second);
+    ast::name_t* add_global(const std::string &name, const int val) {
+        return &(glob_scope.insert({name, name_t{name, val, 0}}).first->second);
     }
 
-    ast::name_t* find_func(const std::string &name) {
-        auto search = func_scope.find(name);
-        if (search == func_scope.end()) return nullptr;
+    ast::name_t* find_global(const std::string &name) {
+        auto search = glob_scope.find(name);
+        if (search == glob_scope.end()) return nullptr;
         return &(search->second);
+    }
+
+    ast::name_t* find_all_scopes(const std::string &name) {
+        auto search = find_variable(name);
+        if (search == nullptr) 
+            search = find_global(name);
+        return search;
     }
 };
 
@@ -426,9 +434,9 @@ struct func_init final : node_t {
     std::string func_name;
     func_init(node_info &n_info, const std::string &name_) : node_t{n_info, name_}, func_name{name_} {}
     void eval(eval_info &e_info) const override {
-        auto search = n_info.scopes.find_func(func_name);
+        auto search = n_info.scopes.find_variable(func_name);
         if (search == nullptr) 
-            search = n_info.scopes.find_variable(func_name);
+            search = n_info.scopes.find_global(func_name);
         if (search == nullptr) throw std::runtime_error("can't find function");
 
         n_info.scopes.hide_scopes();

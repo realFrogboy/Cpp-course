@@ -65,7 +65,7 @@ void node_info::init_func_args(const std::vector<std::string> &signature, std::v
 
 void assign_t::eval(eval_info &e_info) const {
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_variable(var);
+    auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
     int rhs = e_info.results.back(); e_info.results.pop_back();
@@ -76,22 +76,22 @@ void assign_t::eval(eval_info &e_info) const {
 
 void func_assign_t::eval(eval_info &) const {
     if (!func_name.empty()) {
-        auto search = n_info.scopes.find_func(func_name);
+        auto search = n_info.scopes.find_global(func_name);
         if (search == nullptr)
-            search = n_info.scopes.add_func(func_name, info);
+            search = n_info.scopes.add_global(func_name, info);
         else 
             search->value = info;
     }
 
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_variable(var);
+    auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find function");
     search->value = info;
 }
 
 void pr_increment_t::eval(eval_info &e_info) const {
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_variable(var);
+    auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
     int lhs = e_info.results.back(); e_info.results.pop_back();
@@ -101,7 +101,7 @@ void pr_increment_t::eval(eval_info &e_info) const {
 
 void pr_decrement_t::eval(eval_info &e_info) const {
     std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_variable(var);
+    auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
     int lhs = e_info.results.back(); e_info.results.pop_back();
@@ -125,9 +125,10 @@ void scolon_t::eval(eval_info &e_info) const {
 }
 
 void scalar_variable::eval(eval_info &e_info) const {
-    auto search = n_info.scopes.find_variable(name);
+    auto search = n_info.scopes.find_all_scopes(name);
     if (search == nullptr)
-        search = n_info.scopes.add_variable(name, 0);
+        (n_info.scopes.scopes_depth() == 1 && n_info.scopes.scopes_level() == 1) ? search = n_info.scopes.add_global(name, 0) :
+                                                                                   search = n_info.scopes.add_variable(name, 0);
     e_info.results.push_back(std::get<int>(search->value));
 }
 

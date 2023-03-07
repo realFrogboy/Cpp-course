@@ -45,15 +45,16 @@ class driver_t final {
                 break;
             case yy::parser::token_type::NAME: {
                 if (is_colon) {
-                    auto new_func = scopes.add_func(lexer->YYText(), arg_list.size());
+                    auto new_func = scopes.add_global(lexer->YYText(), arg_list.size());
+                    new_func->is_init = 1;
                     yylval->as<ast::name_t*>() = new_func;
                     is_colon = 0;
                 } else {
-                    auto search = scopes.find_func(lexer->YYText());
-                    if (search == nullptr) 
-                        search = scopes.find_variable(lexer->YYText());
+                    auto search = scopes.find_all_scopes(lexer->YYText());
                     if (search == nullptr) { 
-                        auto new_var = scopes.add_variable(lexer->YYText());
+                        ast::name_t *new_var;
+                        (scopes.scopes_depth() == 1 && scopes.scopes_level() == 1) ? new_var = scopes.add_global(lexer->YYText(), -1) :
+                                                       new_var = scopes.add_variable(lexer->YYText());
                         yylval->as<ast::name_t*>() = new_var;
                     } else 
                         yylval->as<ast::name_t*>() = search;
