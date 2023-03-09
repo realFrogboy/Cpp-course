@@ -159,6 +159,7 @@ void tree_t::traversal() const {
     unsigned currentRootIndex = 0;
     std::vector<std::pair<node_t*, unsigned>> stack;
     std::vector<node_t*> return_point;
+    std::vector<unsigned> res_size;
     eval_info e_info{};
 
     bool have_children = 1;
@@ -220,21 +221,29 @@ void tree_t::traversal() const {
                     break;
                 case flag::FUNC_ENTRY:
                     return_point.push_back(stack.back().first);
+                    res_size.push_back(e_info.results.size());
+
                     root_ = e_info.root;
                     currentRootIndex = 0;
                     break;
                 case flag::FUNC_EXIT: 
                     return_point.pop_back();
+                    res_size.pop_back();
+
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
                 case flag::BLOCK_ENTRY:
                     return_point.push_back(stack.back().first);
+                    res_size.push_back(e_info.results.size());
+
                     root_ = stack.back().first->children[tmp.second + 1];
                     currentRootIndex = tmp.second + 1;
                     break;
                 case flag::BLOCK_EXIT:
                     return_point.pop_back();
+                    res_size.pop_back();
+
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
@@ -242,8 +251,12 @@ void tree_t::traversal() const {
                     auto return_ptr = return_point.back();
                     return_point.pop_back();
 
+                    unsigned sz = res_size.back();
+                    res_size.pop_back();
+
                     auto stack_it = (std::find_if(stack.rbegin(), stack.rend(), [return_ptr](auto curr){return (curr.first == return_ptr);}) + 1).base();
                     stack.erase(stack_it + 1, stack.end());
+                    e_info.results.erase(e_info.results.begin() + sz, std::prev(e_info.results.end()));
 
                     root_ = stack_it->first->children[2];
                     currentRootIndex = 2;

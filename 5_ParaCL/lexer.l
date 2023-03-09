@@ -64,7 +64,7 @@ location.step();
 "abs"   return yy::parser::token_type::ABS;
 "?"     return yy::parser::token_type::GET;
 
-[a-zA-Z][a-zA-Z0-9]* return yy::parser::token_type::NAME;
+[a-zA-Z_][a-zA-Z0-9_]* return yy::parser::token_type::NAME;
 [0-9]+ return yy::parser::token_type::NUMBER;
 "//".*
 [ \t\v\r] { location.step(); }
