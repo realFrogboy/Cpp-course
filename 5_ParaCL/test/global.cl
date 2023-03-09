@@ -11,6 +11,7 @@ x = 10;
 
 bar = {
   y = 10;
+  print foo(11);
   if (global > 0)
     return y;
   x + y;
