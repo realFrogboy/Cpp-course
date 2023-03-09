@@ -196,6 +196,10 @@ void tree_t::traversal() const {
 
         if (stack.size() > 0) {
             switch (e_info.fl) {
+                case flag::AND:
+                    (e_info.results.back()) ? root_ = stack.back().first->children[tmp.second + 1] : root_ = nullptr;
+                    currentRootIndex = tmp.second + 1;
+                    break;
                 case flag::IF_FALSE: 
                     root_ = stack.back().first->children[tmp.second + 2];
                     currentRootIndex = tmp.second + 2;
@@ -208,6 +212,7 @@ void tree_t::traversal() const {
                     if (tmp.second != 0) {
                         root_ = stack.back().first->children[tmp.second - 1];
                         currentRootIndex = tmp.second - 1;
+                        e_info.results.pop_back();
                     } else {
                         root_ = stack.back().first->children[tmp.second + 1];
                         currentRootIndex = tmp.second + 1;

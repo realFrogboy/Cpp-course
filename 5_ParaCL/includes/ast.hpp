@@ -22,6 +22,8 @@ enum class flag {
     BLOCK_ENTRY,
     BLOCK_EXIT,
 
+    AND,
+
     RETURN,
 
     NOT_DEFINED
@@ -465,6 +467,11 @@ struct block_init final : node_t {
 struct block_exec final : node_t {
     block_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "block_exec", children_} {}
     void eval(eval_info &e_info) const override { e_info.fl = flag::BLOCK_EXIT; }
+};
+
+struct and_indicator final : node_t {
+    and_indicator(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "and_indicator"} {}
+    void eval(eval_info &e_info) const override {e_info.fl = flag::AND; }
 };
 
 class tree_t final {

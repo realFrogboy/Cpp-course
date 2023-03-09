@@ -100,13 +100,14 @@ namespace yy {
 %nonassoc RPAREN
 %nonassoc ELSE
 
-%left GRATER LESS EQUAL NEQUAL GEQUAL LEQUAL
-%right ASSIGN PLUS_A MINUS_A STAR_A SLASH_A PERSENT_A L_SHIFT_A R_SHIFT_A AMPERSAND_A STICK_A CAP_A
+%right ASSIGN
 %left D_STICK
 %left D_AMPERSAND
 %left STICK
 %left CAP
 %left AMPERSAND
+%left EQUAL NEQUAL
+%left GRATER LESS GEQUAL LEQUAL
 %left L_SHIFT R_SHIFT
 %left PLUS MINUS
 %left STAR SLASH PERSENT
@@ -300,7 +301,8 @@ exp:  exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::r_shift_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp D_AMPERSAND exp {
-        $$ = drv.tree.ast_insert<ast::l_and_t>(std::vector<ast::node_t*>{$1, $3});
+        auto indicator = drv.tree.ast_insert<ast::and_indicator>();
+        $$ = drv.tree.ast_insert<ast::l_and_t>(std::vector<ast::node_t*>{$1, indicator, $3});
     }
     | exp D_STICK exp {
         $$ = drv.tree.ast_insert<ast::l_or_t>(std::vector<ast::node_t*>{$1, $3});
