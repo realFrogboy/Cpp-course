@@ -1,6 +1,0 @@
-N = ?;
-num = 0;
-while (num * num < N) {    
-    print num * num;
-    ++num;
-}

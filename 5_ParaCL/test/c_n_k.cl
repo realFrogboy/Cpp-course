@@ -1,11 +1,7 @@
 combinations = func(n, k) : C {
-    print n;
-    print k;
-    print 0;
     if (k == n) return 1;
     if (k == 1) return n;
     res = C(n - 1, k - 1) + C(n - 1, k);
-    res;
 }
 
 n = ?;
