@@ -459,14 +459,17 @@ struct func_exec final : node_t {
 struct block_init final : node_t {
     block_init(node_info &n_info, const std::vector<node_t*> &) : node_t{n_info, "block_init"} {}
     void eval(eval_info &e_info) const override {
-         n_info.scopes.hide_scopes();
+         n_info.scopes.open_scope();
          e_info.fl = flag::BLOCK_ENTRY;
     }
 };
 
 struct block_exec final : node_t {
     block_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "block_exec", children_} {}
-    void eval(eval_info &e_info) const override { e_info.fl = flag::BLOCK_EXIT; }
+    void eval(eval_info &e_info) const override { 
+        n_info.scopes.close_scope();
+        e_info.fl = flag::BLOCK_EXIT;
+    }
 };
 
 struct and_indicator final : node_t {

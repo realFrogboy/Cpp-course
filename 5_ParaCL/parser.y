@@ -82,12 +82,13 @@ namespace yy {
     ABS     "abs"
     GET     "?"
 
-    END 0   "end of file"
+    END 0    "end of file"
 ;
 
 %token <int> NUMBER
 %token <ast::name_t*> NAME
 %nterm <ast::node_t*> exp
+%nterm <ast::node_t*> scolon_exp
 %nterm <ast::node_t*> list
 %nterm <ast::node_t*> stmt
 %nterm <ast::node_t*> io_func
@@ -152,17 +153,9 @@ stmt: IF LPAREN exp RPAREN body {
     }
     ;
 
-body: line { $$ = $1; }
-    | block { $$ = $1; }
+body: line
     | END  { $$ = nullptr; }
     ;
-
-block: LUNICORN list RUNICORN {
-        auto open_scope = drv.tree.ast_insert<ast::open_scope>();
-        auto close_scope = drv.tree.ast_insert<ast::close_scope>();
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{open_scope, $2, close_scope});
-     }
-     ;
 
 arg_list:
         | NAME {
@@ -204,8 +197,17 @@ list: { $$ = nullptr; }
     | error SCOLON list { yyerrok; }
     ;
 
-line: exp SCOLON     { $$ = $1; }
-    | io_func SCOLON { $$ = $1; }
+block: LUNICORN list RUNICORN {
+        auto block_init = drv.tree.ast_insert<ast::block_init>();
+        auto block_exec = drv.tree.ast_insert<ast::block_exec>(std::vector<ast::node_t*>{$2});
+        auto block_exit = drv.tree.ast_insert<ast::block>();
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{block_init, block_exec, block_exit});
+     }
+     ;
+
+line: exp
+    | scolon_exp SCOLON { $$ = $1; }
+    | io_func SCOLON    { $$ = $1; }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN block {
         drv.scopes.recover_scopes();
 
@@ -228,22 +230,14 @@ line: exp SCOLON     { $$ = $1; }
         $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, $8->name, std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
-    | NAME ASSIGN block {
-        $1->is_init = 1;
-        drv.scopes.recover_scopes();
-
-        auto block_init = drv.tree.ast_insert<ast::block_init>();
-        auto block_exec = drv.tree.ast_insert<ast::block_exec>(std::vector<ast::node_t*>{$3});
-        auto recover_scopes = drv.tree.ast_insert<ast::recover_scopes>();
-        auto block = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{block_init, block_exec, recover_scopes});
-
-        ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
-        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, block});
-    }
-    | SCOLON         { $$ = nullptr; }
+    | SCOLON { $$ = nullptr; }
     ;
 
-exp:  exp GRATER exp {
+exp : block
+    | scolon_exp
+    ;
+
+scolon_exp: exp GRATER exp {
         $$ = drv.tree.ast_insert<ast::g_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | exp LESS exp { 
@@ -374,12 +368,12 @@ exp:  exp GRATER exp {
 
 io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>(std::vector<ast::node_t*>{$2}); }
        | RETURN exp { 
-           if (drv.scopes.scopes_depth() <= 1) {
+           if (drv.scopes.scopes_depth() <= 1 && drv.scopes.scopes_level() <= 1) {
                 std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from main" << std::endl;
                 is_error = 1;
            }
            $$ = drv.tree.ast_insert<ast::return_t>(std::vector<ast::node_t*>{$2}); 
-           }
+       }
        ;
 
 program: list END {

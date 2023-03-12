@@ -220,16 +220,10 @@ void tree_t::traversal() const {
                     }
                     break;
                 case flag::FUNC_ENTRY:
-                    return_point.push_back(stack.back().first);
-                    res_size.push_back(e_info.results.size());
-
                     root_ = e_info.root;
                     currentRootIndex = 0;
                     break;
                 case flag::FUNC_EXIT: 
-                    return_point.pop_back();
-                    res_size.pop_back();
-
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
@@ -240,14 +234,15 @@ void tree_t::traversal() const {
                     root_ = stack.back().first->children[tmp.second + 1];
                     currentRootIndex = tmp.second + 1;
                     break;
+
                 case flag::BLOCK_EXIT:
                     return_point.pop_back();
                     res_size.pop_back();
-
+                    
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
-                case flag::RETURN: {
+                case flag::RETURN: { 
                     auto return_ptr = return_point.back();
                     return_point.pop_back();
 
@@ -258,7 +253,7 @@ void tree_t::traversal() const {
                     stack.erase(stack_it + 1, stack.end());
                     e_info.results.erase(e_info.results.begin() + sz, std::prev(e_info.results.end()));
 
-                    root_ = stack_it->first->children[2];
+                    root_ = stack.back().first->children[2];
                     currentRootIndex = 2;
                     break;
                 }

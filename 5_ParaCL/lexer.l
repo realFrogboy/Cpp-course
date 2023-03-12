@@ -68,7 +68,9 @@ location.step();
 [0-9]+ return yy::parser::token_type::NUMBER;
 "//".*
 [ \t\v\r] { location.step(); }
-\n+  { location.lines(yyleng); location.step(); }
+\n+  {  location.lines(yyleng); 
+        location.step(); 
+    }
 .  return yy::parser::token_type::ERR;
 <<EOF>> return yy::parser::token_type::END;
 

@@ -24,7 +24,6 @@ class arg_list_mgr final {
 class driver_t final {
     lexer_t *lexer = nullptr;
     bool is_colon = 0;
-    bool is_assign = 0;
 
     public:
     ast::tree_t tree;
@@ -54,24 +53,17 @@ class driver_t final {
                     if (search == nullptr) { 
                         ast::name_t *new_var;
                         (scopes.scopes_depth() == 1 && scopes.scopes_level() == 1) ? new_var = scopes.add_global(lexer->YYText(), -1) :
-                                                       new_var = scopes.add_variable(lexer->YYText());
+                                                                                     new_var = scopes.add_variable(lexer->YYText());
                         yylval->as<ast::name_t*>() = new_var;
                     } else 
                         yylval->as<ast::name_t*>() = search;
                 }
                 break;
             }
-            case yy::parser::token_type::ASSIGN:
-                is_assign = 1;
-                break;
             case yy::parser::token_type::RUNICORN:
                 scopes.close_scope();
                 break;
             case yy::parser::token_type::LUNICORN:
-                if (is_assign) { 
-                    scopes.hide_scopes(); 
-                    is_assign = 0;
-                }
                 scopes.open_scope();
                 break;
             case yy::parser::token_type::FUNC:
@@ -80,10 +72,7 @@ class driver_t final {
                 break;
             case yy::parser::token_type::COLON:
                 is_colon = 1;
-                break;
-            default: {
-                is_assign = 0;
-            }
+            default: {}
         }
 
         *location = lexer->location;
