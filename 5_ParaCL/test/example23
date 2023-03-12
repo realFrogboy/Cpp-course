@@ -1,4 +1,4 @@
-boo = func(){
+boo = func() {
     i = ?;
     if (i)
         return 1;

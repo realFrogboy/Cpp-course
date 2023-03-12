@@ -3,12 +3,9 @@ foo = func(x){
     tmp = x;
     if (x < 0)
         return -1;
-    
-    while (x > 0) {
-        if (x == 5)
-            return tmp;
-        --x;
-    }
+    else if (x < 5)
+        return 0;
+    x;
 }
 
 if (a == 0) {}
