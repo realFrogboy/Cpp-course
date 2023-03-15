@@ -215,8 +215,7 @@ line: exp
         $1->value = static_cast<int>(drv.arg_list.size());
 
         ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
-        ast::node_t *func_addr = drv.tree.ast_insert<ast::func_exec>(std::vector<ast::node_t*>{$7});
-        $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, "", std::vector<ast::node_t*>{p_node});
+        $$ = drv.tree.ast_insert(ast::func_info{$7, drv.arg_list()}, "", std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
     | NAME ASSIGN FUNC LPAREN arg_list RPAREN COLON NAME block {
@@ -226,8 +225,7 @@ line: exp
         $1->value = static_cast<int>(drv.arg_list.size());
 
         ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
-        ast::node_t *func_addr = drv.tree.ast_insert<ast::func_exec>(std::vector<ast::node_t*>{$9});
-        $$ = drv.tree.ast_insert(ast::func_info{func_addr, drv.arg_list()}, $8->name, std::vector<ast::node_t*>{p_node});
+        $$ = drv.tree.ast_insert(ast::func_info{$9, drv.arg_list()}, $8->name, std::vector<ast::node_t*>{p_node});
         drv.arg_list.clear();
     }
     | SCOLON { $$ = nullptr; }

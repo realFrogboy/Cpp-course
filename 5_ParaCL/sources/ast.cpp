@@ -115,14 +115,7 @@ void pow_t::eval(eval_info &e_info) const {
     e_info.results.push_back(std::pow(lhs, rhs)); 
 }
 
-void scolon_t::eval(eval_info &e_info) const {
-    if (children[1]) {
-        int rhs = e_info.results.back();
-        e_info.results.pop_back();
-        e_info.results.pop_back();
-        e_info.results.push_back(rhs);
-    }
-}
+void scolon_t::eval(eval_info &e_info) const {}
 
 void scalar_variable::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(name);
@@ -178,20 +171,15 @@ void tree_t::traversal() const {
 
         auto tmp = stack.back();
         stack.pop_back();
-        if (tmp.first) 
-            tmp.first->eval(e_info);
-        else e_info.results.push_back(0);
+        if (tmp.first) tmp.first->eval(e_info);
 
         while (stack.size() > 0 && (tmp.second == stack.back().first->children.size() - 1 || e_info.fl == flag::WHILE_FALSE) &&
-                    e_info.fl != flag::WHILE_TRUE && e_info.fl != flag::RETURN) {
-            if (e_info.fl == flag::WHILE_FALSE && tmp.second == 0)
-                e_info.results.push_back(0);
-            
-            tmp = stack.back();
-            stack.pop_back();
+                    e_info.fl != flag::WHILE_TRUE && e_info.fl != flag::BLOCK_EXIT) {
 
             e_info.fl = flag::NOT_DEFINED;
-            
+
+            tmp = stack.back();
+            stack.pop_back();
             tmp.first->eval(e_info);
         }
 
@@ -221,11 +209,7 @@ void tree_t::traversal() const {
                     break;
                 case flag::FUNC_ENTRY:
                     root_ = e_info.root;
-                    currentRootIndex = 0;
-                    break;
-                case flag::FUNC_EXIT: 
-                    root_ = stack.back().first->children[2];
-                    currentRootIndex = 2;
+                    currentRootIndex = tmp.second;
                     break;
                 case flag::BLOCK_ENTRY:
                     return_point.push_back(stack.back().first);
@@ -234,15 +218,7 @@ void tree_t::traversal() const {
                     root_ = stack.back().first->children[tmp.second + 1];
                     currentRootIndex = tmp.second + 1;
                     break;
-
-                case flag::BLOCK_EXIT:
-                    return_point.pop_back();
-                    res_size.pop_back();
-                    
-                    root_ = stack.back().first->children[2];
-                    currentRootIndex = 2;
-                    break;
-                case flag::RETURN: { 
+                case flag::BLOCK_EXIT: { 
                     auto return_ptr = return_point.back();
                     return_point.pop_back();
 
@@ -251,7 +227,7 @@ void tree_t::traversal() const {
 
                     auto stack_it = (std::find_if(stack.rbegin(), stack.rend(), [return_ptr](auto curr){return (curr.first == return_ptr);}) + 1).base();
                     stack.erase(stack_it + 1, stack.end());
-                    e_info.results.erase(e_info.results.begin() + sz, std::prev(e_info.results.end()));
+                    e_info.results.erase(std::next(e_info.results.begin(), sz), std::prev(e_info.results.end()));
 
                     root_ = stack.back().first->children[2];
                     currentRootIndex = 2;

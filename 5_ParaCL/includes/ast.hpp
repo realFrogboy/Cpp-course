@@ -17,14 +17,11 @@ enum class flag {
     WHILE_FALSE,
 
     FUNC_ENTRY,
-    FUNC_EXIT,
 
     BLOCK_ENTRY,
     BLOCK_EXIT,
 
     AND,
-
-    RETURN,
 
     NOT_DEFINED
 };
@@ -104,7 +101,7 @@ struct node_info final {
 };
 
 struct eval_info final {
-    std::vector<int> results;
+    std::vector<int> results{0};
     node_t *root = nullptr;
     flag fl = flag::NOT_DEFINED;
 };
@@ -414,7 +411,7 @@ struct block final : node_t {
 
 struct return_t final : node_t {
     return_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "return", children_} {}
-    void eval(eval_info &e_info) const override { e_info.fl = flag::RETURN; }
+    void eval(eval_info &e_info) const override { e_info.fl = flag::BLOCK_EXIT; }
 };
 
 struct open_scope final : node_t {
@@ -449,11 +446,6 @@ struct func_init final : node_t {
         e_info.fl = flag::FUNC_ENTRY;
         e_info.root = info.root;
     }
-};
-
-struct func_exec final : node_t {
-    func_exec(node_info &n_info, const std::vector<node_t*> &children_) : node_t{n_info, "func_exec", children_} {}
-    void eval(eval_info &e_info) const override { e_info.fl = flag::FUNC_EXIT; }
 };
 
 struct block_init final : node_t {
