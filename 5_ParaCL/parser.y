@@ -184,7 +184,7 @@ list: { $$ = nullptr; }
         if ($2 == nullptr)
             $$ = $1;
         else {
-            $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
+            $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$1, $2});
         }
     }
     | line list {
@@ -193,9 +193,9 @@ list: { $$ = nullptr; }
         else {
             if ($1 == nullptr) {
                 auto empty_lhs = drv.tree.ast_insert<ast::block>();
-                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{empty_lhs, $2});
+                $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{empty_lhs, $2});
             } else 
-                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
+                $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$1, $2});
         }
     }
     | error SCOLON list { yyerrok; }

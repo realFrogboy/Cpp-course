@@ -68,10 +68,10 @@ void assign_t::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
-    int rhs = e_info.results.back(); e_info.results.pop_back();
-    e_info.results.pop_back();
+    int rhs = e_info.remove_result();
+    e_info.remove_result();
     search->value = rhs;
-    e_info.results.push_back(rhs);
+    e_info.add_result(rhs);
 }
 
 void func_assign_t::eval(eval_info &) const {
@@ -94,9 +94,9 @@ void pr_increment_t::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
-    int lhs = e_info.results.back(); e_info.results.pop_back();
+    int lhs = e_info.remove_result();
     search->value = lhs + 1;
-    e_info.results.push_back(lhs + 1);
+    e_info.add_result(lhs + 1);
 } 
 
 void pr_decrement_t::eval(eval_info &e_info) const {
@@ -104,25 +104,23 @@ void pr_decrement_t::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
-    int lhs = e_info.results.back(); e_info.results.pop_back();
+    int lhs = e_info.remove_result();
     search->value = lhs - 1;
-    e_info.results.push_back(lhs - 1);
+    e_info.add_result(lhs - 1);
 } 
 
 void pow_t::eval(eval_info &e_info) const {
-    int rhs = e_info.results.back(); e_info.results.pop_back();
-    int lhs = e_info.results.back(); e_info.results.pop_back();
-    e_info.results.push_back(std::pow(lhs, rhs)); 
+    int rhs = e_info.remove_result();
+    int lhs = e_info.remove_result();
+    e_info.add_result(std::pow(lhs, rhs)); 
 }
-
-void scolon_t::eval(eval_info &e_info) const {}
 
 void scalar_variable::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(name);
     if (search == nullptr)
         (n_info.scopes.scopes_depth() == 1 && n_info.scopes.scopes_level() == 1) ? search = n_info.scopes.add_global(name, 0) :
                                                                                    search = n_info.scopes.add_variable(name, 0);
-    e_info.results.push_back(std::get<int>(search->value));
+    e_info.add_result(std::get<int>(search->value));
 }
 
 void print_t::eval(eval_info &e_info) const {
@@ -134,110 +132,23 @@ void get_t::eval(eval_info &e_info) const {
     if ((std::cin >> std::ws).eof()) 
         throw std::runtime_error("reached input file EOF");
     int res = get<int>();
-    e_info.results.push_back(res);
+    e_info.add_result(res);
 }
 
 void if_t::eval(eval_info &e_info) const { 
-    int cond = e_info.results.back(); e_info.results.pop_back();
-    (cond) ? e_info.fl = flag::IF_TRUE : e_info.fl = flag::IF_FALSE;
+    int cond = e_info.remove_result();
+    if (cond)
+        e_info.fl = flag::IF_TRUE;
+    else 
+        e_info.fl = flag::IF_FALSE;
 }
 
 void while_t::eval(eval_info &e_info) const {
-    int cond = e_info.results.back(); e_info.results.pop_back();
-    (cond) ? e_info.fl = flag::WHILE_TRUE : e_info.fl = flag::WHILE_FALSE;
-}
-
-void tree_t::traversal() const {
-    node_t *root_ = root;
-    unsigned currentRootIndex = 0;
-    std::vector<std::pair<node_t*, unsigned>> stack;
-    std::vector<node_t*> return_point;
-    std::vector<unsigned> res_size;
-    eval_info e_info{};
-
-    while (root_ || stack.size() > 0) {
-        if (root_) {
-            stack.push_back(std::pair(root_, currentRootIndex));
-            currentRootIndex = 0;
-
-            if (root_->children.size() >= 1)
-                root_ = root_->children[0];
-            else
-                root_ = nullptr;
-            continue;
-        }
-
-        auto tmp = stack.back();
-        stack.pop_back();
-        tmp.first->eval(e_info);
-
-        while (stack.size() > 0 && (tmp.second == stack.back().first->children.size() - 1 || e_info.fl == flag::WHILE_FALSE) &&
-                    e_info.fl != flag::WHILE_TRUE && e_info.fl != flag::BLOCK_EXIT) {
-
-            e_info.fl = flag::NOT_DEFINED;
-
-            tmp = stack.back();
-            stack.pop_back();
-            tmp.first->eval(e_info);
-        }
-
-        if (stack.size() > 0) {
-            switch (e_info.fl) {
-                case flag::AND:
-                    (e_info.results.back()) ? root_ = stack.back().first->children[tmp.second + 1] : root_ = nullptr;
-                    currentRootIndex = tmp.second + 1;
-                    break;
-                case flag::IF_FALSE: 
-                    root_ = stack.back().first->children[tmp.second + 2];
-                    currentRootIndex = tmp.second + 2;
-                    break;
-                case flag::IF_TRUE:
-                    root_ = stack.back().first->children[tmp.second + 1];
-                    currentRootIndex = tmp.second + 2;
-                    break;
-                case flag::WHILE_TRUE:
-                    if (tmp.second != 0) {
-                        root_ = stack.back().first->children[tmp.second - 1];
-                        currentRootIndex = tmp.second - 1;
-                        e_info.results.pop_back();
-                    } else {
-                        root_ = stack.back().first->children[tmp.second + 1];
-                        currentRootIndex = tmp.second + 1;
-                    }
-                    break;
-                case flag::FUNC_ENTRY:
-                    root_ = e_info.root;
-                    currentRootIndex = tmp.second;
-                    break;
-                case flag::BLOCK_ENTRY:
-                    return_point.push_back(stack.back().first);
-                    res_size.push_back(e_info.results.size());
-
-                    root_ = stack.back().first->children[tmp.second + 1];
-                    currentRootIndex = tmp.second + 1;
-                    break;
-                case flag::BLOCK_EXIT: { 
-                    auto return_ptr = return_point.back();
-                    return_point.pop_back();
-
-                    unsigned sz = res_size.back();
-                    res_size.pop_back();
-
-                    auto stack_it = (std::find_if(stack.rbegin(), stack.rend(), [return_ptr](auto curr){return (curr.first == return_ptr);}) + 1).base();
-                    stack.erase(stack_it + 1, stack.end());
-                    e_info.results.erase(std::next(e_info.results.begin(), sz), std::prev(e_info.results.end()));
-
-                    root_ = stack.back().first->children[2];
-                    currentRootIndex = 2;
-                    break;
-                }
-                default:
-                    root_ = stack.back().first->children[tmp.second + 1];
-                    currentRootIndex = tmp.second + 1;
-            };
-            e_info.fl = flag::NOT_DEFINED;
-        }
-    }
+    int cond = e_info.remove_result();
+    if (cond) 
+        e_info.fl = flag::WHILE_TRUE; 
+    else 
+        e_info.fl = flag::WHILE_FALSE;
 }
 
 void tree_t::dump() const {
