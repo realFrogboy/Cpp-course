@@ -191,7 +191,11 @@ list: { $$ = nullptr; }
         if ($2 == nullptr)
             $$ = $1;
         else {
-            $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
+            if ($1 == nullptr) {
+                auto empty_lhs = drv.tree.ast_insert<ast::block>();
+                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{empty_lhs, $2});
+            } else 
+                $$ = drv.tree.ast_insert<ast::scolon_t>(std::vector<ast::node_t*>{$1, $2});
         }
     }
     | error SCOLON list { yyerrok; }
@@ -200,8 +204,7 @@ list: { $$ = nullptr; }
 block: LUNICORN list RUNICORN {
         auto block_init = drv.tree.ast_insert<ast::block_init>();
         auto block_exec = drv.tree.ast_insert<ast::block_exec>(std::vector<ast::node_t*>{$2});
-        auto block_exit = drv.tree.ast_insert<ast::block>();
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{block_init, block_exec, block_exit});
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{block_init, block_exec, nullptr});
      }
      ;
 
@@ -355,7 +358,11 @@ scolon_exp: exp GRATER exp {
         }
         auto func_init = drv.tree.ast_insert<ast::func_init>($1->name);
         auto recover_scopes = drv.tree.ast_insert<ast::recover_scopes>();
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$3, func_init, recover_scopes});
+
+        if (init_arg_size)
+            $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{$3, func_init, recover_scopes});
+        else 
+            $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{func_init, recover_scopes});
         init_arg_size = 0;
     }
     | ERR {

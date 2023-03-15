@@ -155,23 +155,21 @@ void tree_t::traversal() const {
     std::vector<unsigned> res_size;
     eval_info e_info{};
 
-    bool have_children = 1;
-
-    while (have_children || stack.size() > 0) {
-        if (have_children) {
+    while (root_ || stack.size() > 0) {
+        if (root_) {
             stack.push_back(std::pair(root_, currentRootIndex));
             currentRootIndex = 0;
 
-            if (root_ && root_->children.size() >= 1)
+            if (root_->children.size() >= 1)
                 root_ = root_->children[0];
             else
-                    have_children = 0;
+                root_ = nullptr;
             continue;
         }
 
         auto tmp = stack.back();
         stack.pop_back();
-        if (tmp.first) tmp.first->eval(e_info);
+        tmp.first->eval(e_info);
 
         while (stack.size() > 0 && (tmp.second == stack.back().first->children.size() - 1 || e_info.fl == flag::WHILE_FALSE) &&
                     e_info.fl != flag::WHILE_TRUE && e_info.fl != flag::BLOCK_EXIT) {
@@ -238,7 +236,6 @@ void tree_t::traversal() const {
                     currentRootIndex = tmp.second + 1;
             };
             e_info.fl = flag::NOT_DEFINED;
-            have_children = 1;
         }
     }
 }
