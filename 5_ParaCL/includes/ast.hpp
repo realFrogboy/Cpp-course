@@ -45,14 +45,16 @@ class Scopes final {
     scope_t glob_scope;
 
     public:
-    unsigned scopes_depth() const { return scopes.size(); }
-    unsigned scopes_level() const { return scopes.back().size(); }
     void open_scope()  { scopes.back().push_back({}); }
     void close_scope() { scopes.back().pop_back(); }
     void recover_scopes() { scopes.pop_back(); }
     void hide_scopes() { 
         scopes.push_back({});
         open_scope(); 
+    }
+
+    bool is_global() const {
+        return (scopes.size() == 1 && scopes.back().size() == 1);
     }
 
     ast::name_t* add_variable(const std::string &name, const int val = -1) {
@@ -98,6 +100,7 @@ struct eval_info final {
 
     void add_result(const int res) { results.push_back(res); }
     int  get_result() { return results.back(); }
+    
     int  remove_result() { 
         int res = results.back();
         results.pop_back(); 
@@ -105,6 +108,12 @@ struct eval_info final {
     }
 
     void clear_flag() { fl = flag::NOT_DEFINED; }
+    
+    void clear() {
+        results.clear();
+        results.push_back(0);
+        clear_flag();
+    }
 };
 
 struct node_info final {
@@ -476,7 +485,12 @@ struct and_indicator final : node_t {
 
 class tree_t final {
     class traversal_t final {
-        using numbered_node_t = std::pair<node_t*, unsigned>;
+        struct numbered_node_t final {
+            node_t *node;
+            unsigned number;
+
+            numbered_node_t(node_t *node_, const unsigned num) : node{node_}, number{num} {}
+        };
 
         struct state_t final {
             node_t *stack_point;
@@ -498,17 +512,19 @@ class tree_t final {
                 states.pop_back();
                 return state;
             }
+
+            void clear() { states.clear(); }
         };
 
         numbered_node_t eval_stack_top() {
             auto tmp = stack.back();
             stack.pop_back();
-            tmp.first->eval(e_info);
+            tmp.node->eval(e_info);
             return tmp;
         }
 
         void next_children(const unsigned curr_node) {
-            root = stack.back().first->children[curr_node + 1];
+            root = stack.back().node->children[curr_node + 1];
             currentRootIndex = curr_node + 1;
         }
 
@@ -523,7 +539,7 @@ class tree_t final {
         }
 
         bool is_last_child(const unsigned curr_node) const {
-            return (curr_node == stack.back().first->children.size() - 1 || e_info.fl == flag::WHILE_FALSE);
+            return (curr_node == stack.back().node->children.size() - 1 || e_info.fl == flag::WHILE_FALSE);
         }
 
         bool is_while_true() const {
@@ -539,11 +555,55 @@ class tree_t final {
         }
 
         void return_state(const state_t &state) {
-            auto r_stack_it = std::find_if(stack.rbegin(), stack.rend(), [state](auto curr){return (curr.first == state.stack_point);});
+            auto r_stack_it = std::find_if(stack.rbegin(), stack.rend(), [state](auto curr){return (curr.node == state.stack_point);});
             auto f_stack_it = (r_stack_it + 1).base();
             stack.erase(f_stack_it + 1, stack.end());
 
             e_info.results.erase(std::next(e_info.results.begin(), state.results_size), std::prev(e_info.results.end()));
+        }
+
+        void check_flag(const unsigned curr_node) {
+            switch (e_info.fl) {
+                case flag::AND:
+                    if (!e_info.get_result())
+                        root = nullptr;
+                    else 
+                        next_children(curr_node);
+                    break;
+                case flag::IF_FALSE: 
+                    next_children(curr_node + 1);
+                    break;
+                case flag::IF_TRUE:
+                    next_children(curr_node);
+                    ++currentRootIndex;
+                    break;
+                case flag::WHILE_TRUE:
+                    if (is_first_while_check(curr_node)) {
+                        next_children(curr_node - 2);
+                        e_info.results.pop_back();
+                    } else {
+                        next_children(curr_node);
+                    }
+                    break;
+                case flag::FUNC_ENTRY:
+                    root = e_info.root;
+                    currentRootIndex = curr_node;
+                    break;
+                case flag::BLOCK_ENTRY:
+                    states.save_state({stack.back().node, e_info.results.size()});
+                    next_children(curr_node);
+                    break;
+                case flag::BLOCK_EXIT: { 
+                    state_t state = states.remove_state();
+                    return_state(state);
+
+                    root = stack.back().node->children[2];
+                    currentRootIndex = 2;
+                    break;
+                }
+                default:
+                    next_children(curr_node);
+            };
         }
 
         node_t *root;
@@ -562,58 +622,22 @@ class tree_t final {
                     continue;
                 }
 
-                numbered_node_t tmp = eval_stack_top();
+                numbered_node_t curr_node = eval_stack_top();
 
-                while (stack.size() > 0 && is_last_child(tmp.second) && !is_while_true() && !is_block_end()) {
+                while (stack.size() > 0 && is_last_child(curr_node.number) && !is_while_true() && !is_block_end()) {
                     e_info.clear_flag();
-                    tmp = eval_stack_top();
+                    curr_node = eval_stack_top();
                 }
 
                 if (stack.size() > 0) {
-                    switch (e_info.fl) {
-                        case flag::AND:
-                            if (!e_info.get_result())
-                                root = nullptr;
-                            else 
-                                next_children(tmp.second);
-                            break;
-                        case flag::IF_FALSE: 
-                            next_children(tmp.second + 1);
-                            break;
-                        case flag::IF_TRUE:
-                            next_children(tmp.second);
-                            ++currentRootIndex;
-                            break;
-                        case flag::WHILE_TRUE:
-                            if (is_first_while_check(tmp.second)) {
-                                next_children(tmp.second - 2);
-                                e_info.results.pop_back();
-                            } else {
-                                next_children(tmp.second);
-                            }
-                            break;
-                        case flag::FUNC_ENTRY:
-                            root = e_info.root;
-                            currentRootIndex = tmp.second;
-                            break;
-                        case flag::BLOCK_ENTRY:
-                            states.save_state({stack.back().first, e_info.results.size()});
-                            next_children(tmp.second);
-                            break;
-                        case flag::BLOCK_EXIT: { 
-                            state_t state = states.remove_state();
-                            return_state(state);
-
-                            root = stack.back().first->children[2];
-                            currentRootIndex = 2;
-                            break;
-                        }
-                        default:
-                            next_children(tmp.second);
-                    };
+                    check_flag(curr_node.number);
                     e_info.clear_flag();
                 }
             }
+            currentRootIndex = 0;
+            stack.clear();
+            states.clear();
+            e_info.clear();
         }
     };
 

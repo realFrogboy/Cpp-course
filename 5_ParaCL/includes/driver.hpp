@@ -52,8 +52,11 @@ class driver_t final {
                     auto search = scopes.find_all_scopes(lexer->YYText());
                     if (search == nullptr) { 
                         ast::name_t *new_var;
-                        (scopes.scopes_depth() == 1 && scopes.scopes_level() == 1) ? new_var = scopes.add_global(lexer->YYText(), -1) :
-                                                                                     new_var = scopes.add_variable(lexer->YYText());
+                        if (scopes.is_global()) 
+                            new_var = scopes.add_global(lexer->YYText(), -1);
+                        else 
+                            new_var = scopes.add_variable(lexer->YYText());
+                            
                         yylval->as<ast::name_t*>() = new_var;
                     } else 
                         yylval->as<ast::name_t*>() = search;

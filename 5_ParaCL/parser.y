@@ -373,8 +373,8 @@ scolon_exp: exp GRATER exp {
 
 io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>(std::vector<ast::node_t*>{$2}); }
        | RETURN exp { 
-           if (drv.scopes.scopes_depth() <= 1 && drv.scopes.scopes_level() <= 1) {
-                std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from main" << std::endl;
+           if (drv.scopes.is_global()) {
+                std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from global scope" << std::endl;
                 is_error = 1;
            }
            $$ = drv.tree.ast_insert<ast::return_t>(std::vector<ast::node_t*>{$2}); 

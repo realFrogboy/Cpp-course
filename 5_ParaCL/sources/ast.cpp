@@ -68,10 +68,10 @@ void assign_t::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(var);
     if (search == nullptr) throw std::runtime_error("can't find variable");
 
-    int rhs = e_info.remove_result();
-    e_info.remove_result();
+    int rhs = e_info.get_result();
     search->value = rhs;
-    e_info.add_result(rhs);
+
+    e_info.results.erase(std::prev(e_info.results.end(), 2));
 }
 
 void func_assign_t::eval(eval_info &) const {
@@ -117,9 +117,13 @@ void pow_t::eval(eval_info &e_info) const {
 
 void scalar_variable::eval(eval_info &e_info) const {
     auto search = n_info.scopes.find_all_scopes(name);
-    if (search == nullptr)
-        (n_info.scopes.scopes_depth() == 1 && n_info.scopes.scopes_level() == 1) ? search = n_info.scopes.add_global(name, 0) :
-                                                                                   search = n_info.scopes.add_variable(name, 0);
+    if (search == nullptr) {
+        if (n_info.scopes.is_global()) 
+            search = n_info.scopes.add_global(name, 0);
+        else 
+            search = n_info.scopes.add_variable(name, 0);
+    }
+
     e_info.add_result(std::get<int>(search->value));
 }
 
