@@ -278,7 +278,7 @@ scolon_exp: exp GRATER exp {
         $1->is_init = 1;
 
         ast::node_t *p_node = drv.tree.ast_insert<ast::scalar_variable>($1->name);
-        $$ = drv.tree.ast_insert<ast::assign_t>(std::vector<ast::node_t*>{p_node, $3});
+        $$ = drv.tree.ast_insert<ast::var_assign_t>(std::vector<ast::node_t*>{p_node, $3});
     }
     | exp AMPERSAND exp {
         $$ = drv.tree.ast_insert<ast::b_and_t>(std::vector<ast::node_t*>{$1, $3});

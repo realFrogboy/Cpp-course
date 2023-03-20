@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <string_view>
 
 #include "ast.hpp"
 
@@ -63,10 +64,8 @@ void node_info::init_func_args(const std::vector<std::string> &signature, std::v
     });
 }
 
-void assign_t::eval(eval_info &e_info) const {
-    std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_all_scopes(var);
-    if (search == nullptr) throw std::runtime_error("can't find variable");
+void var_assign_t::eval(eval_info &e_info) const {
+    auto search = find_name();
 
     int rhs = e_info.get_result();
     search->value = rhs;
@@ -83,36 +82,22 @@ void func_assign_t::eval(eval_info &) const {
             search->value = info;
     }
 
-    std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_all_scopes(var);
-    if (search == nullptr) throw std::runtime_error("can't find function");
+    auto search = find_name();
     search->value = info;
 }
 
 void pr_increment_t::eval(eval_info &e_info) const {
-    std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_all_scopes(var);
-    if (search == nullptr) throw std::runtime_error("can't find variable");
-
+    auto search = find_name();
     int lhs = e_info.remove_result();
     search->value = lhs + 1;
     e_info.add_result(lhs + 1);
 } 
 
 void pr_decrement_t::eval(eval_info &e_info) const {
-    std::string var = static_cast<scalar_variable*>(children[0])->get_name();
-    auto search = n_info.scopes.find_all_scopes(var);
-    if (search == nullptr) throw std::runtime_error("can't find variable");
-
+    auto search = find_name();
     int lhs = e_info.remove_result();
     search->value = lhs - 1;
     e_info.add_result(lhs - 1);
-} 
-
-void pow_t::eval(eval_info &e_info) const {
-    int rhs = e_info.remove_result();
-    int lhs = e_info.remove_result();
-    e_info.add_result(std::pow(lhs, rhs)); 
 }
 
 void scalar_variable::eval(eval_info &e_info) const {
