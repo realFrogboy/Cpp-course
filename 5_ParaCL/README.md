@@ -1,5 +1,9 @@
 # ParaCL
-Frontend and simulator of the ParaCL language.
+Frontend and interpreter of ParaCL language. Program parses source code, builds ast and then just bypasses ast.<br />
+For now it supports:
+1. Basic arithmetic
+2. Control flow (if/else, while)
+3. Functions
 
 ## AST
 If you want to see on generated AST, you should build with DUMP flag:
@@ -9,7 +13,7 @@ If you want to see on generated AST, you should build with DUMP flag:
 
 ## Examples
 ### n-th Fibonacci number
-fib:
+fib.cl:
 
         scan(n);
         f1 = 0;
@@ -23,15 +27,23 @@ fib:
             c = c + 1;
         }
 
-        if (n < 1) {
+        if (n < 1)
             print(-1);
-        } else { if (n == 1) {
+        else if (n == 1)
             print(0);
-        } else {
+        else
             print(f2);
-        } }
 
 
-AST:
+### The number of combinations C(n,k) (recursion)
+c_n_k.cl:
 
-![Image text](https://github.com/realFrogboy/Pictures/blob/main/fib.png)
+        combinations = func(n, k) : C {
+            if (k == n) return 1;
+            if (k == 1) return n;
+            res = C(n - 1, k - 1) + C(n - 1, k);
+        }
+
+        n = ?;
+        k = ?;
+        print C(n, k);
