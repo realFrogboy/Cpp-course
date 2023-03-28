@@ -35,6 +35,7 @@ namespace yy {
     ERR     "UNKNOWN OPERATION"
     COMMA   ","
 
+    POW     "**"
     MINUS   "-"
     PLUS    "+"
     STAR    "*"
@@ -289,6 +290,9 @@ scolon_exp: exp GRATER exp {
     }
     | exp PERSENT exp {
         $$ = drv.tree.ast_insert<ast::remainder_t>(std::vector<ast::node_t*>{$1, $3});
+    }
+    | exp POW exp { 
+        $$ = drv.tree.ast_insert<ast::pow_t>(std::vector<ast::node_t*>{$1, $3});
     }
     | NAME ASSIGN exp {
         $1->is_init = 1;

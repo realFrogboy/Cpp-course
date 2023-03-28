@@ -91,7 +91,7 @@ llvm::Value *pow_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Val
     llvm::ArrayRef<llvm::Value*> args_ref(args);
     llvm::Value *res = c_info.builder->CreateCall(pow, args_ref, "callpow");
 
-    return c_info.builder->CreateIntCast(res, llvm::Type::getInt32Ty(*c_info.context), true /*signed*/, "castToInt");
+    return c_info.builder->CreateFPToSI(res, llvm::Type::getInt32Ty(*c_info.context), "castToInt");
 }
 
 llvm::Value *b_and_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
