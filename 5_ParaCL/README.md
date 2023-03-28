@@ -1,15 +1,45 @@
 # ParaCL
-Frontend and interpreter of ParaCL language. Program parses source code, builds ast and then just bypasses ast.<br />
-For now it supports:
+## Frontend
+Frontend and interpreter of ParaCL language. Program parses source code, builds ast and then just bypasses ast executing commands one by one.<br />
+For now interpreter supports:
 1. Basic arithmetic
-2. Control flow (if/else, while)
+2. Control flows (if/else, while)
 3. Functions
+
+## Backend
+LLVM IR code generation from source code. Program parses source code, builds ast and then bypasses ast and generate IR. After this program creates object file `output.o` and compilers it to executable file `prog`.<br />
+For now compiler supports:
+1. Basic arithmetic
+2. Control flows (if/else, while)
+
+## Build
+First of all, you should clone git repository
+```sh
+$ git clone "git@github.com:realFrogboy/Cpp-course.git"
+$ cd Cpp-course/5_ParaCL
+```
+Create build directory
+```sh
+$ mkdir build
+$ cd build
+```
+To build interpreter enter
+```sh
+$ cmake -D CMAKE_BUILD_TYPE=Release ../
+$ cmake --build ./
+```
+To build compiler enter
+```sh
+$ cmake -D CODEGEN=true -D CMAKE_BUILD_TYPE=Release ../
+$ cmake --build ./
+```
 
 ## AST
 If you want to see on generated AST, you should build with DUMP flag:
-
-        cmake --configure . -DDUMP=true
-    
+```sh
+$ cmake -D DUMP=true -D CMAKE_BUILD_TYPE=Release ../
+$ cmake --build ./
+``` 
 
 ## Examples
 ### n-th Fibonacci number
