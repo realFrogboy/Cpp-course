@@ -55,7 +55,7 @@ class driver_t final {
                         if (scopes.is_global()) 
                             new_var = scopes.add_global(lexer->YYText(), -1);
                         else 
-                            new_var = scopes.add_variable(lexer->YYText());
+                            new_var = scopes.add_variable(lexer->YYText(), -1);
                             
                         yylval->as<ast::name_t*>() = new_var;
                     } else 

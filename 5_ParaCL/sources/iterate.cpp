@@ -64,8 +64,15 @@ void node_info::init_func_args(const std::vector<std::string> &signature, std::v
     });
 }
 
+void binop_t::eval(eval_info &e_info) const { 
+    int rhs = e_info.remove_result();
+    int lhs = e_info.remove_result();
+    e_info.add_result(op(lhs, rhs));
+}
+
 void var_assign_t::eval(eval_info &e_info) const {
-    auto search = find_name();
+    std::string_view name = static_cast<ast::scalar_variable*>(children[0])->get_name();
+    auto search = find_name(name);
 
     int rhs = e_info.get_result();
     search->value = rhs;
@@ -82,19 +89,22 @@ void func_assign_t::eval(eval_info &) const {
             search->value = info;
     }
 
-    auto search = find_name();
+    std::string_view name = static_cast<ast::scalar_variable*>(children[0])->get_name();
+    auto search = find_name(name);
     search->value = info;
 }
 
 void pr_increment_t::eval(eval_info &e_info) const {
-    auto search = find_name();
+    std::string_view name = static_cast<ast::scalar_variable*>(children[0])->get_name();
+    auto search = find_name(name);
     int lhs = e_info.remove_result();
     search->value = lhs + 1;
     e_info.add_result(lhs + 1);
 } 
 
 void pr_decrement_t::eval(eval_info &e_info) const {
-    auto search = find_name();
+    std::string_view name = static_cast<ast::scalar_variable*>(children[0])->get_name();
+    auto search = find_name(name);
     int lhs = e_info.remove_result();
     search->value = lhs - 1;
     e_info.add_result(lhs - 1);
@@ -108,7 +118,6 @@ void scalar_variable::eval(eval_info &e_info) const {
         else 
             search = n_info.scopes.add_variable(name, 0);
     }
-
     e_info.add_result(std::get<int>(search->value));
 }
 
@@ -138,6 +147,21 @@ void while_t::eval(eval_info &e_info) const {
         e_info.fl = flag::WHILE_TRUE; 
     else 
         e_info.fl = flag::WHILE_FALSE;
+}
+
+void func_init::eval(eval_info &e_info) const {
+    auto search = n_info.scopes.find_variable(func_name);
+    if (search == nullptr) 
+        search = n_info.scopes.find_global(func_name);
+    if (search == nullptr) throw std::runtime_error("can't find function");
+
+    n_info.scopes.hide_scopes();
+
+    func_info info = std::get<func_info>(search->value);
+    n_info.init_func_args(info.signature, e_info.results);
+
+    e_info.fl = flag::FUNC_ENTRY;
+    e_info.root = info.root;
 }
 
 void tree_t::dump() const {
