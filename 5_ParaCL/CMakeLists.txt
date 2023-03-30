@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13.4)
+cmake_minimum_required(VERSION 3.20)
 
 project(paracl)
 
@@ -23,7 +23,7 @@ if (DUMP)
 endif()
 
 if ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    set (COMPILER_SETTINGS -gdwarf-4 -g -fsanitize=leak -Wall -Wextra -Wpedantic)  
+    set (COMPILER_SETTINGS -gdwarf-4 -g -Wall -Wextra -Wpedantic)  
 else ()
     set (COMPILER_SETTINGS -O2 -Wall -Wextra -Wpedantic)
 endif ()
