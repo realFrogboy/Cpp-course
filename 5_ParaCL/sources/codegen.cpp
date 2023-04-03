@@ -266,7 +266,7 @@ void IR_if_cont_with_else::codegen(codegen_info &c_info) const {
     c_info.builder->SetInsertPoint(std::get<2>(tp));
 }
 
-void while_t::codegen(codegen_info &c_info) const {
+void first_while_t::codegen(codegen_info &c_info) const {
     llvm::Value *cond = c_info.remove_result();
     cond = c_info.builder->CreateICmpNE(cond, c_info.builder->getInt32(0), "whilecond");
 
@@ -280,7 +280,7 @@ void while_t::codegen(codegen_info &c_info) const {
     c_info.builder->SetInsertPoint(LoopBB);
 }
 
-void IR_end_cond_t::codegen(codegen_info &c_info) const {
+void IR_while_end_cond_t::codegen(codegen_info &c_info) const {
     llvm::Value *cond = c_info.remove_result();
     cond = c_info.builder->CreateICmpNE(cond, c_info.builder->getInt32(0), "endcond");
 

@@ -4,11 +4,17 @@
 #include "lexer.hpp"
 #include "ast.hpp"
 
+#include <stdexcept>
+
 namespace yy {
 using arg_list_t = std::vector<std::string>;
 
 const std::string red  = "\033[1;31m";
 const std::string norm = "\033[0m";
+
+struct parse_error : std::runtime_error {
+    explicit parse_error(const std::string &msg_) : std::runtime_error{msg_} {}
+};
 
 class arg_list_mgr final {
     std::vector<arg_list_t> list;
@@ -86,6 +92,29 @@ class driver_t final {
         parser parser(*this);
         bool res = parser.parse();
         return res;
+    }
+
+    int traversal_AST() {
+        #ifdef DUMP
+            tree.dump();
+            int err = system("dot -Tpng tree_dump.dot -o image.png");
+            if (err < 0) {
+                std::cout << yy::red << "Error:" << yy::norm << ": can't execute \"dot -Tpng tree_dump.dot -o image.png\"" << std::endl;
+                return 0;
+            }
+        #endif
+
+        #if (CODEGEN == 1)
+            tree.IR_generate();
+            int err = system("gcc output.o -o prog");
+                if (err < 0) {
+                    std::cout << yy::red << "Error:" << yy::norm << ": can't execute \"gcc output.o -o prog\"" << std::endl;
+                    return 0;
+                }
+        #else
+            tree.traversal();
+        #endif
+        return 0;
     }
 
     ~driver_t() {

@@ -501,15 +501,18 @@ struct IR_if_cont_with_else final : node_t {
     void codegen(codegen_info &c_info) const override;
 };
 
-struct while_t final : node_t {
-    while_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "while", children_} {}
+struct while_t : node_t {
+    while_t(node_info &n_info_, const std::string &dump, const std::vector<node_t*> &children_) : node_t{n_info_, dump, children_} {}
     void eval(eval_info &) const override;
+};
+
+struct first_while_t final : while_t {
+    first_while_t(node_info &n_info_, const std::vector<node_t*> &children_) : while_t{n_info_, "while", children_} {}
     void codegen(codegen_info &c_info) const override;
 };
 
-struct IR_end_cond_t final : node_t {
-    IR_end_cond_t(node_info &n_info_, const std::vector<node_t*> &children_) : node_t{n_info_, "end_cond", children_} {}
-    void eval(eval_info &) const override{}
+struct IR_while_end_cond_t final : while_t {
+    IR_while_end_cond_t(node_info &n_info_, const std::vector<node_t*> &children_) : while_t{n_info_, "end_cond", children_} {}
     void codegen(codegen_info &c_info) const override;
 };
 
@@ -710,11 +713,12 @@ class tree_t final {
                         next_children(curr_node);
                     break;
                 case flag::IF_FALSE: 
-                    next_children(curr_node + 1);
+                    next_children(curr_node + 2);
+                    currentRootIndex = 10; // after this node lift up to parent
                     break;
                 case flag::IF_TRUE:
                     next_children(curr_node);
-                    ++currentRootIndex; 
+                    currentRootIndex = 10; // after this node lift up to parent
                     break;
                 case flag::WHILE_TRUE:
                     if (is_first_while_check(curr_node)) {

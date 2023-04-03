@@ -27,7 +27,7 @@ namespace yy { class driver_t; }
 namespace yy { 
     parser::token_type yylex(parser::semantic_type* yylval, parser::location_type* loc, driver_t &driver); 
     unsigned init_arg_size = 0;
-    bool is_error = 0;
+    unsigned is_error = 0;
 }
 }
 
@@ -121,35 +121,55 @@ namespace yy {
 
 stmt: IF LPAREN exp RPAREN body {
         auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, nullptr});
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_without_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_if_cont, nullptr});
     }
     | IF LPAREN exp RPAREN body ELSE body {
         auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
+        auto IR_else = drv.tree.ast_insert<ast::IR_else_t>();
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_with_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_else, $7, IR_if_cont});
     }
     | IF LPAREN exp RPAREN stmt ELSE body {
         auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
+        auto IR_else = drv.tree.ast_insert<ast::IR_else_t>();
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_with_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_else, $7, IR_if_cont});
     }
     | IF LPAREN exp RPAREN body ELSE stmt {
         auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
+        auto IR_else = drv.tree.ast_insert<ast::IR_else_t>();
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_with_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_else, $7, IR_if_cont});
     }
     | WHILE LPAREN exp RPAREN body {
-        auto while_cond = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$3}); 
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5,  while_cond});
+        auto while_cond = drv.tree.ast_insert<ast::first_while_t>(std::vector<ast::node_t*>{$3});
+        auto end_cond = drv.tree.ast_insert<ast::IR_while_end_cond_t>(std::vector<ast::node_t*>{$3});
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5, end_cond});
     }
     | IF LPAREN exp RPAREN stmt {
         auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, nullptr});
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_without_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_if_cont, nullptr});
     }
     | IF LPAREN exp RPAREN stmt ELSE stmt {
-        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3}); 
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, $7});
+        auto if_cond = drv.tree.ast_insert<ast::if_t>(std::vector<ast::node_t*>{$3});
+        auto IR_else = drv.tree.ast_insert<ast::IR_else_t>();
+        auto IR_if_cont = drv.tree.ast_insert<ast::IR_if_cont_with_else>();
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{if_cond, $5, IR_else, $7, IR_if_cont});
     }
     | WHILE LPAREN exp RPAREN stmt { 
-        auto while_cond = drv.tree.ast_insert<ast::while_t>(std::vector<ast::node_t*>{$3}); 
-        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5, while_cond});
+        auto while_cond = drv.tree.ast_insert<ast::first_while_t>(std::vector<ast::node_t*>{$3});
+        auto end_cond = drv.tree.ast_insert<ast::IR_while_end_cond_t>(std::vector<ast::node_t*>{$3});
+
+        $$ = drv.tree.ast_insert<ast::block>(std::vector<ast::node_t*>{while_cond, $5, end_cond});
     }
     ;
 
@@ -333,11 +353,11 @@ scolon_exp: exp GRATER exp {
     | NAME { 
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized variable" << std::endl;
-            is_error = 1;
+            ++is_error;
         }
         if (std::get<int>($1->value) >= 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": " << $1->name << " incorrect call" << std::endl;
-            is_error = 1;
+            ++is_error;
         }
         else {
             $$ = drv.tree.ast_insert<ast::scalar_variable>($1->name);
@@ -346,15 +366,15 @@ scolon_exp: exp GRATER exp {
     | NAME LPAREN init_arg_list RPAREN {
         if ($1->is_init == 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": uninitialized function" << std::endl;
-            is_error = 1;
+            ++is_error;
         }
         if (std::get<int>($1->value) < 0) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": scalar type call" << std::endl;
-            is_error = 1;
+            ++is_error;
         }
         if (static_cast<unsigned>(std::get<int>($1->value)) != init_arg_size) {
             std::cout << yy::red << "Error:" << yy::norm << @1 << ": mismatch with function signature" << std::endl;
-            is_error = 1;
+            ++is_error;
         }
         auto func_init = drv.tree.ast_insert<ast::func_init>($1->name);
         auto recover_scopes = drv.tree.ast_insert<ast::recover_scopes>();
@@ -367,7 +387,7 @@ scolon_exp: exp GRATER exp {
     }
     | ERR {
         std::cout << yy::red << "Error:" << yy::norm << @1 << ": unknown operation" << std::endl;
-        is_error = 1;
+        ++is_error;
     }
     ;
 
@@ -375,7 +395,7 @@ io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>(std::vector<ast::no
        | RETURN exp { 
            if (drv.scopes.is_global()) {
                 std::cout << yy::red << "Error:" << yy::norm << @1 << ": can't return from global scope" << std::endl;
-                is_error = 1;
+                ++is_error;
            }
            $$ = drv.tree.ast_insert<ast::return_t>(std::vector<ast::node_t*>{$2}); 
        }
@@ -384,18 +404,13 @@ io_func: PRINT exp  { $$ = drv.tree.ast_insert<ast::print_t>(std::vector<ast::no
 program: list END {
         if (!drv.tree.is_valid()) {
             std::cout << yy::red << "Error:" << yy::norm << @2 << ": empty AST" << std::endl;
-            return 0;
+            throw parse_error("empty AST");
         }
-        if (is_error) return 0;
-        #ifdef DUMP
-            drv.tree.dump();
-            int err = system("dot -Tpng tree_dump.dot -o image.png");
-            if (err < 0) {
-                std::cout << yy::red << "Error:" << yy::norm << @2 << ": can't execute \"dot -Tpng tree_dump.dot -o image.png\"" << std::endl;
-                return 0;
-            }
-        #endif
-        drv.tree.traversal();
+        if (is_error) {
+            std::string n_errors  = std::to_string(is_error);
+            throw parse_error(n_errors + " errors generated.");
+        }
+        return 0;
     }
     ;
 
@@ -409,7 +424,7 @@ parser::token_type yylex(parser::semantic_type *yylval, parser::location_type* l
 
 void parser::error(const parser::location_type& location, const std::string& what) {
     std::cout << yy::red << "Error:" << yy::norm << location << ' ' << what << std::endl;
-    is_error = 1;
+    ++is_error;
 }
 
 } // yy

@@ -22,7 +22,7 @@ std::string command_line_arg_handler(const int argc, const char *argv[]) {
     if (vm.count("path")) 
         return vm["path"].as<std::string>();
 
-    std::cout << "./paracl <<file>>" << std::endl;
+    std::cout << "./paracl(i) <<file>>" << std::endl;
     return 0;
 }
 
@@ -37,8 +37,10 @@ int main(const int argc, const char *argv[]) {
 
         yy::driver_t driver(&file);
         driver.parse();
+        driver.traversal_AST();
+    } catch (yy::parse_error &err) {
+        std::cout << "Parse error: " << err.what() << std::endl;
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
-        return 0;
     }
 }
