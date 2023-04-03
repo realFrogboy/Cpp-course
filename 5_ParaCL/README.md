@@ -23,17 +23,14 @@ Create build directory
 $ mkdir build
 $ cd build
 ```
-To build interpreter enter
+Build
 ```sh
 $ cmake -D CMAKE_BUILD_TYPE=Release ../
 $ cmake --build ./
 ```
-To build compiler enter
-```sh
-$ cmake -D CODEGEN=true -D CMAKE_BUILD_TYPE=Release ../
-$ cmake --build ./
-```
-
+There are 2 executables: <br />
+`paracl`  - compiler. Creates `output.o` and `prog` <br />
+`paracli` - interpreter.
 ## AST
 If you want to see on generated AST, you should build with DUMP flag:
 ```sh
