@@ -74,7 +74,8 @@ llvm::Value *mul_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Val
 }
 
 llvm::Value *div_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
-    return c_info.builder->CreateSDiv(lhs, rhs, "divtmp");
+    llvm::Value *res = c_info.builder->CreateSDiv(lhs, rhs, "divtmp");
+    return c_info.builder->CreateFPToSI(res, llvm::Type::getInt32Ty(*c_info.context), "castToInt");
 }
 
 llvm::Value *remainder_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
@@ -117,13 +118,15 @@ llvm::Value *r_shift_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm:
 llvm::Value *l_and_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
     llvm::Value* condLhs = c_info.builder->CreateICmpNE(lhs, c_info.builder->getInt32(0), "condLhs");
     llvm::Value* condRhs = c_info.builder->CreateICmpNE(rhs, c_info.builder->getInt32(0), "condrhs");
-    return c_info.builder->CreateLogicalAnd(condLhs, condRhs, "landtmp");
+    llvm::Value* res = c_info.builder->CreateLogicalAnd(condLhs, condRhs, "landtmp");
+    return c_info.builder->CreateZExt(res, llvm::Type::getInt32Ty(*c_info.context), "boolZExt");
 }
 
 llvm::Value *l_or_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
     llvm::Value* condLhs = c_info.builder->CreateICmpNE(lhs, c_info.builder->getInt32(0), "condLhs");
     llvm::Value* condRhs = c_info.builder->CreateICmpNE(rhs, c_info.builder->getInt32(0), "condrhs");
-    return c_info.builder->CreateLogicalOr(condLhs, condRhs, "lortmp");
+    llvm::Value* res = c_info.builder->CreateLogicalOr(condLhs, condRhs, "lortmp");
+    return c_info.builder->CreateZExt(res, llvm::Type::getInt32Ty(*c_info.context), "boolZExt");
 }
 
 void scalar_variable::codegen(codegen_info &c_info) const {
