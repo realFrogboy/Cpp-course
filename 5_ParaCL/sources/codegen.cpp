@@ -7,19 +7,21 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/MC/TargetRegistry.h"
+//#include "llvm/IR/Verifier.h"
+//#include "llvm/MC/TargetRegistry.h"
+#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
-#include "llvm/TargetParser/Host.h"
-#include "llvm/Transforms/InstCombine/InstCombine.h"
+//#include "llvm/TargetParser/Host.h"
+//#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Scalar/GVN.h"
+//#include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
+#include "llvm/ADT/DenseMap.h"
 
 #include "ast.hpp"
 
@@ -118,14 +120,16 @@ llvm::Value *r_shift_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm:
 llvm::Value *l_and_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
     llvm::Value* condLhs = c_info.builder->CreateICmpNE(lhs, c_info.builder->getInt32(0), "condLhs");
     llvm::Value* condRhs = c_info.builder->CreateICmpNE(rhs, c_info.builder->getInt32(0), "condrhs");
-    llvm::Value* res = c_info.builder->CreateLogicalAnd(condLhs, condRhs, "landtmp");
+    //llvm::Value* res = c_info.builder->CreateLogicalAnd(condLhs, condRhs, "landtmp");
+    llvm::Value* res = c_info.builder->CreateSelect(condLhs, condRhs, llvm::ConstantInt::getNullValue(condRhs->getType()), "landtmp");
     return c_info.builder->CreateZExt(res, llvm::Type::getInt32Ty(*c_info.context), "boolZExt");
 }
 
 llvm::Value *l_or_t::codegen_op(codegen_info &c_info, llvm::Value *lhs, llvm::Value *rhs) const {
     llvm::Value* condLhs = c_info.builder->CreateICmpNE(lhs, c_info.builder->getInt32(0), "condLhs");
     llvm::Value* condRhs = c_info.builder->CreateICmpNE(rhs, c_info.builder->getInt32(0), "condrhs");
-    llvm::Value* res = c_info.builder->CreateLogicalOr(condLhs, condRhs, "lortmp");
+    //llvm::Value* res = c_info.builder->CreateLogicalOr(condLhs, condRhs, "lortmp");
+    llvm::Value* res = c_info.builder->CreateSelect(condLhs, llvm::ConstantInt::getAllOnesValue(condRhs->getType()), condRhs, "lortmp");
     return c_info.builder->CreateZExt(res, llvm::Type::getInt32Ty(*c_info.context), "boolZExt");
 }
 
@@ -193,8 +197,9 @@ llvm::Value * b_not_t::codegen_op(codegen_info &c_info, llvm::Value *lhs) const 
 }
 
 llvm::Value * abs_t::codegen_op(codegen_info &c_info, llvm::Value *lhs) const {
-    llvm::Function *abs = llvm::Intrinsic::getDeclaration(c_info.Module, llvm::Intrinsic::abs, llvm::Type::getInt32Ty(*c_info.context));
-    return c_info.builder->CreateCall(abs, lhs, "callabs");
+    llvm::Function *abs = llvm::Intrinsic::getDeclaration(c_info.Module, llvm::Intrinsic::fabs, llvm::Type::getFloatTy(*c_info.context));
+    llvm::Value *res = c_info.builder->CreateCall(abs, lhs, "callabs");
+    return c_info.builder->CreateFPToSI(res, llvm::Type::getInt32Ty(*c_info.context), "castToInt");
 }
 
 void print_t::codegen(codegen_info &c_info) const {
@@ -243,7 +248,8 @@ void IR_else_t::codegen(codegen_info &c_info) const {
     auto tp = c_info.blocks.back();
 
     c_info.setBr(std::get<0>(tp), std::get<2>(tp));
-    func->insert(func->end(), std::get<1>(tp));
+    //func->insert(func->end(), std::get<1>(tp));
+    func->getBasicBlockList().insert(func->end(), std::get<1>(tp));
     c_info.builder->SetInsertPoint(std::get<1>(tp));
 }
 
@@ -253,7 +259,8 @@ void IR_if_cont_without_else::codegen(codegen_info &c_info) const   {
     auto tp = c_info.blocks.back();
     c_info.blocks.pop_back();
 
-    func->insert(func->end(), std::get<1>(tp));
+    //func->insert(func->end(), std::get<1>(tp));
+    func->getBasicBlockList().insert(func->end(), std::get<1>(tp));
     c_info.setBr(std::get<0>(tp), std::get<1>(tp));
     c_info.builder->SetInsertPoint(std::get<1>(tp));
 }
@@ -264,7 +271,8 @@ void IR_if_cont_with_else::codegen(codegen_info &c_info) const {
     auto tp = c_info.blocks.back();
     c_info.blocks.pop_back();
 
-    func->insert(func->end(), std::get<2>(tp));
+    //func->insert(func->end(), std::get<2>(tp));
+    func->getBasicBlockList().insert(func->end(), std::get<2>(tp));
     c_info.setBr(std::get<1>(tp), std::get<2>(tp));
     c_info.builder->SetInsertPoint(std::get<2>(tp));
 }
@@ -293,7 +301,8 @@ void IR_while_end_cond_t::codegen(codegen_info &c_info) const {
     c_info.builder->CreateCondBr(cond, pr.first, pr.second);
 
     llvm::Function *func = c_info.builder->GetInsertBlock()->getParent();
-    func->insert(func->end(), pr.second);
+    //func->insert(func->end(), pr.second);
+    func->getBasicBlockList().insert(func->end(), pr.second);
     c_info.builder->SetInsertPoint(pr.second);
 }
 
@@ -303,22 +312,22 @@ tree_t::codegen_traversal_t::codegen_traversal_t() : traversal_t{}, context{std:
     e_info.Module  = Module.get();
     e_info.builder = builder.get();
 
-    e_info.builder->CreateGlobalStringPtr("%d\n", "printf_sig", 0, e_info.Module);
-    e_info.builder->CreateGlobalStringPtr("%d", "scanf_sig", 0, e_info.Module);
-
     llvm::Function *func = llvm::Function::Create(llvm::FunctionType::get(llvm::Type::getInt32Ty(*context), false), 
                                     llvm::Function::ExternalLinkage, "main", Module.get());
-    
+
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*context, "main.0", func);
     builder->SetInsertPoint(BB);
+
+    e_info.builder->CreateGlobalStringPtr("%d\n", "printf_sig", 0);
+    e_info.builder->CreateGlobalStringPtr("%d", "scanf_sig", 0);
 }
 
 void tree_t::codegen_traversal_t::optimize_functions() const {
     auto fpm = std::make_unique<llvm::legacy::FunctionPassManager>(Module.get());
     fpm->add(llvm::createPromoteMemoryToRegisterPass());
-    fpm->add(llvm::createInstructionCombiningPass());
+    //fpm->add(llvm::createInstructionCombiningPass());
     fpm->add(llvm::createReassociatePass());
-    fpm->add(llvm::createGVNPass());
+    fpm->add(llvm::createNewGVNPass());
     fpm->add(llvm::createCFGSimplificationPass());
 
     fpm->doInitialization();
@@ -330,7 +339,7 @@ void tree_t::codegen_traversal_t::optimize_functions() const {
 }
 
 void tree_t::codegen_traversal_t::dump() const {
-    llvm::verifyModule(*Module);
+    //llvm::verifyModule(*Module);
     Module->print(llvm::errs(), nullptr);
 
     llvm::InitializeAllTargetInfos();
@@ -353,7 +362,7 @@ void tree_t::codegen_traversal_t::dump() const {
     auto Features = "";
 
     llvm::TargetOptions opt;
-    auto RM = std::optional<llvm::Reloc::Model>(llvm::Reloc::Model::PIC_);
+    auto RM = llvm::Optional<llvm::Reloc::Model>(llvm::Reloc::Model::PIC_);
     auto TheTargetMachine =
         Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
