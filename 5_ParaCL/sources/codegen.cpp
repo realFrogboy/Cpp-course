@@ -1,3 +1,4 @@
+#include <mutex>
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/Constants.h"
@@ -22,6 +23,7 @@
 //#include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Utils.h"
 #include "llvm/ADT/DenseMap.h"
+
 
 #include "ast.hpp"
 
@@ -393,7 +395,8 @@ void tree_t::codegen_traversal_t::dump() const {
 }
 
 tree_t::codegen_traversal_t::~codegen_traversal_t() {
-    llvm::llvm_shutdown_obj();
+    //llvm::llvm_shutdown_obj();
+    llvm::llvm_shutdown();
 }
 
 } // ast
